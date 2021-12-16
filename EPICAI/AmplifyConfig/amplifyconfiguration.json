@@ -1,0 +1,103 @@
+{
+    "UserAgent": "aws-amplify-cli/2.0",
+    "Version": "1.0",
+    "api": {
+        "plugins": {
+            "awsAPIPlugin": {
+                "graphqlraw02-dev": {
+                    "endpointType": "GraphQL",
+                    "endpoint": "https://rpfnn7ubmvcwjlisyoceu2kxkm.appsync-api.ap-southeast-1.amazonaws.com/graphql",
+                    "region": "ap-southeast-1",
+                    "authorizationType": "API_KEY",
+                    "apiKey": "da2-4uaastgkgvfpzm3imdwo2dddvu"
+                }
+            }
+        }
+    },
+    "auth": {
+        "plugins": {
+            "awsCognitoAuthPlugin": {
+                "UserAgent": "aws-amplify/cli",
+                "Version": "0.1.0",
+                "IdentityManager": {
+                    "Default": {}
+                },
+                "AppSync": {
+                    "Default": {
+                        "ApiUrl": "https://rpfnn7ubmvcwjlisyoceu2kxkm.appsync-api.ap-southeast-1.amazonaws.com/graphql",
+                        "Region": "ap-southeast-1",
+                        "AuthMode": "API_KEY",
+                        "ApiKey": "da2-4uaastgkgvfpzm3imdwo2dddvu",
+                        "ClientDatabasePrefix": "graphqlraw02-dev_API_KEY"
+                    }
+                },
+                "CredentialsProvider": {
+                    "CognitoIdentity": {
+                        "Default": {
+                            "PoolId": "ap-southeast-1:c44c6f72-21d4-499c-a282-2b450bf697d9",
+                            "Region": "ap-southeast-1"
+                        }
+                    }
+                },
+                "CognitoUserPool": {
+                    "Default": {
+                        "PoolId": "ap-southeast-1_e2bRwJahG",
+                        "AppClientId": "50n270aa2mco5dst3ss8hf8286",
+                        "Region": "ap-southeast-1"
+                    }
+                },
+                "Auth": {
+                    "Default": {
+                        "OAuth": {
+                            "WebDomain": "pouya-dev.auth.ap-southeast-1.amazoncognito.com",
+                            "AppClientId": "50n270aa2mco5dst3ss8hf8286",
+                            "SignInRedirectURI": "AI2AR://",
+                            "SignOutRedirectURI": "AI2AR://",
+                            "Scopes": [
+                                "aws.cognito.signin.user.admin",
+                                "email",
+                                "openid",
+                                "phone",
+                                "profile"
+                            ]
+                        },
+                        "authenticationFlowType": "USER_SRP_AUTH",
+                        "socialProviders": [
+                            "FACEBOOK",
+                            "GOOGLE",
+                            "APPLE"
+                        ],
+                        "usernameAttributes": [],
+                        "signupAttributes": [
+                            "EMAIL"
+                        ],
+                        "passwordProtectionSettings": {
+                            "passwordPolicyMinLength": 8,
+                            "passwordPolicyCharacters": []
+                        },
+                        "mfaConfiguration": "OFF",
+                        "mfaTypes": [],
+                        "verificationMechanisms": [
+                            "EMAIL"
+                        ]
+                    }
+                },
+                "S3TransferUtility": {
+                    "Default": {
+                        "Bucket": "ai2ardevnew132649-dev",
+                        "Region": "ap-southeast-1"
+                    }
+                }
+            }
+        }
+    },
+    "storage": {
+        "plugins": {
+            "awsS3StoragePlugin": {
+                "bucket": "ai2ardevnew132649-dev",
+                "region": "ap-southeast-1",
+                "defaultAccessLevel": "guest"
+            }
+        }
+    }
+}
