@@ -26,6 +26,7 @@
 		A98606EB2764B5FD005204CC /* EPICAISharedPreference.swift in Sources */ = {isa = PBXBuildFile; fileRef = A98606EA2764B5FD005204CC /* EPICAISharedPreference.swift */; };
 		A988B1D42769B2900042569F /* EPICAIAccountVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = A988B1D32769B2900042569F /* EPICAIAccountVC.swift */; };
 		A988B1DA2769F4990042569F /* EPICAIFileManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A988B1D92769F4990042569F /* EPICAIFileManager.swift */; };
+		A988C43A276C569E00EABA66 /* FeedsGauseCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = A988C439276C569E00EABA66 /* FeedsGauseCell.swift */; };
 		A98AB5562763168400208724 /* AWSManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A98AB5552763168400208724 /* AWSManager.swift */; };
 		A98AB559276357EA00208724 /* amplifyconfiguration.json in Resources */ = {isa = PBXBuildFile; fileRef = A98AB557276357EA00208724 /* amplifyconfiguration.json */; };
 		A98AB55A276357EA00208724 /* awsconfiguration.json in Resources */ = {isa = PBXBuildFile; fileRef = A98AB558276357EA00208724 /* awsconfiguration.json */; };
@@ -87,7 +88,6 @@
 		A995E1C02761D7D3005D74AD /* FeedsCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = A995E1B82761D7D3005D74AD /* FeedsCell.xib */; };
 		A995E1C12761D7D3005D74AD /* FeedsEmptyCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = A995E1B92761D7D3005D74AD /* FeedsEmptyCell.swift */; };
 		A995E1C42761DA05005D74AD /* PieCharRoundedCornerRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = A995E1C32761DA04005D74AD /* PieCharRoundedCornerRenderer.swift */; };
-		A995E1C62761DA79005D74AD /* FeedsGauseCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = A995E1C52761DA79005D74AD /* FeedsGauseCell.swift */; };
 		A995E1C92761DB4A005D74AD /* EPICAIFeedItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = A995E1C82761DB4A005D74AD /* EPICAIFeedItem.swift */; };
 		A995E1CC2761DBD0005D74AD /* EPICAIFeedVM.swift in Sources */ = {isa = PBXBuildFile; fileRef = A995E1CB2761DBD0005D74AD /* EPICAIFeedVM.swift */; };
 		A995E1CF2761E046005D74AD /* GaugeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A995E1CE2761E046005D74AD /* GaugeView.swift */; };
@@ -129,6 +129,7 @@
 		A98606EA2764B5FD005204CC /* EPICAISharedPreference.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EPICAISharedPreference.swift; sourceTree = "<group>"; };
 		A988B1D32769B2900042569F /* EPICAIAccountVC.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = EPICAIAccountVC.swift; sourceTree = "<group>"; };
 		A988B1D92769F4990042569F /* EPICAIFileManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EPICAIFileManager.swift; sourceTree = "<group>"; };
+		A988C439276C569E00EABA66 /* FeedsGauseCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FeedsGauseCell.swift; sourceTree = "<group>"; };
 		A98AB5552763168400208724 /* AWSManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AWSManager.swift; sourceTree = "<group>"; };
 		A98AB557276357EA00208724 /* amplifyconfiguration.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = amplifyconfiguration.json; sourceTree = "<group>"; };
 		A98AB558276357EA00208724 /* awsconfiguration.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = awsconfiguration.json; sourceTree = "<group>"; };
@@ -183,7 +184,6 @@
 		A995E1B82761D7D3005D74AD /* FeedsCell.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = FeedsCell.xib; sourceTree = "<group>"; };
 		A995E1B92761D7D3005D74AD /* FeedsEmptyCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FeedsEmptyCell.swift; sourceTree = "<group>"; };
 		A995E1C32761DA04005D74AD /* PieCharRoundedCornerRenderer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PieCharRoundedCornerRenderer.swift; sourceTree = "<group>"; };
-		A995E1C52761DA79005D74AD /* FeedsGauseCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = FeedsGauseCell.swift; path = "../../../../../EPIC-iOS/EPICAI/Classes/Cells/Feeds/FeedsGauseCell.swift"; sourceTree = "<group>"; };
 		A995E1C82761DB4A005D74AD /* EPICAIFeedItem.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = EPICAIFeedItem.swift; sourceTree = "<group>"; };
 		A995E1CB2761DBD0005D74AD /* EPICAIFeedVM.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = EPICAIFeedVM.swift; sourceTree = "<group>"; };
 		A995E1CE2761E046005D74AD /* GaugeView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GaugeView.swift; sourceTree = "<group>"; };
@@ -540,7 +540,7 @@
 		A995E1B12761D7D3005D74AD /* FeedsCells */ = {
 			isa = PBXGroup;
 			children = (
-				A995E1C52761DA79005D74AD /* FeedsGauseCell.swift */,
+				A988C439276C569E00EABA66 /* FeedsGauseCell.swift */,
 				A995E1B22761D7D3005D74AD /* FeedsFillerWordsCell.swift */,
 				A995E1B32761D7D3005D74AD /* FeedsTonalityCell.swift */,
 				A995E1B42761D7D3005D74AD /* FeedsCell.swift */,
@@ -757,7 +757,6 @@
 			files = (
 				A995E11B2761B7AD005D74AD /* EPICAIFeedController.swift in Sources */,
 				A995E1D12761FF3D005D74AD /* APICAIUser.swift in Sources */,
-				A995E1C62761DA79005D74AD /* FeedsGauseCell.swift in Sources */,
 				A98606DD2764A001005204CC /* AuthService.swift in Sources */,
 				A995E19B2761D277005D74AD /* Autolayout.swift in Sources */,
 				A98606D527646E87005204CC /* EPICAIComment.swift in Sources */,
@@ -788,6 +787,7 @@
 				A995E1C42761DA05005D74AD /* PieCharRoundedCornerRenderer.swift in Sources */,
 				A9932BF42768C839008817C2 /* VideoNameCell.swift in Sources */,
 				A988B1D42769B2900042569F /* EPICAIAccountVC.swift in Sources */,
+				A988C43A276C569E00EABA66 /* FeedsGauseCell.swift in Sources */,
 				A98606D227646D85005204CC /* EPICAICommentVM.swift in Sources */,
 				A98606EB2764B5FD005204CC /* EPICAISharedPreference.swift in Sources */,
 				A98606C827646626005204CC /* EPICAICommentCell.swift in Sources */,
