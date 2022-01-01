@@ -244,11 +244,11 @@ class EPICAIVideoTrimVC: UIViewController {
     }
     
     @objc func analyzeButtonTapped(_ sender: UIButton) {
-        if let navController = self.navigationController {
-           let controller = EPICAIComposePost.instantiateFromAppStoryBoard(appStoryBoard: .VPStoryboard)
-            controller.videoURL = self.videoURL
-            navController.pushViewController(controller, animated: true)
-        }
+//        if let navController = self.navigationController {
+//           let controller = EPICAIComposePost.instantiateFromAppStoryBoard(appStoryBoard: .VPStoryboard)
+//            controller.videoURL = self.videoURL
+//            navController.pushViewController(controller, animated: true)
+//        }
     }
     
     @objc func trimButtonTapped(_ sender: UIButton) {
