@@ -61,29 +61,26 @@ class EPICAIFeedController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        
         print("User details = \(String(describing: EPICAISharedPreference.userSession))")
+        
         self.title = "Feeds"
+        
         setupUIElements()
         initiateVideoModel()
     }
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        
         if let tb = tabBarController as? GenericTabBarController {
             tb.hideFloatingTabBar(false)
         }
-        
     }
     
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-
     }
     
     func setupUIElements() {
-        
         NotificationCenter.default.addObserver(self,
                                                selector: #selector(shouldRefreshFeedsTable(_:)),
                                                name: .didAddNewPublicVideo,
@@ -94,7 +91,6 @@ class EPICAIFeedController: UIViewController {
                                                object: nil)
 
         view.backgroundColor = Palette.V2.V2_VCBackground
-        
         view.addSubview(ai)
         view.addSubview(feedsTableView)
         
@@ -158,7 +154,6 @@ class EPICAIFeedController: UIViewController {
 }
 
 extension EPICAIFeedController: UpdateCommentCountDelegate {
-    
     func updateFeedCommentCount(indexPath: IndexPath?) {
         if let indexPath = indexPath {
             var item = self.viewModel.items?[indexPath.row]
@@ -233,9 +228,7 @@ extension EPICAIFeedController: UITableViewDelegate, UITableViewDataSource {
             guard let cell = tableView.dequeueReusableCell(withIdentifier: "feedsCell", for: indexPath) as? FeedsCell else { return UITableViewCell() }
             
             cell.delegate = self
-            
             cell.item = items[indexPath.row]
-
             cell.gaugeData = randomGaugeData
             cell.pieChartData = randomPieChartData
             cell.tonalityData = randomTonalityData

@@ -65,7 +65,7 @@ class EPICAICommentVM :NSObject {
                 else {
                     let comment = EPICAIComment(uuid: commentUuid, videoUUID: feedItem.video.videoUUID, userUUID: userSession.uuid, comment: text, createdOn: createdOn, repliedTo: "", modifiedOn: "")
                     var epicCommentItem = EPICAICommentItem(comment: comment, user: userSession)
-                    epicCommentItem.userImage = EPICAIFileManager.getEPICAIUserSessionImage()
+                    epicCommentItem.userImage = EPICAIFileManager.shared().getEPICAIUserSessionImage()
                     completion(epicCommentItem)
                     self.updateFeedCommentCount(feedItem: feedItem)
                 }
@@ -103,11 +103,11 @@ class EPICAICommentVM :NSObject {
         })
     }
     
-    func getComments() {
+    func getComments(videoUUID: String) {
         var result = [EPICAICommentItem]()
         
-        appSyncClient?.fetch(query: ListCommentsQuery(), cachePolicy: .fetchIgnoringCacheData, resultHandler: { comments, error in
-            guard let comments = comments?.data?.listComments else { self.items = nil ; return }
+        appSyncClient?.fetch(query: ListCommentbyVideoQuery(video_uuid: videoUUID), cachePolicy: .fetchIgnoringCacheData, resultHandler: { comments, error in
+            guard let comments = comments?.data?.listCommentbyVideo else { self.items = nil ; return }
             let group = DispatchGroup()
             for comment in comments {
                 if let comment = comment {

@@ -54,8 +54,8 @@ extension EPICAIFeedVM {
     
     func getVideosList(){
         var results = [EPICAIFeedItem]()
-        appSyncClient?.fetch(query: ListVideosQuery(),cachePolicy: .fetchIgnoringCacheData) {(result, error) in
-            guard let unWrappedVideosList = result?.data?.listVideos else { self.items = nil ; return }
+        appSyncClient?.fetch(query: ListShareableVideoQuery(),cachePolicy: .fetchIgnoringCacheData) {(result, error) in
+            guard let unWrappedVideosList = result?.data?.listShareableVideo else { self.items = nil ; return }
             let group = DispatchGroup()
             for video in unWrappedVideosList {
                 if let uwvideo = video {

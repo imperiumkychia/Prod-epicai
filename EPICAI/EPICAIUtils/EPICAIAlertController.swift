@@ -8,7 +8,7 @@
 import UIKit
 import CDAlertView
 
-class AlertController: UIAlertController {
+class EPICAIAlertController: UIAlertController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -43,7 +43,7 @@ class AlertUser {
     }
     
     static func alertUser(title: String, message: String, target: UIViewController) {
-        let alertController = AlertController(title: title, message: message, preferredStyle: .alert)
+        let alertController = EPICAIAlertController(title: title, message: message, preferredStyle: .alert)
         let okAction = UIAlertAction(title: "Ok", style: .cancel) { (alert) in
             /// Do nothing
         }

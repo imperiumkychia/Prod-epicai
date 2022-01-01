@@ -17,21 +17,42 @@
 		A98606D7276477C1005204CC /* EPICAICommentItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = A98606D6276477C1005204CC /* EPICAICommentItem.swift */; };
 		A98606DB27649EA5005204CC /* EPICAISignInVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = A98606DA27649EA5005204CC /* EPICAISignInVC.swift */; };
 		A98606DD2764A001005204CC /* AuthService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A98606DC2764A001005204CC /* AuthService.swift */; };
-		A98606DF2764A093005204CC /* ImageDownloader.swift in Sources */ = {isa = PBXBuildFile; fileRef = A98606DE2764A093005204CC /* ImageDownloader.swift */; };
+		A98606DF2764A093005204CC /* EPICAIImageDownloader.swift in Sources */ = {isa = PBXBuildFile; fileRef = A98606DE2764A093005204CC /* EPICAIImageDownloader.swift */; };
 		A98606E12764A3A9005204CC /* KeychainHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = A98606E02764A3A9005204CC /* KeychainHandler.swift */; };
-		A98606E32764AA8C005204CC /* GenericAlertView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A98606E22764AA8C005204CC /* GenericAlertView.swift */; };
-		A98606E52764AF52005204CC /* AlertController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A98606E42764AF52005204CC /* AlertController.swift */; };
+		A98606E32764AA8C005204CC /* EPICAIGenericAlertView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A98606E22764AA8C005204CC /* EPICAIGenericAlertView.swift */; };
+		A98606E52764AF52005204CC /* EPICAIAlertController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A98606E42764AF52005204CC /* EPICAIAlertController.swift */; };
 		A98606E72764B1C9005204CC /* EPICAIAuth.swift in Sources */ = {isa = PBXBuildFile; fileRef = A98606E62764B1C9005204CC /* EPICAIAuth.swift */; };
 		A98606E92764B565005204CC /* icon_trans.png in Resources */ = {isa = PBXBuildFile; fileRef = A98606E82764B565005204CC /* icon_trans.png */; };
 		A98606EB2764B5FD005204CC /* EPICAISharedPreference.swift in Sources */ = {isa = PBXBuildFile; fileRef = A98606EA2764B5FD005204CC /* EPICAISharedPreference.swift */; };
 		A988B1D42769B2900042569F /* EPICAIAccountVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = A988B1D32769B2900042569F /* EPICAIAccountVC.swift */; };
 		A988B1DA2769F4990042569F /* EPICAIFileManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A988B1D92769F4990042569F /* EPICAIFileManager.swift */; };
 		A988C43A276C569E00EABA66 /* FeedsGauseCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = A988C439276C569E00EABA66 /* FeedsGauseCell.swift */; };
+		A988C443276C5A4200EABA66 /* EPICAIVideoCapture.swift in Sources */ = {isa = PBXBuildFile; fileRef = A988C442276C5A4200EABA66 /* EPICAIVideoCapture.swift */; };
+		A988C445276C5A5500EABA66 /* AVCaptureVideoOrientation+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = A988C444276C5A5500EABA66 /* AVCaptureVideoOrientation+Extension.swift */; };
+		A988C45C276C5D4000EABA66 /* CameraVCBottomBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A988C45B276C5D4000EABA66 /* CameraVCBottomBarView.swift */; };
+		A988C45E276C5D6100EABA66 /* EPICAICaptureVideoVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = A988C45D276C5D6100EABA66 /* EPICAICaptureVideoVC.swift */; };
+		A988C460276C5DCC00EABA66 /* PopOverModalViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A988C45F276C5DCC00EABA66 /* PopOverModalViewController.swift */; };
+		A988C464276C5E2F00EABA66 /* CSVLog.swift in Sources */ = {isa = PBXBuildFile; fileRef = A988C463276C5E2F00EABA66 /* CSVLog.swift */; };
+		A988C467276C635B00EABA66 /* CGPoint+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = A988C466276C635B00EABA66 /* CGPoint+Extension.swift */; };
+		A988C46B276C643200EABA66 /* CSVReader.swift in Sources */ = {isa = PBXBuildFile; fileRef = A988C468276C643200EABA66 /* CSVReader.swift */; };
+		A988C46C276C643200EABA66 /* CSVError.swift in Sources */ = {isa = PBXBuildFile; fileRef = A988C469276C643200EABA66 /* CSVError.swift */; };
+		A988C46D276C643200EABA66 /* CSVWriter.swift in Sources */ = {isa = PBXBuildFile; fileRef = A988C46A276C643200EABA66 /* CSVWriter.swift */; };
+		A988C46F276C65A600EABA66 /* BinaryReader.swift in Sources */ = {isa = PBXBuildFile; fileRef = A988C46E276C65A600EABA66 /* BinaryReader.swift */; };
+		A988C471276C65AF00EABA66 /* CSVRowDecoder.swift in Sources */ = {isa = PBXBuildFile; fileRef = A988C470276C65AF00EABA66 /* CSVRowDecoder.swift */; };
+		A988C473276C65BA00EABA66 /* Endian.swift in Sources */ = {isa = PBXBuildFile; fileRef = A988C472276C65BA00EABA66 /* Endian.swift */; };
+		A988C475276C65C200EABA66 /* Legacy.swift in Sources */ = {isa = PBXBuildFile; fileRef = A988C474276C65C200EABA66 /* Legacy.swift */; };
+		A988C477276C65C900EABA66 /* UnicodeIterator.swift in Sources */ = {isa = PBXBuildFile; fileRef = A988C476276C65C900EABA66 /* UnicodeIterator.swift */; };
 		A98AB5562763168400208724 /* AWSManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A98AB5552763168400208724 /* AWSManager.swift */; };
 		A98AB559276357EA00208724 /* amplifyconfiguration.json in Resources */ = {isa = PBXBuildFile; fileRef = A98AB557276357EA00208724 /* amplifyconfiguration.json */; };
 		A98AB55A276357EA00208724 /* awsconfiguration.json in Resources */ = {isa = PBXBuildFile; fileRef = A98AB558276357EA00208724 /* awsconfiguration.json */; };
 		A98BF7592767030900F7E7AA /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = A98BF7582767030900F7E7AA /* LaunchScreen.storyboard */; };
 		A98BF75B2767032F00F7E7AA /* 1GUI_Splash_3.png in Resources */ = {isa = PBXBuildFile; fileRef = A98BF75A2767032F00F7E7AA /* 1GUI_Splash_3.png */; };
+		A991A78527707C4200512D64 /* EPICAIWriteVideoToAlbum.swift in Sources */ = {isa = PBXBuildFile; fileRef = A991A78427707C4200512D64 /* EPICAIWriteVideoToAlbum.swift */; };
+		A991A7872770981C00512D64 /* EPICAIVideoVM.swift in Sources */ = {isa = PBXBuildFile; fileRef = A991A7862770981C00512D64 /* EPICAIVideoVM.swift */; };
+		A991A78927709E6400512D64 /* EPICAIVideoTrimVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = A991A78827709E6400512D64 /* EPICAIVideoTrimVC.swift */; };
+		A991A78E27709E9E00512D64 /* RangeSeekSliderDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = A991A78B27709E9E00512D64 /* RangeSeekSliderDelegate.swift */; };
+		A991A78F27709E9E00512D64 /* RangeSeekSlider.swift in Sources */ = {isa = PBXBuildFile; fileRef = A991A78C27709E9E00512D64 /* RangeSeekSlider.swift */; };
+		A991A79027709E9E00512D64 /* TapticEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = A991A78D27709E9E00512D64 /* TapticEngine.swift */; };
 		A9932BD627687001008817C2 /* ReplyPopUPVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9932BD527687001008817C2 /* ReplyPopUPVC.swift */; };
 		A9932BD827687209008817C2 /* EPICAINotePopUpVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9932BD727687209008817C2 /* EPICAINotePopUpVC.swift */; };
 		A9932BDA2768785D008817C2 /* String+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9932BD92768785D008817C2 /* String+Extensions.swift */; };
@@ -67,7 +88,6 @@
 		A995E1382761BE2B005D74AD /* AWSS3StoragePlugin in Frameworks */ = {isa = PBXBuildFile; productRef = A995E1372761BE2B005D74AD /* AWSS3StoragePlugin */; };
 		A995E13A2761BE2B005D74AD /* Amplify in Frameworks */ = {isa = PBXBuildFile; productRef = A995E1392761BE2B005D74AD /* Amplify */; };
 		A995E13D2761BED2005D74AD /* AWSAppSync in Frameworks */ = {isa = PBXBuildFile; productRef = A995E13C2761BED2005D74AD /* AWSAppSync */; };
-		A995E18F2761C262005D74AD /* API.swift in Sources */ = {isa = PBXBuildFile; fileRef = A995E18C2761C262005D74AD /* API.swift */; };
 		A995E1932761D0D9005D74AD /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = A995E1922761D0D9005D74AD /* Main.storyboard */; };
 		A995E1952761D1E0005D74AD /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A995E1942761D1E0005D74AD /* Assets.xcassets */; };
 		A995E19B2761D277005D74AD /* Autolayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = A995E1982761D277005D74AD /* Autolayout.swift */; };
@@ -106,6 +126,20 @@
 		A995E1EB27621171005D74AD /* Lato-Light.ttf in Resources */ = {isa = PBXBuildFile; fileRef = A995E1DE27621171005D74AD /* Lato-Light.ttf */; };
 		A995E1EC27621171005D74AD /* Lato-ThinItalic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = A995E1DF27621171005D74AD /* Lato-ThinItalic.ttf */; };
 		A995E1EE276231CE005D74AD /* EPICAIVideo.swift in Sources */ = {isa = PBXBuildFile; fileRef = A995E1ED276231CE005D74AD /* EPICAIVideo.swift */; };
+		A99904FC277EF92200BD0A52 /* API.swift in Sources */ = {isa = PBXBuildFile; fileRef = A99904FB277EF92200BD0A52 /* API.swift */; };
+		A99904FE277F04DB00BD0A52 /* URL+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = A99904FD277F04DA00BD0A52 /* URL+Extension.swift */; };
+		A99A0FE1277D647F0068C1B3 /* EPICAILocationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A99A0FE0277D647E0068C1B3 /* EPICAILocationManager.swift */; };
+		A99AB7BD2775851700500E68 /* VPStoryboard.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = A99AB7BC2775851700500E68 /* VPStoryboard.storyboard */; };
+		A99AB7BF2775C96200500E68 /* EPICAIComposePost.swift in Sources */ = {isa = PBXBuildFile; fileRef = A99AB7BE2775C96200500E68 /* EPICAIComposePost.swift */; };
+		A99AB7C12775CA0900500E68 /* PostCellTV.swift in Sources */ = {isa = PBXBuildFile; fileRef = A99AB7C02775CA0900500E68 /* PostCellTV.swift */; };
+		A99AB7C32775CAC400500E68 /* Extention+UIImageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A99AB7C22775CAC400500E68 /* Extention+UIImageView.swift */; };
+		A99AB7C62775CC9100500E68 /* CustomUIImageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A99AB7C52775CC9100500E68 /* CustomUIImageView.swift */; };
+		A99AB7C82775CCBC00500E68 /* CustomUILabel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A99AB7C72775CCBC00500E68 /* CustomUILabel.swift */; };
+		A99AB7CA2775CE0E00500E68 /* Extension+UITextView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A99AB7C92775CE0E00500E68 /* Extension+UITextView.swift */; };
+		A99AB7CC2775D09D00500E68 /* CreatePostActionCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = A99AB7CB2775D09D00500E68 /* CreatePostActionCell.swift */; };
+		A99AB7CE2775D18B00500E68 /* CustomUIButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = A99AB7CD2775D18B00500E68 /* CustomUIButton.swift */; };
+		A99AB7D02775EE5F00500E68 /* ResultWithVideoCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = A99AB7CF2775EE5F00500E68 /* ResultWithVideoCell.swift */; };
+		A99CE18327749DE600CB1864 /* NSDate+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = A99CE18227749DE600CB1864 /* NSDate+Extension.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -120,21 +154,42 @@
 		A98606D6276477C1005204CC /* EPICAICommentItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EPICAICommentItem.swift; sourceTree = "<group>"; };
 		A98606DA27649EA5005204CC /* EPICAISignInVC.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = EPICAISignInVC.swift; sourceTree = "<group>"; };
 		A98606DC2764A001005204CC /* AuthService.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AuthService.swift; sourceTree = "<group>"; };
-		A98606DE2764A093005204CC /* ImageDownloader.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ImageDownloader.swift; sourceTree = "<group>"; };
+		A98606DE2764A093005204CC /* EPICAIImageDownloader.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = EPICAIImageDownloader.swift; sourceTree = "<group>"; };
 		A98606E02764A3A9005204CC /* KeychainHandler.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = KeychainHandler.swift; sourceTree = "<group>"; };
-		A98606E22764AA8C005204CC /* GenericAlertView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GenericAlertView.swift; sourceTree = "<group>"; };
-		A98606E42764AF52005204CC /* AlertController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AlertController.swift; sourceTree = "<group>"; };
+		A98606E22764AA8C005204CC /* EPICAIGenericAlertView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = EPICAIGenericAlertView.swift; sourceTree = "<group>"; };
+		A98606E42764AF52005204CC /* EPICAIAlertController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = EPICAIAlertController.swift; sourceTree = "<group>"; };
 		A98606E62764B1C9005204CC /* EPICAIAuth.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EPICAIAuth.swift; sourceTree = "<group>"; };
 		A98606E82764B565005204CC /* icon_trans.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = icon_trans.png; sourceTree = "<group>"; };
 		A98606EA2764B5FD005204CC /* EPICAISharedPreference.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EPICAISharedPreference.swift; sourceTree = "<group>"; };
 		A988B1D32769B2900042569F /* EPICAIAccountVC.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = EPICAIAccountVC.swift; sourceTree = "<group>"; };
 		A988B1D92769F4990042569F /* EPICAIFileManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EPICAIFileManager.swift; sourceTree = "<group>"; };
 		A988C439276C569E00EABA66 /* FeedsGauseCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FeedsGauseCell.swift; sourceTree = "<group>"; };
+		A988C442276C5A4200EABA66 /* EPICAIVideoCapture.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = EPICAIVideoCapture.swift; sourceTree = "<group>"; };
+		A988C444276C5A5500EABA66 /* AVCaptureVideoOrientation+Extension.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "AVCaptureVideoOrientation+Extension.swift"; sourceTree = "<group>"; };
+		A988C45B276C5D4000EABA66 /* CameraVCBottomBarView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CameraVCBottomBarView.swift; sourceTree = "<group>"; };
+		A988C45D276C5D6100EABA66 /* EPICAICaptureVideoVC.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = EPICAICaptureVideoVC.swift; sourceTree = "<group>"; };
+		A988C45F276C5DCC00EABA66 /* PopOverModalViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PopOverModalViewController.swift; sourceTree = "<group>"; };
+		A988C463276C5E2F00EABA66 /* CSVLog.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CSVLog.swift; sourceTree = "<group>"; };
+		A988C466276C635B00EABA66 /* CGPoint+Extension.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "CGPoint+Extension.swift"; sourceTree = "<group>"; };
+		A988C468276C643200EABA66 /* CSVReader.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CSVReader.swift; sourceTree = "<group>"; };
+		A988C469276C643200EABA66 /* CSVError.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CSVError.swift; sourceTree = "<group>"; };
+		A988C46A276C643200EABA66 /* CSVWriter.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CSVWriter.swift; sourceTree = "<group>"; };
+		A988C46E276C65A600EABA66 /* BinaryReader.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BinaryReader.swift; sourceTree = "<group>"; };
+		A988C470276C65AF00EABA66 /* CSVRowDecoder.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CSVRowDecoder.swift; sourceTree = "<group>"; };
+		A988C472276C65BA00EABA66 /* Endian.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Endian.swift; sourceTree = "<group>"; };
+		A988C474276C65C200EABA66 /* Legacy.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Legacy.swift; sourceTree = "<group>"; };
+		A988C476276C65C900EABA66 /* UnicodeIterator.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = UnicodeIterator.swift; sourceTree = "<group>"; };
 		A98AB5552763168400208724 /* AWSManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AWSManager.swift; sourceTree = "<group>"; };
 		A98AB557276357EA00208724 /* amplifyconfiguration.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = amplifyconfiguration.json; sourceTree = "<group>"; };
 		A98AB558276357EA00208724 /* awsconfiguration.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = awsconfiguration.json; sourceTree = "<group>"; };
 		A98BF7582767030900F7E7AA /* LaunchScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; path = LaunchScreen.storyboard; sourceTree = "<group>"; };
 		A98BF75A2767032F00F7E7AA /* 1GUI_Splash_3.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = 1GUI_Splash_3.png; sourceTree = "<group>"; };
+		A991A78427707C4200512D64 /* EPICAIWriteVideoToAlbum.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EPICAIWriteVideoToAlbum.swift; sourceTree = "<group>"; };
+		A991A7862770981C00512D64 /* EPICAIVideoVM.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EPICAIVideoVM.swift; sourceTree = "<group>"; };
+		A991A78827709E6400512D64 /* EPICAIVideoTrimVC.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = EPICAIVideoTrimVC.swift; sourceTree = "<group>"; };
+		A991A78B27709E9E00512D64 /* RangeSeekSliderDelegate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RangeSeekSliderDelegate.swift; sourceTree = "<group>"; };
+		A991A78C27709E9E00512D64 /* RangeSeekSlider.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RangeSeekSlider.swift; sourceTree = "<group>"; };
+		A991A78D27709E9E00512D64 /* TapticEngine.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TapticEngine.swift; sourceTree = "<group>"; };
 		A9932BD527687001008817C2 /* ReplyPopUPVC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReplyPopUPVC.swift; sourceTree = "<group>"; };
 		A9932BD727687209008817C2 /* EPICAINotePopUpVC.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = EPICAINotePopUpVC.swift; sourceTree = "<group>"; };
 		A9932BD92768785D008817C2 /* String+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "String+Extensions.swift"; sourceTree = "<group>"; };
@@ -163,7 +218,6 @@
 		A995E1182761B7AD005D74AD /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
 		A995E11A2761B7AD005D74AD /* EPICAIFeedController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EPICAIFeedController.swift; sourceTree = "<group>"; };
 		A995E1242761B7AF005D74AD /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		A995E18C2761C262005D74AD /* API.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = API.swift; sourceTree = "<group>"; };
 		A995E1922761D0D9005D74AD /* Main.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; path = Main.storyboard; sourceTree = "<group>"; };
 		A995E1942761D1E0005D74AD /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		A995E1982761D277005D74AD /* Autolayout.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Autolayout.swift; sourceTree = "<group>"; };
@@ -202,6 +256,20 @@
 		A995E1DE27621171005D74AD /* Lato-Light.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Lato-Light.ttf"; sourceTree = "<group>"; };
 		A995E1DF27621171005D74AD /* Lato-ThinItalic.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Lato-ThinItalic.ttf"; sourceTree = "<group>"; };
 		A995E1ED276231CE005D74AD /* EPICAIVideo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EPICAIVideo.swift; sourceTree = "<group>"; };
+		A99904FB277EF92200BD0A52 /* API.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = API.swift; sourceTree = "<group>"; };
+		A99904FD277F04DA00BD0A52 /* URL+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "URL+Extension.swift"; sourceTree = "<group>"; };
+		A99A0FE0277D647E0068C1B3 /* EPICAILocationManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = EPICAILocationManager.swift; sourceTree = "<group>"; };
+		A99AB7BC2775851700500E68 /* VPStoryboard.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = VPStoryboard.storyboard; sourceTree = "<group>"; };
+		A99AB7BE2775C96200500E68 /* EPICAIComposePost.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EPICAIComposePost.swift; sourceTree = "<group>"; };
+		A99AB7C02775CA0900500E68 /* PostCellTV.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PostCellTV.swift; sourceTree = "<group>"; };
+		A99AB7C22775CAC400500E68 /* Extention+UIImageView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Extention+UIImageView.swift"; sourceTree = "<group>"; };
+		A99AB7C52775CC9100500E68 /* CustomUIImageView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CustomUIImageView.swift; sourceTree = "<group>"; };
+		A99AB7C72775CCBC00500E68 /* CustomUILabel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CustomUILabel.swift; sourceTree = "<group>"; };
+		A99AB7C92775CE0E00500E68 /* Extension+UITextView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Extension+UITextView.swift"; sourceTree = "<group>"; };
+		A99AB7CB2775D09D00500E68 /* CreatePostActionCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CreatePostActionCell.swift; sourceTree = "<group>"; };
+		A99AB7CD2775D18B00500E68 /* CustomUIButton.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CustomUIButton.swift; sourceTree = "<group>"; };
+		A99AB7CF2775EE5F00500E68 /* ResultWithVideoCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResultWithVideoCell.swift; sourceTree = "<group>"; };
+		A99CE18227749DE600CB1864 /* NSDate+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "NSDate+Extension.swift"; sourceTree = "<group>"; };
 		CEE6763B4EB7D9B8008E3E6F /* Pods-EPICAI.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-EPICAI.release.xcconfig"; path = "Target Support Files/Pods-EPICAI/Pods-EPICAI.release.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -250,6 +318,7 @@
 				A98BF7582767030900F7E7AA /* LaunchScreen.storyboard */,
 				A995E1922761D0D9005D74AD /* Main.storyboard */,
 				A98606BF2764651D005204CC /* Comment.storyboard */,
+				A99AB7BC2775851700500E68 /* VPStoryboard.storyboard */,
 			);
 			path = Storyboards;
 			sourceTree = "<group>";
@@ -328,6 +397,90 @@
 			children = (
 			);
 			path = ViewModel;
+			sourceTree = "<group>";
+		};
+		A988C43D276C578500EABA66 /* EPICAIVideo */ = {
+			isa = PBXGroup;
+			children = (
+				A988C441276C5A3300EABA66 /* Utils */,
+				A988C440276C57C700EABA66 /* Scene */,
+				A988C43F276C57BD00EABA66 /* ViewModel */,
+				A988C43E276C57B700EABA66 /* Model */,
+			);
+			path = EPICAIVideo;
+			sourceTree = "<group>";
+		};
+		A988C43E276C57B700EABA66 /* Model */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = Model;
+			sourceTree = "<group>";
+		};
+		A988C43F276C57BD00EABA66 /* ViewModel */ = {
+			isa = PBXGroup;
+			children = (
+				A991A7862770981C00512D64 /* EPICAIVideoVM.swift */,
+			);
+			path = ViewModel;
+			sourceTree = "<group>";
+		};
+		A988C440276C57C700EABA66 /* Scene */ = {
+			isa = PBXGroup;
+			children = (
+				A99AB7CF2775EE5F00500E68 /* ResultWithVideoCell.swift */,
+				A99AB7CB2775D09D00500E68 /* CreatePostActionCell.swift */,
+				A99AB7C02775CA0900500E68 /* PostCellTV.swift */,
+				A988C45F276C5DCC00EABA66 /* PopOverModalViewController.swift */,
+				A988C45B276C5D4000EABA66 /* CameraVCBottomBarView.swift */,
+				A988C45D276C5D6100EABA66 /* EPICAICaptureVideoVC.swift */,
+				A991A78827709E6400512D64 /* EPICAIVideoTrimVC.swift */,
+				A99AB7BE2775C96200500E68 /* EPICAIComposePost.swift */,
+			);
+			path = Scene;
+			sourceTree = "<group>";
+		};
+		A988C441276C5A3300EABA66 /* Utils */ = {
+			isa = PBXGroup;
+			children = (
+				A988C446276C5AC800EABA66 /* Model */,
+				A988C442276C5A4200EABA66 /* EPICAIVideoCapture.swift */,
+				A991A78427707C4200512D64 /* EPICAIWriteVideoToAlbum.swift */,
+			);
+			path = Utils;
+			sourceTree = "<group>";
+		};
+		A988C446276C5AC800EABA66 /* Model */ = {
+			isa = PBXGroup;
+			children = (
+				A988C463276C5E2F00EABA66 /* CSVLog.swift */,
+			);
+			path = Model;
+			sourceTree = "<group>";
+		};
+		A988C465276C5E6800EABA66 /* CSVManager */ = {
+			isa = PBXGroup;
+			children = (
+				A988C476276C65C900EABA66 /* UnicodeIterator.swift */,
+				A988C474276C65C200EABA66 /* Legacy.swift */,
+				A988C472276C65BA00EABA66 /* Endian.swift */,
+				A988C470276C65AF00EABA66 /* CSVRowDecoder.swift */,
+				A988C46E276C65A600EABA66 /* BinaryReader.swift */,
+				A988C469276C643200EABA66 /* CSVError.swift */,
+				A988C468276C643200EABA66 /* CSVReader.swift */,
+				A988C46A276C643200EABA66 /* CSVWriter.swift */,
+			);
+			path = CSVManager;
+			sourceTree = "<group>";
+		};
+		A991A78A27709E9E00512D64 /* RangeSeekerSlider */ = {
+			isa = PBXGroup;
+			children = (
+				A991A78B27709E9E00512D64 /* RangeSeekSliderDelegate.swift */,
+				A991A78C27709E9E00512D64 /* RangeSeekSlider.swift */,
+				A991A78D27709E9E00512D64 /* TapticEngine.swift */,
+			);
+			path = RangeSeekerSlider;
 			sourceTree = "<group>";
 		};
 		A9932BDD2768C49F008817C2 /* EPICAIUserProfile */ = {
@@ -432,6 +585,7 @@
 		A995E1152761B7AD005D74AD /* EPICAI */ = {
 			isa = PBXGroup;
 			children = (
+				A988C43D276C578500EABA66 /* EPICAIVideo */,
 				A9932BDD2768C49F008817C2 /* EPICAIUserProfile */,
 				A98606CE27646C16005204CC /* EPICAIAuth */,
 				A98606C127646626005204CC /* EPICAIComment */,
@@ -452,9 +606,9 @@
 		A995E18B2761C250005D74AD /* AmplifyConfig */ = {
 			isa = PBXGroup;
 			children = (
+				A99904FB277EF92200BD0A52 /* API.swift */,
 				A98AB557276357EA00208724 /* amplifyconfiguration.json */,
 				A98AB558276357EA00208724 /* awsconfiguration.json */,
-				A995E18C2761C262005D74AD /* API.swift */,
 			);
 			path = AmplifyConfig;
 			sourceTree = "<group>";
@@ -481,12 +635,16 @@
 		A995E19E2761D489005D74AD /* EPICAIUtils */ = {
 			isa = PBXGroup;
 			children = (
+				A99A0FDF277D64670068C1B3 /* LocationManager */,
+				A99AB7C42775CC7400500E68 /* Desinable */,
+				A991A78A27709E9E00512D64 /* RangeSeekerSlider */,
+				A988C465276C5E6800EABA66 /* CSVManager */,
 				A98606E82764B565005204CC /* icon_trans.png */,
 				A995E1A12761D4CF005D74AD /* Extensions */,
 				A995E19F2761D494005D74AD /* Shared.swift */,
-				A98606DE2764A093005204CC /* ImageDownloader.swift */,
-				A98606E22764AA8C005204CC /* GenericAlertView.swift */,
-				A98606E42764AF52005204CC /* AlertController.swift */,
+				A98606DE2764A093005204CC /* EPICAIImageDownloader.swift */,
+				A98606E22764AA8C005204CC /* EPICAIGenericAlertView.swift */,
+				A98606E42764AF52005204CC /* EPICAIAlertController.swift */,
 				A98606EA2764B5FD005204CC /* EPICAISharedPreference.swift */,
 			);
 			path = EPICAIUtils;
@@ -495,6 +653,10 @@
 		A995E1A12761D4CF005D74AD /* Extensions */ = {
 			isa = PBXGroup;
 			children = (
+				A99AB7C92775CE0E00500E68 /* Extension+UITextView.swift */,
+				A99AB7C22775CAC400500E68 /* Extention+UIImageView.swift */,
+				A988C466276C635B00EABA66 /* CGPoint+Extension.swift */,
+				A988C444276C5A5500EABA66 /* AVCaptureVideoOrientation+Extension.swift */,
 				A9932BDB2768B3C8008817C2 /* Extension+UITableViewCell.swift */,
 				A995E1A22761D4CF005D74AD /* UIViewController+Extensions.swift */,
 				A995E1A32761D4CF005D74AD /* Notifications+Extensions.swift */,
@@ -502,6 +664,8 @@
 				A995E1A52761D4CF005D74AD /* UIColor+Extensions.swift */,
 				A995E1A62761D4CF005D74AD /* UImage+Extensions.swift */,
 				A9932BD92768785D008817C2 /* String+Extensions.swift */,
+				A99CE18227749DE600CB1864 /* NSDate+Extension.swift */,
+				A99904FD277F04DA00BD0A52 /* URL+Extension.swift */,
 			);
 			path = Extensions;
 			sourceTree = "<group>";
@@ -606,6 +770,24 @@
 			path = fonts;
 			sourceTree = "<group>";
 		};
+		A99A0FDF277D64670068C1B3 /* LocationManager */ = {
+			isa = PBXGroup;
+			children = (
+				A99A0FE0277D647E0068C1B3 /* EPICAILocationManager.swift */,
+			);
+			path = LocationManager;
+			sourceTree = "<group>";
+		};
+		A99AB7C42775CC7400500E68 /* Desinable */ = {
+			isa = PBXGroup;
+			children = (
+				A99AB7CD2775D18B00500E68 /* CustomUIButton.swift */,
+				A99AB7C72775CCBC00500E68 /* CustomUILabel.swift */,
+				A99AB7C52775CC9100500E68 /* CustomUIImageView.swift */,
+			);
+			path = Desinable;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -694,6 +876,7 @@
 				A995E1EC27621171005D74AD /* Lato-ThinItalic.ttf in Resources */,
 				A98BF75B2767032F00F7E7AA /* 1GUI_Splash_3.png in Resources */,
 				A98606E92764B565005204CC /* icon_trans.png in Resources */,
+				A99AB7BD2775851700500E68 /* VPStoryboard.storyboard in Resources */,
 				A995E1E027621171005D74AD /* Lato-Italic.ttf in Resources */,
 				A995E1C02761D7D3005D74AD /* FeedsCell.xib in Resources */,
 				A995E1E827621171005D74AD /* sf-compact-display-thin-58646eb43a785.otf in Resources */,
@@ -761,39 +944,55 @@
 				A995E19B2761D277005D74AD /* Autolayout.swift in Sources */,
 				A98606D527646E87005204CC /* EPICAIComment.swift in Sources */,
 				A9932BE82768C56D008817C2 /* EPICAIAccountVM.swift in Sources */,
+				A99AB7C82775CCBC00500E68 /* CustomUILabel.swift in Sources */,
 				A98606E72764B1C9005204CC /* EPICAIAuth.swift in Sources */,
+				A988C467276C635B00EABA66 /* CGPoint+Extension.swift in Sources */,
 				A9932BE12768C4EE008817C2 /* EPICAISettingsVC.swift in Sources */,
+				A988C445276C5A5500EABA66 /* AVCaptureVideoOrientation+Extension.swift in Sources */,
 				A995E19D2761D277005D74AD /* FloatingBarView.swift in Sources */,
+				A99A0FE1277D647F0068C1B3 /* EPICAILocationManager.swift in Sources */,
 				A9932BDF2768C4B4008817C2 /* EPICAIProfileVC.swift in Sources */,
+				A991A78F27709E9E00512D64 /* RangeSeekSlider.swift in Sources */,
 				A9932C0A2768C9D0008817C2 /* EPICAISettingsEmptyCell.swift in Sources */,
+				A991A78E27709E9E00512D64 /* RangeSeekSliderDelegate.swift in Sources */,
 				A995E1172761B7AD005D74AD /* AppDelegate.swift in Sources */,
+				A988C443276C5A4200EABA66 /* EPICAIVideoCapture.swift in Sources */,
 				A995E1BE2761D7D3005D74AD /* FeedsVideoPageCell.swift in Sources */,
 				A995E1C92761DB4A005D74AD /* EPICAIFeedItem.swift in Sources */,
 				A9932C082768C9C6008817C2 /* EPICAISignOutCell.swift in Sources */,
 				A98606C927646626005204CC /* EPICAIReplyCell.swift in Sources */,
+				A991A78527707C4200512D64 /* EPICAIWriteVideoToAlbum.swift in Sources */,
 				A9932BF62768C846008817C2 /* VideoBodyLanguageCell.swift in Sources */,
+				A988C477276C65C900EABA66 /* UnicodeIterator.swift in Sources */,
+				A99AB7C32775CAC400500E68 /* Extention+UIImageView.swift in Sources */,
 				A995E1BC2761D7D3005D74AD /* FeedsCell.swift in Sources */,
 				A98606CD27646626005204CC /* EPICAICommentsVC.swift in Sources */,
 				A995E1BD2761D7D3005D74AD /* FeedsPieChartCell.swift in Sources */,
+				A99AB7D02775EE5F00500E68 /* ResultWithVideoCell.swift in Sources */,
 				A9932BF12768C7F2008817C2 /* EPICAIVideoDetailsVC.swift in Sources */,
 				A995E1AD2761D59C005D74AD /* TabBarViewController.swift in Sources */,
-				A98606E32764AA8C005204CC /* GenericAlertView.swift in Sources */,
+				A99904FE277F04DB00BD0A52 /* URL+Extension.swift in Sources */,
+				A98606E32764AA8C005204CC /* EPICAIGenericAlertView.swift in Sources */,
 				A995E1CF2761E046005D74AD /* GaugeView.swift in Sources */,
+				A988C45C276C5D4000EABA66 /* CameraVCBottomBarView.swift in Sources */,
 				A995E1CC2761DBD0005D74AD /* EPICAIFeedVM.swift in Sources */,
 				A9932BFA2768C897008817C2 /* VideoSpeedOfSpeechCell.swift in Sources */,
 				A9932BFC2768C8B2008817C2 /* VideoTonalityCell.swift in Sources */,
+				A988C46B276C643200EABA66 /* CSVReader.swift in Sources */,
 				A98AB5562763168400208724 /* AWSManager.swift in Sources */,
 				A9932BD627687001008817C2 /* ReplyPopUPVC.swift in Sources */,
 				A995E1C42761DA05005D74AD /* PieCharRoundedCornerRenderer.swift in Sources */,
 				A9932BF42768C839008817C2 /* VideoNameCell.swift in Sources */,
+				A988C473276C65BA00EABA66 /* Endian.swift in Sources */,
 				A988B1D42769B2900042569F /* EPICAIAccountVC.swift in Sources */,
 				A988C43A276C569E00EABA66 /* FeedsGauseCell.swift in Sources */,
+				A991A78927709E6400512D64 /* EPICAIVideoTrimVC.swift in Sources */,
 				A98606D227646D85005204CC /* EPICAICommentVM.swift in Sources */,
 				A98606EB2764B5FD005204CC /* EPICAISharedPreference.swift in Sources */,
 				A98606C827646626005204CC /* EPICAICommentCell.swift in Sources */,
+				A991A7872770981C00512D64 /* EPICAIVideoVM.swift in Sources */,
 				A9932BED2768C6F5008817C2 /* ProfileOverviewCell.swift in Sources */,
 				A995E1A72761D4CF005D74AD /* UIViewController+Extensions.swift in Sources */,
-				A995E18F2761C262005D74AD /* API.swift in Sources */,
 				A995E1EE276231CE005D74AD /* EPICAIVideo.swift in Sources */,
 				A9932BEB2768C6DE008817C2 /* ProfileUserInfoCell.swift in Sources */,
 				A995E1192761B7AD005D74AD /* SceneDelegate.swift in Sources */,
@@ -801,27 +1000,44 @@
 				A995E1AA2761D4CF005D74AD /* UIColor+Extensions.swift in Sources */,
 				A995E1A02761D494005D74AD /* Shared.swift in Sources */,
 				A9932BEF2768C72E008817C2 /* ProfileVideosCell.swift in Sources */,
+				A988C46D276C643200EABA66 /* CSVWriter.swift in Sources */,
 				A995E1A82761D4CF005D74AD /* Notifications+Extensions.swift in Sources */,
 				A98606DB27649EA5005204CC /* EPICAISignInVC.swift in Sources */,
+				A99AB7CA2775CE0E00500E68 /* Extension+UITextView.swift in Sources */,
 				A9932BFE2768C8C3008817C2 /* VideoFillerWords.swift in Sources */,
+				A988C475276C65C200EABA66 /* Legacy.swift in Sources */,
 				A995E19C2761D277005D74AD /* GenericTabBarController.swift in Sources */,
-				A98606DF2764A093005204CC /* ImageDownloader.swift in Sources */,
+				A98606DF2764A093005204CC /* EPICAIImageDownloader.swift in Sources */,
 				A9932C042768C9AA008817C2 /* EPICGenericLinkCell.swift in Sources */,
 				A995E1BB2761D7D3005D74AD /* FeedsTonalityCell.swift in Sources */,
 				A9932BDC2768B3C8008817C2 /* Extension+UITableViewCell.swift in Sources */,
 				A9932C022768C99C008817C2 /* EPICAIUserInfoCell.swift in Sources */,
 				A988B1DA2769F4990042569F /* EPICAIFileManager.swift in Sources */,
 				A995E1AB2761D4CF005D74AD /* UImage+Extensions.swift in Sources */,
+				A988C46C276C643200EABA66 /* CSVError.swift in Sources */,
 				A9932BE62768C543008817C2 /* EPICAIProfileVM.swift in Sources */,
 				A9932BF82768C879008817C2 /* VideoHighlightsCell.swift in Sources */,
+				A988C45E276C5D6100EABA66 /* EPICAICaptureVideoVC.swift in Sources */,
+				A99AB7BF2775C96200500E68 /* EPICAIComposePost.swift in Sources */,
+				A988C464276C5E2F00EABA66 /* CSVLog.swift in Sources */,
 				A98606E12764A3A9005204CC /* KeychainHandler.swift in Sources */,
+				A99AB7CE2775D18B00500E68 /* CustomUIButton.swift in Sources */,
+				A99AB7C62775CC9100500E68 /* CustomUIImageView.swift in Sources */,
 				A9932BD827687209008817C2 /* EPICAINotePopUpVC.swift in Sources */,
 				A9932BDA2768785D008817C2 /* String+Extensions.swift in Sources */,
-				A98606E52764AF52005204CC /* AlertController.swift in Sources */,
+				A98606E52764AF52005204CC /* EPICAIAlertController.swift in Sources */,
+				A988C471276C65AF00EABA66 /* CSVRowDecoder.swift in Sources */,
+				A99904FC277EF92200BD0A52 /* API.swift in Sources */,
+				A991A79027709E9E00512D64 /* TapticEngine.swift in Sources */,
 				A9932C062768C9B9008817C2 /* EPICAIGenericSwitchCell.swift in Sources */,
+				A988C46F276C65A600EABA66 /* BinaryReader.swift in Sources */,
 				A98606D7276477C1005204CC /* EPICAICommentItem.swift in Sources */,
 				A995E1A92761D4CF005D74AD /* UIView+Extensions.swift in Sources */,
 				A995E1C12761D7D3005D74AD /* FeedsEmptyCell.swift in Sources */,
+				A988C460276C5DCC00EABA66 /* PopOverModalViewController.swift in Sources */,
+				A99CE18327749DE600CB1864 /* NSDate+Extension.swift in Sources */,
+				A99AB7C12775CA0900500E68 /* PostCellTV.swift in Sources */,
+				A99AB7CC2775D09D00500E68 /* CreatePostActionCell.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -950,25 +1166,33 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_STYLE = Automatic;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Manual;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = JBQ8NL57Y6;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = EPICAI/Info.plist;
+				INFOPLIST_KEY_NSCameraUsageDescription = "EPIC AI uses the camera to take photos and video.";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "EPIC AI needs access to your location in order to function properly.";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "EPIC AI  uses the microphone to record sound during video capturing.";
+				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "EPIC AI  saves captured photos and videos to your Photo Library.";
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "EPIC AI  saves captured photos and videos to your Photo Library.";
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
 				INFOPLIST_KEY_UIMainStoryboardFile = Main;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.xipe.EPICAI;
+				PRODUCT_BUNDLE_IDENTIFIER = com.xipe.bp.ai2ar;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "EPICAI Development";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -981,25 +1205,33 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_STYLE = Automatic;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
+				CODE_SIGN_IDENTITY = "Apple Distribution";
+				CODE_SIGN_STYLE = Manual;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = JBQ8NL57Y6;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = EPICAI/Info.plist;
+				INFOPLIST_KEY_NSCameraUsageDescription = "EPIC AI uses the camera to take photos and video.";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "EPIC AI needs access to your location in order to function properly.";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "EPIC AI  uses the microphone to record sound during video capturing.";
+				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "EPIC AI  saves captured photos and videos to your Photo Library.";
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "EPIC AI  saves captured photos and videos to your Photo Library.";
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
 				INFOPLIST_KEY_UIMainStoryboardFile = Main;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.xipe.EPICAI;
+				PRODUCT_BUNDLE_IDENTIFIER = com.xipe.bp.ai2ar;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "EPICAI Deployment";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";

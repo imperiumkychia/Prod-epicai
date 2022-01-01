@@ -140,7 +140,6 @@ class EPICAICommentsVC: UICollectionViewController {
         writeMessageView.addConstraintsWithFormat(format: "V:[v0(40)]-10-|", views: sendMessageBtn)
         writeMessageView.addConstraintsWithFormat(format: "H:|-8-[v0]-10-[v1(40)]-8-|", views: textView, sendMessageBtn)
         view.addConstraint(self.messageBottonAnchorContraints)
-        
     }
     
     @objc func initiateVideoModel() {
@@ -171,7 +170,7 @@ class EPICAICommentsVC: UICollectionViewController {
             self.ai.textLabel.text = "Please wait..."
             self.ai.show(in: self.view, animated: true)
         }
-        self.viewModel.getComments()
+        self.viewModel.getComments(videoUUID: self.feedItem.video.videoUUID)
     }
     
     @IBAction func moveBack(_ sender: Any) {

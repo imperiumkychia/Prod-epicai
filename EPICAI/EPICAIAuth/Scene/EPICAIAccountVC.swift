@@ -305,7 +305,7 @@ class EPICAIAccountVC: UIViewController {
                 DispatchQueue.main.async {
                     self.view.isUserInteractionEnabled = true
                     self.ai.dismiss()
-                    GenericAlertView().show(title: "Error",
+                    EPICAIGenericAlertView().show(title: "Error",
                                                   message: "Error getting user information.",
                                                   onViewController: self,
                                                   isShort: true) {}
@@ -334,7 +334,7 @@ class EPICAIAccountVC: UIViewController {
               let lName = lastNameTextField.text,
               fName != "", lName != "" else {
             DispatchQueue.main.async {
-                GenericAlertView().show(title: "Error",
+                EPICAIGenericAlertView().show(title: "Error",
                                               message: "First and last name cannot be empty.",
                                               onViewController: self,
                                               isShort: true) {}
@@ -358,7 +358,7 @@ class EPICAIAccountVC: UIViewController {
         viewModel.uploadProfileImage(image: image, key: imageName) { error in
             if let error = error {
                 DispatchQueue.main.async {
-                    GenericAlertView().show(title: "Error",
+                    EPICAIGenericAlertView().show(title: "Error",
                                                   message: "Error uploading image. \(error.localizedDescription)",
                                                   onViewController: self,
                                                   isShort: false) {}
@@ -376,7 +376,7 @@ class EPICAIAccountVC: UIViewController {
                         }
                         print("Error updating user info: \(error)")
                         DispatchQueue.main.async {
-                            GenericAlertView().show(title: "Error",
+                            EPICAIGenericAlertView().show(title: "Error",
                                                           message: "\(error.localizedDescription)",
                                                           onViewController: self,
                                                           isShort: false) {}
@@ -385,7 +385,7 @@ class EPICAIAccountVC: UIViewController {
                         NotificationCenter.default.post(name: .userInfoUpdated, object: nil, userInfo: nil)
                         self.viewModel.getUserInfo()
                         DispatchQueue.main.async {
-                            GenericAlertView().show(title: "Success",
+                            EPICAIGenericAlertView().show(title: "Success",
                                                           message: "Successfully updated user data.",
                                                           onViewController: self,
                                                           isShort: true) {}
@@ -432,7 +432,7 @@ class EPICAIAccountVC: UIViewController {
                 self.timer = Timer.scheduledTimer(timeInterval: 0.01, target: self, selector: #selector(self.didCapturePhoto), userInfo: nil, repeats: true)
             } else {
                 DispatchQueue.main.async {
-                    GenericAlertView().show(title: "Error",
+                    EPICAIGenericAlertView().show(title: "Error",
                                                   message: "Camera unavailable.",
                                                   onViewController: self,
                                                   isShort: true) { }

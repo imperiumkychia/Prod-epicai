@@ -36,6 +36,16 @@ struct EPICAIComment {
         self.modifiedOn = awsListComment.modifiedOn ?? ""
     }
     
+    init(awsListComment:ListCommentbyVideoQuery.Data.ListCommentbyVideo) {
+        self.uuid = awsListComment.commentUuid
+        self.videoUUID = awsListComment.videoUuid
+        self.userUUID = awsListComment.userUuid
+        self.comment = awsListComment.comment
+        self.createdOn = awsListComment.createdOn ?? ""
+        self.repliedTo = awsListComment.repliedTo ?? ""
+        self.modifiedOn = awsListComment.modifiedOn ?? ""
+    }
+    
     init(uuid:String,videoUUID:String,userUUID:String,comment:String,createdOn:String,repliedTo:String,modifiedOn:String) {
         self.uuid = uuid
         self.videoUUID = videoUUID

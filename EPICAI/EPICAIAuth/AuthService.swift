@@ -294,7 +294,7 @@ class AuthService: NSObject {
                 DispatchQueue.main.async {
                     self?.getCurrentUserEmail(completion: { (email) in
                         let message = ["email": email]
-                        NotificationCenter.default.post(name: .userDidSignIn, object: nil, userInfo: message)
+                        NotificationCenter.default.post(name: .userDidSignIn, object: nil, userInfo: message as [AnyHashable : Any])
                     })
                 }
             case .failure(let error):
@@ -317,7 +317,7 @@ class AuthService: NSObject {
                 DispatchQueue.main.async {
                     self?.getCurrentUserEmail(completion: { (email) in
                         let message = ["email": email]
-                        NotificationCenter.default.post(name: .userDidSignIn, object: nil, userInfo: message)
+                        NotificationCenter.default.post(name: .userDidSignIn, object: nil, userInfo: message as [AnyHashable : Any])
                     })
                 }
             case .failure(let error):

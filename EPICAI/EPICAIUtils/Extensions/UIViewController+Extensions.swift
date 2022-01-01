@@ -10,7 +10,7 @@ import UIKit
 
 enum AppStoryBoard : String {
     
-    case Main, Comment, User, Video, Setting, EPICAuthStoryboard
+    case Main, Comment, User, Video, Setting, EPICAuthStoryboard,VPStoryboard
     
     var instance : UIStoryboard {
         return UIStoryboard(name: self.rawValue, bundle: .main)
@@ -19,6 +19,19 @@ enum AppStoryBoard : String {
     func viewController <T :UIViewController> (viewController : T.Type) -> T {
         let storyboardID = (viewController as UIViewController.Type).storyboardID
         return instance.instantiateViewController(withIdentifier: storyboardID) as! T
+    }
+}
+
+extension UIViewController {
+    func hideNavBar() {
+        self.navigationController?.setNavigationBarHidden(true, animated: true)
+        self.navigationController?.navigationBar.isHidden = true
+        self.navigationController?.isNavigationBarHidden = true
+    }
+    func showNavBar() {
+        self.navigationController?.setNavigationBarHidden(false, animated: true)
+        self.navigationController?.navigationBar.isHidden = false
+        self.navigationController?.isNavigationBarHidden = false
     }
 }
 
@@ -99,4 +112,30 @@ extension UIViewController {
 //        navigationController?.pushViewController(toVC, animated: true)
 //    }
 //    
+}
+
+extension UIWindow {
+
+    func visibleViewController() -> UIViewController? {
+        if let rootViewController: UIViewController = self.rootViewController {
+            return UIWindow.getVisibleViewControllerFrom(vc: rootViewController)
+        }
+        return nil
+    }
+
+    static func getVisibleViewControllerFrom(vc:UIViewController) -> UIViewController {
+        if let navigationController = vc as? UINavigationController,
+            let visibleController = navigationController.visibleViewController  {
+            return UIWindow.getVisibleViewControllerFrom( vc: visibleController )
+        } else if let tabBarController = vc as? UITabBarController,
+            let selectedTabController = tabBarController.selectedViewController {
+            return UIWindow.getVisibleViewControllerFrom(vc: selectedTabController )
+        } else {
+            if let presentedViewController = vc.presentedViewController {
+                return UIWindow.getVisibleViewControllerFrom(vc: presentedViewController)
+            } else {
+                return vc
+            }
+        }
+    }
 }

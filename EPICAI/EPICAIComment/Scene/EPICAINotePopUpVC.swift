@@ -171,7 +171,7 @@ class EPICAINotePopUpVC: UIViewController , UITextViewDelegate{
             }
         }
         else{
-            GenericAlertView().show(title: "Error", message: "Please enter your comment", onViewController: self) {}
+            EPICAIGenericAlertView().show(title: "Error", message: "Please enter your comment", onViewController: self) {}
         }
     }
     

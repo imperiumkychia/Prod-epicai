@@ -45,6 +45,16 @@
 		</dict>
 	</dict>
 	<key>UIStatusBarStyle</key>
-	<string>UIStatusBarStyleLightContent</string>
+	<string>UIStatusBarStyleDefault</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>EPIC AI needs access to your location in order to function properly.</string>
+	<key>NSLocationAlwaysUsageDescription</key>
+	<string>EPIC AI needs access to your location in order to function properly.</string>
+	<key>NSLocationUsageDescription</key>
+	<string>EPIC AI needs access to your location in order to function properly.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>EPIC AI  saves captured photos and videos to your Photo Library.</string>
+	<key>UIFileSharingEnabled</key>
+	<true/>
 </dict>
 </plist>

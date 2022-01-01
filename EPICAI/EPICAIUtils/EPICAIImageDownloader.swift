@@ -28,6 +28,5 @@ public class ImageGet {
         download(from: url) { (image) in
             completion(image)
         }
-        
     }
 }

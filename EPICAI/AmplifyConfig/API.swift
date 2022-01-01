@@ -1917,8 +1917,8 @@ public struct UpdateUser_loginInput: GraphQLMapConvertible {
 public struct CreateVideoInput: GraphQLMapConvertible {
   public var graphQLMap: GraphQLMap
 
-  public init(videoUuid: String, userUuid: String, datetime: String, videoName: String? = nil, videoSize: String? = nil, videoInfo: String? = nil, path: String? = nil, share: Int? = nil, videoDuration: Double? = nil, active: Int? = nil, uploadStatus: String? = nil, analyseStatus: String? = nil, commentsCount: Int? = nil, likesCount: Int? = nil) {
-    graphQLMap = ["video_uuid": videoUuid, "user_uuid": userUuid, "datetime": datetime, "video_name": videoName, "video_size": videoSize, "video_info": videoInfo, "path": path, "share": share, "video_duration": videoDuration, "active": active, "upload_status": uploadStatus, "analyse_status": analyseStatus, "comments_count": commentsCount, "likes_count": likesCount]
+  public init(videoUuid: String, userUuid: String, datetime: String, videoName: String? = nil, videoSize: String? = nil, videoInfo: String? = nil, path: String? = nil, share: Int? = nil, videoDuration: Double? = nil, active: Int? = nil, uploadStatus: String? = nil, analyseStatus: String? = nil, commentsCount: Int? = nil, likesCount: Int? = nil, longitude: String? = nil, latitude: String? = nil, title: String? = nil) {
+    graphQLMap = ["video_uuid": videoUuid, "user_uuid": userUuid, "datetime": datetime, "video_name": videoName, "video_size": videoSize, "video_info": videoInfo, "path": path, "share": share, "video_duration": videoDuration, "active": active, "upload_status": uploadStatus, "analyse_status": analyseStatus, "comments_count": commentsCount, "likes_count": likesCount, "longitude": longitude, "latitude": latitude, "title": title]
   }
 
   public var videoUuid: String {
@@ -2046,13 +2046,40 @@ public struct CreateVideoInput: GraphQLMapConvertible {
       graphQLMap.updateValue(newValue, forKey: "likes_count")
     }
   }
+
+  public var longitude: String? {
+    get {
+      return graphQLMap["longitude"] as! String?
+    }
+    set {
+      graphQLMap.updateValue(newValue, forKey: "longitude")
+    }
+  }
+
+  public var latitude: String? {
+    get {
+      return graphQLMap["latitude"] as! String?
+    }
+    set {
+      graphQLMap.updateValue(newValue, forKey: "latitude")
+    }
+  }
+
+  public var title: String? {
+    get {
+      return graphQLMap["title"] as! String?
+    }
+    set {
+      graphQLMap.updateValue(newValue, forKey: "title")
+    }
+  }
 }
 
 public struct UpdateVideoInput: GraphQLMapConvertible {
   public var graphQLMap: GraphQLMap
 
-  public init(videoUuid: String, userUuid: String? = nil, datetime: String? = nil, videoName: String? = nil, videoSize: String? = nil, videoInfo: String? = nil, path: String? = nil, share: Int? = nil, videoDuration: Double? = nil, active: Int? = nil, uploadStatus: String? = nil, analyseStatus: String? = nil, commentsCount: Int? = nil, likesCount: Int? = nil) {
-    graphQLMap = ["video_uuid": videoUuid, "user_uuid": userUuid, "datetime": datetime, "video_name": videoName, "video_size": videoSize, "video_info": videoInfo, "path": path, "share": share, "video_duration": videoDuration, "active": active, "upload_status": uploadStatus, "analyse_status": analyseStatus, "comments_count": commentsCount, "likes_count": likesCount]
+  public init(videoUuid: String, userUuid: String? = nil, datetime: String? = nil, videoName: String? = nil, videoSize: String? = nil, videoInfo: String? = nil, path: String? = nil, share: Int? = nil, videoDuration: Double? = nil, active: Int? = nil, uploadStatus: String? = nil, analyseStatus: String? = nil, commentsCount: Int? = nil, likesCount: Int? = nil, longitude: String? = nil, latitude: String? = nil, title: String? = nil) {
+    graphQLMap = ["video_uuid": videoUuid, "user_uuid": userUuid, "datetime": datetime, "video_name": videoName, "video_size": videoSize, "video_info": videoInfo, "path": path, "share": share, "video_duration": videoDuration, "active": active, "upload_status": uploadStatus, "analyse_status": analyseStatus, "comments_count": commentsCount, "likes_count": likesCount, "longitude": longitude, "latitude": latitude, "title": title]
   }
 
   public var videoUuid: String {
@@ -2178,6 +2205,33 @@ public struct UpdateVideoInput: GraphQLMapConvertible {
     }
     set {
       graphQLMap.updateValue(newValue, forKey: "likes_count")
+    }
+  }
+
+  public var longitude: String? {
+    get {
+      return graphQLMap["longitude"] as! String?
+    }
+    set {
+      graphQLMap.updateValue(newValue, forKey: "longitude")
+    }
+  }
+
+  public var latitude: String? {
+    get {
+      return graphQLMap["latitude"] as! String?
+    }
+    set {
+      graphQLMap.updateValue(newValue, forKey: "latitude")
+    }
+  }
+
+  public var title: String? {
+    get {
+      return graphQLMap["title"] as! String?
+    }
+    set {
+      graphQLMap.updateValue(newValue, forKey: "title")
     }
   }
 }
@@ -8398,7 +8452,7 @@ public final class UpdateUserLoginMutation: GraphQLMutation {
 
 public final class DeleteVideoMutation: GraphQLMutation {
   public static let operationString =
-    "mutation DeleteVideo($video_uuid: String!) {\n  deleteVideo(video_uuid: $video_uuid) {\n    __typename\n    video_uuid\n    user_uuid\n    datetime\n    video_name\n    video_size\n    video_info\n    path\n    share\n    video_duration\n    active\n    upload_status\n    analyse_status\n    likes_count\n    comments_count\n  }\n}"
+    "mutation DeleteVideo($video_uuid: String!) {\n  deleteVideo(video_uuid: $video_uuid) {\n    __typename\n    video_uuid\n    user_uuid\n    datetime\n    video_name\n    video_size\n    video_info\n    path\n    share\n    video_duration\n    active\n    upload_status\n    analyse_status\n    likes_count\n    comments_count\n    title\n    longitude\n    latitude\n  }\n}"
 
   public var video_uuid: String
 
@@ -8455,6 +8509,9 @@ public final class DeleteVideoMutation: GraphQLMutation {
         GraphQLField("analyse_status", type: .scalar(String.self)),
         GraphQLField("likes_count", type: .scalar(Int.self)),
         GraphQLField("comments_count", type: .scalar(Int.self)),
+        GraphQLField("title", type: .scalar(String.self)),
+        GraphQLField("longitude", type: .scalar(String.self)),
+        GraphQLField("latitude", type: .scalar(String.self)),
       ]
 
       public var snapshot: Snapshot
@@ -8463,8 +8520,8 @@ public final class DeleteVideoMutation: GraphQLMutation {
         self.snapshot = snapshot
       }
 
-      public init(videoUuid: String, userUuid: String, datetime: String, videoName: String? = nil, videoSize: String? = nil, videoInfo: String? = nil, path: String? = nil, share: Int? = nil, videoDuration: Double? = nil, active: Int? = nil, uploadStatus: String? = nil, analyseStatus: String? = nil, likesCount: Int? = nil, commentsCount: Int? = nil) {
-        self.init(snapshot: ["__typename": "video", "video_uuid": videoUuid, "user_uuid": userUuid, "datetime": datetime, "video_name": videoName, "video_size": videoSize, "video_info": videoInfo, "path": path, "share": share, "video_duration": videoDuration, "active": active, "upload_status": uploadStatus, "analyse_status": analyseStatus, "likes_count": likesCount, "comments_count": commentsCount])
+      public init(videoUuid: String, userUuid: String, datetime: String, videoName: String? = nil, videoSize: String? = nil, videoInfo: String? = nil, path: String? = nil, share: Int? = nil, videoDuration: Double? = nil, active: Int? = nil, uploadStatus: String? = nil, analyseStatus: String? = nil, likesCount: Int? = nil, commentsCount: Int? = nil, title: String? = nil, longitude: String? = nil, latitude: String? = nil) {
+        self.init(snapshot: ["__typename": "video", "video_uuid": videoUuid, "user_uuid": userUuid, "datetime": datetime, "video_name": videoName, "video_size": videoSize, "video_info": videoInfo, "path": path, "share": share, "video_duration": videoDuration, "active": active, "upload_status": uploadStatus, "analyse_status": analyseStatus, "likes_count": likesCount, "comments_count": commentsCount, "title": title, "longitude": longitude, "latitude": latitude])
       }
 
       public var __typename: String {
@@ -8601,13 +8658,40 @@ public final class DeleteVideoMutation: GraphQLMutation {
           snapshot.updateValue(newValue, forKey: "comments_count")
         }
       }
+
+      public var title: String? {
+        get {
+          return snapshot["title"] as? String
+        }
+        set {
+          snapshot.updateValue(newValue, forKey: "title")
+        }
+      }
+
+      public var longitude: String? {
+        get {
+          return snapshot["longitude"] as? String
+        }
+        set {
+          snapshot.updateValue(newValue, forKey: "longitude")
+        }
+      }
+
+      public var latitude: String? {
+        get {
+          return snapshot["latitude"] as? String
+        }
+        set {
+          snapshot.updateValue(newValue, forKey: "latitude")
+        }
+      }
     }
   }
 }
 
 public final class CreateVideoMutation: GraphQLMutation {
   public static let operationString =
-    "mutation CreateVideo($createVideoInput: CreateVideoInput!) {\n  createVideo(createVideoInput: $createVideoInput) {\n    __typename\n    video_uuid\n    user_uuid\n    datetime\n    video_name\n    video_size\n    video_info\n    path\n    share\n    video_duration\n    active\n    upload_status\n    analyse_status\n    likes_count\n    comments_count\n  }\n}"
+    "mutation CreateVideo($createVideoInput: CreateVideoInput!) {\n  createVideo(createVideoInput: $createVideoInput) {\n    __typename\n    video_uuid\n    user_uuid\n    datetime\n    video_name\n    video_size\n    video_info\n    path\n    share\n    video_duration\n    active\n    upload_status\n    analyse_status\n    likes_count\n    comments_count\n    title\n    longitude\n    latitude\n  }\n}"
 
   public var createVideoInput: CreateVideoInput
 
@@ -8664,6 +8748,9 @@ public final class CreateVideoMutation: GraphQLMutation {
         GraphQLField("analyse_status", type: .scalar(String.self)),
         GraphQLField("likes_count", type: .scalar(Int.self)),
         GraphQLField("comments_count", type: .scalar(Int.self)),
+        GraphQLField("title", type: .scalar(String.self)),
+        GraphQLField("longitude", type: .scalar(String.self)),
+        GraphQLField("latitude", type: .scalar(String.self)),
       ]
 
       public var snapshot: Snapshot
@@ -8672,8 +8759,8 @@ public final class CreateVideoMutation: GraphQLMutation {
         self.snapshot = snapshot
       }
 
-      public init(videoUuid: String, userUuid: String, datetime: String, videoName: String? = nil, videoSize: String? = nil, videoInfo: String? = nil, path: String? = nil, share: Int? = nil, videoDuration: Double? = nil, active: Int? = nil, uploadStatus: String? = nil, analyseStatus: String? = nil, likesCount: Int? = nil, commentsCount: Int? = nil) {
-        self.init(snapshot: ["__typename": "video", "video_uuid": videoUuid, "user_uuid": userUuid, "datetime": datetime, "video_name": videoName, "video_size": videoSize, "video_info": videoInfo, "path": path, "share": share, "video_duration": videoDuration, "active": active, "upload_status": uploadStatus, "analyse_status": analyseStatus, "likes_count": likesCount, "comments_count": commentsCount])
+      public init(videoUuid: String, userUuid: String, datetime: String, videoName: String? = nil, videoSize: String? = nil, videoInfo: String? = nil, path: String? = nil, share: Int? = nil, videoDuration: Double? = nil, active: Int? = nil, uploadStatus: String? = nil, analyseStatus: String? = nil, likesCount: Int? = nil, commentsCount: Int? = nil, title: String? = nil, longitude: String? = nil, latitude: String? = nil) {
+        self.init(snapshot: ["__typename": "video", "video_uuid": videoUuid, "user_uuid": userUuid, "datetime": datetime, "video_name": videoName, "video_size": videoSize, "video_info": videoInfo, "path": path, "share": share, "video_duration": videoDuration, "active": active, "upload_status": uploadStatus, "analyse_status": analyseStatus, "likes_count": likesCount, "comments_count": commentsCount, "title": title, "longitude": longitude, "latitude": latitude])
       }
 
       public var __typename: String {
@@ -8810,13 +8897,40 @@ public final class CreateVideoMutation: GraphQLMutation {
           snapshot.updateValue(newValue, forKey: "comments_count")
         }
       }
+
+      public var title: String? {
+        get {
+          return snapshot["title"] as? String
+        }
+        set {
+          snapshot.updateValue(newValue, forKey: "title")
+        }
+      }
+
+      public var longitude: String? {
+        get {
+          return snapshot["longitude"] as? String
+        }
+        set {
+          snapshot.updateValue(newValue, forKey: "longitude")
+        }
+      }
+
+      public var latitude: String? {
+        get {
+          return snapshot["latitude"] as? String
+        }
+        set {
+          snapshot.updateValue(newValue, forKey: "latitude")
+        }
+      }
     }
   }
 }
 
 public final class UpdateVideoMutation: GraphQLMutation {
   public static let operationString =
-    "mutation UpdateVideo($updateVideoInput: UpdateVideoInput!) {\n  updateVideo(updateVideoInput: $updateVideoInput) {\n    __typename\n    video_uuid\n    user_uuid\n    datetime\n    video_name\n    video_size\n    video_info\n    path\n    share\n    video_duration\n    active\n    upload_status\n    analyse_status\n    likes_count\n    comments_count\n  }\n}"
+    "mutation UpdateVideo($updateVideoInput: UpdateVideoInput!) {\n  updateVideo(updateVideoInput: $updateVideoInput) {\n    __typename\n    video_uuid\n    user_uuid\n    datetime\n    video_name\n    video_size\n    video_info\n    path\n    share\n    video_duration\n    active\n    upload_status\n    analyse_status\n    likes_count\n    comments_count\n    title\n    longitude\n    latitude\n  }\n}"
 
   public var updateVideoInput: UpdateVideoInput
 
@@ -8873,6 +8987,9 @@ public final class UpdateVideoMutation: GraphQLMutation {
         GraphQLField("analyse_status", type: .scalar(String.self)),
         GraphQLField("likes_count", type: .scalar(Int.self)),
         GraphQLField("comments_count", type: .scalar(Int.self)),
+        GraphQLField("title", type: .scalar(String.self)),
+        GraphQLField("longitude", type: .scalar(String.self)),
+        GraphQLField("latitude", type: .scalar(String.self)),
       ]
 
       public var snapshot: Snapshot
@@ -8881,8 +8998,8 @@ public final class UpdateVideoMutation: GraphQLMutation {
         self.snapshot = snapshot
       }
 
-      public init(videoUuid: String, userUuid: String, datetime: String, videoName: String? = nil, videoSize: String? = nil, videoInfo: String? = nil, path: String? = nil, share: Int? = nil, videoDuration: Double? = nil, active: Int? = nil, uploadStatus: String? = nil, analyseStatus: String? = nil, likesCount: Int? = nil, commentsCount: Int? = nil) {
-        self.init(snapshot: ["__typename": "video", "video_uuid": videoUuid, "user_uuid": userUuid, "datetime": datetime, "video_name": videoName, "video_size": videoSize, "video_info": videoInfo, "path": path, "share": share, "video_duration": videoDuration, "active": active, "upload_status": uploadStatus, "analyse_status": analyseStatus, "likes_count": likesCount, "comments_count": commentsCount])
+      public init(videoUuid: String, userUuid: String, datetime: String, videoName: String? = nil, videoSize: String? = nil, videoInfo: String? = nil, path: String? = nil, share: Int? = nil, videoDuration: Double? = nil, active: Int? = nil, uploadStatus: String? = nil, analyseStatus: String? = nil, likesCount: Int? = nil, commentsCount: Int? = nil, title: String? = nil, longitude: String? = nil, latitude: String? = nil) {
+        self.init(snapshot: ["__typename": "video", "video_uuid": videoUuid, "user_uuid": userUuid, "datetime": datetime, "video_name": videoName, "video_size": videoSize, "video_info": videoInfo, "path": path, "share": share, "video_duration": videoDuration, "active": active, "upload_status": uploadStatus, "analyse_status": analyseStatus, "likes_count": likesCount, "comments_count": commentsCount, "title": title, "longitude": longitude, "latitude": latitude])
       }
 
       public var __typename: String {
@@ -9017,6 +9134,33 @@ public final class UpdateVideoMutation: GraphQLMutation {
         }
         set {
           snapshot.updateValue(newValue, forKey: "comments_count")
+        }
+      }
+
+      public var title: String? {
+        get {
+          return snapshot["title"] as? String
+        }
+        set {
+          snapshot.updateValue(newValue, forKey: "title")
+        }
+      }
+
+      public var longitude: String? {
+        get {
+          return snapshot["longitude"] as? String
+        }
+        set {
+          snapshot.updateValue(newValue, forKey: "longitude")
+        }
+      }
+
+      public var latitude: String? {
+        get {
+          return snapshot["latitude"] as? String
+        }
+        set {
+          snapshot.updateValue(newValue, forKey: "latitude")
         }
       }
     }
@@ -9549,6 +9693,117 @@ public final class GetVideoLikeQuery: GraphQLQuery {
   }
 }
 
+public final class ListVideoLikebyVideoAndUserQuery: GraphQLQuery {
+  public static let operationString =
+    "query ListVideo_likebyVideoAndUser($user_uuid: String!, $video_uuid: String!) {\n  listVideo_likebyVideoAndUser(user_uuid: $user_uuid, video_uuid: $video_uuid) {\n    __typename\n    video_like_uuid\n    user_uuid\n    video_uuid\n    created_datetime\n  }\n}"
+
+  public var user_uuid: String
+  public var video_uuid: String
+
+  public init(user_uuid: String, video_uuid: String) {
+    self.user_uuid = user_uuid
+    self.video_uuid = video_uuid
+  }
+
+  public var variables: GraphQLMap? {
+    return ["user_uuid": user_uuid, "video_uuid": video_uuid]
+  }
+
+  public struct Data: GraphQLSelectionSet {
+    public static let possibleTypes = ["Query"]
+
+    public static let selections: [GraphQLSelection] = [
+      GraphQLField("listVideo_likebyVideoAndUser", arguments: ["user_uuid": GraphQLVariable("user_uuid"), "video_uuid": GraphQLVariable("video_uuid")], type: .list(.object(ListVideoLikebyVideoAndUser.selections))),
+    ]
+
+    public var snapshot: Snapshot
+
+    public init(snapshot: Snapshot) {
+      self.snapshot = snapshot
+    }
+
+    public init(listVideoLikebyVideoAndUser: [ListVideoLikebyVideoAndUser?]? = nil) {
+      self.init(snapshot: ["__typename": "Query", "listVideo_likebyVideoAndUser": listVideoLikebyVideoAndUser.flatMap { $0.map { $0.flatMap { $0.snapshot } } }])
+    }
+
+    public var listVideoLikebyVideoAndUser: [ListVideoLikebyVideoAndUser?]? {
+      get {
+        return (snapshot["listVideo_likebyVideoAndUser"] as? [Snapshot?]).flatMap { $0.map { $0.flatMap { ListVideoLikebyVideoAndUser(snapshot: $0) } } }
+      }
+      set {
+        snapshot.updateValue(newValue.flatMap { $0.map { $0.flatMap { $0.snapshot } } }, forKey: "listVideo_likebyVideoAndUser")
+      }
+    }
+
+    public struct ListVideoLikebyVideoAndUser: GraphQLSelectionSet {
+      public static let possibleTypes = ["video_like"]
+
+      public static let selections: [GraphQLSelection] = [
+        GraphQLField("__typename", type: .nonNull(.scalar(String.self))),
+        GraphQLField("video_like_uuid", type: .nonNull(.scalar(String.self))),
+        GraphQLField("user_uuid", type: .nonNull(.scalar(String.self))),
+        GraphQLField("video_uuid", type: .scalar(String.self)),
+        GraphQLField("created_datetime", type: .scalar(String.self)),
+      ]
+
+      public var snapshot: Snapshot
+
+      public init(snapshot: Snapshot) {
+        self.snapshot = snapshot
+      }
+
+      public init(videoLikeUuid: String, userUuid: String, videoUuid: String? = nil, createdDatetime: String? = nil) {
+        self.init(snapshot: ["__typename": "video_like", "video_like_uuid": videoLikeUuid, "user_uuid": userUuid, "video_uuid": videoUuid, "created_datetime": createdDatetime])
+      }
+
+      public var __typename: String {
+        get {
+          return snapshot["__typename"]! as! String
+        }
+        set {
+          snapshot.updateValue(newValue, forKey: "__typename")
+        }
+      }
+
+      public var videoLikeUuid: String {
+        get {
+          return snapshot["video_like_uuid"]! as! String
+        }
+        set {
+          snapshot.updateValue(newValue, forKey: "video_like_uuid")
+        }
+      }
+
+      public var userUuid: String {
+        get {
+          return snapshot["user_uuid"]! as! String
+        }
+        set {
+          snapshot.updateValue(newValue, forKey: "user_uuid")
+        }
+      }
+
+      public var videoUuid: String? {
+        get {
+          return snapshot["video_uuid"] as? String
+        }
+        set {
+          snapshot.updateValue(newValue, forKey: "video_uuid")
+        }
+      }
+
+      public var createdDatetime: String? {
+        get {
+          return snapshot["created_datetime"] as? String
+        }
+        set {
+          snapshot.updateValue(newValue, forKey: "created_datetime")
+        }
+      }
+    }
+  }
+}
+
 public final class ListVideoLikesQuery: GraphQLQuery {
   public static let operationString =
     "query ListVideo_likes {\n  listVideo_likes {\n    __typename\n    video_like_uuid\n    user_uuid\n    video_uuid\n    created_datetime\n  }\n}"
@@ -9742,16 +9997,25 @@ public final class GetTemporaryTestQuery: GraphQLQuery {
 
 public final class ListTemporaryTestsQuery: GraphQLQuery {
   public static let operationString =
-    "query ListTemporary_tests {\n  listTemporary_tests {\n    __typename\n    TestID\n    Testfield\n  }\n}"
+    "query ListTemporary_tests($limit: Int, $nextToken: String) {\n  listTemporary_tests(limit: $limit, nextToken: $nextToken) {\n    __typename\n    Temporary_tests {\n      __typename\n      TestID\n      Testfield\n    }\n    nextToken\n  }\n}"
 
-  public init() {
+  public var limit: Int?
+  public var nextToken: String?
+
+  public init(limit: Int? = nil, nextToken: String? = nil) {
+    self.limit = limit
+    self.nextToken = nextToken
+  }
+
+  public var variables: GraphQLMap? {
+    return ["limit": limit, "nextToken": nextToken]
   }
 
   public struct Data: GraphQLSelectionSet {
     public static let possibleTypes = ["Query"]
 
     public static let selections: [GraphQLSelection] = [
-      GraphQLField("listTemporary_tests", type: .list(.object(ListTemporaryTest.selections))),
+      GraphQLField("listTemporary_tests", arguments: ["limit": GraphQLVariable("limit"), "nextToken": GraphQLVariable("nextToken")], type: .list(.object(ListTemporaryTest.selections))),
     ]
 
     public var snapshot: Snapshot
@@ -9774,12 +10038,12 @@ public final class ListTemporaryTestsQuery: GraphQLQuery {
     }
 
     public struct ListTemporaryTest: GraphQLSelectionSet {
-      public static let possibleTypes = ["Temporary_test"]
+      public static let possibleTypes = ["Temporary_testConnection"]
 
       public static let selections: [GraphQLSelection] = [
         GraphQLField("__typename", type: .nonNull(.scalar(String.self))),
-        GraphQLField("TestID", type: .nonNull(.scalar(Int.self))),
-        GraphQLField("Testfield", type: .scalar(String.self)),
+        GraphQLField("Temporary_tests", type: .list(.object(TemporaryTest.selections))),
+        GraphQLField("nextToken", type: .scalar(String.self)),
       ]
 
       public var snapshot: Snapshot
@@ -9788,8 +10052,8 @@ public final class ListTemporaryTestsQuery: GraphQLQuery {
         self.snapshot = snapshot
       }
 
-      public init(testId: Int, testfield: String? = nil) {
-        self.init(snapshot: ["__typename": "Temporary_test", "TestID": testId, "Testfield": testfield])
+      public init(temporaryTests: [TemporaryTest?]? = nil, nextToken: String? = nil) {
+        self.init(snapshot: ["__typename": "Temporary_testConnection", "Temporary_tests": temporaryTests.flatMap { $0.map { $0.flatMap { $0.snapshot } } }, "nextToken": nextToken])
       }
 
       public var __typename: String {
@@ -9801,21 +10065,68 @@ public final class ListTemporaryTestsQuery: GraphQLQuery {
         }
       }
 
-      public var testId: Int {
+      public var temporaryTests: [TemporaryTest?]? {
         get {
-          return snapshot["TestID"]! as! Int
+          return (snapshot["Temporary_tests"] as? [Snapshot?]).flatMap { $0.map { $0.flatMap { TemporaryTest(snapshot: $0) } } }
         }
         set {
-          snapshot.updateValue(newValue, forKey: "TestID")
+          snapshot.updateValue(newValue.flatMap { $0.map { $0.flatMap { $0.snapshot } } }, forKey: "Temporary_tests")
         }
       }
 
-      public var testfield: String? {
+      public var nextToken: String? {
         get {
-          return snapshot["Testfield"] as? String
+          return snapshot["nextToken"] as? String
         }
         set {
-          snapshot.updateValue(newValue, forKey: "Testfield")
+          snapshot.updateValue(newValue, forKey: "nextToken")
+        }
+      }
+
+      public struct TemporaryTest: GraphQLSelectionSet {
+        public static let possibleTypes = ["Temporary_test"]
+
+        public static let selections: [GraphQLSelection] = [
+          GraphQLField("__typename", type: .nonNull(.scalar(String.self))),
+          GraphQLField("TestID", type: .nonNull(.scalar(Int.self))),
+          GraphQLField("Testfield", type: .scalar(String.self)),
+        ]
+
+        public var snapshot: Snapshot
+
+        public init(snapshot: Snapshot) {
+          self.snapshot = snapshot
+        }
+
+        public init(testId: Int, testfield: String? = nil) {
+          self.init(snapshot: ["__typename": "Temporary_test", "TestID": testId, "Testfield": testfield])
+        }
+
+        public var __typename: String {
+          get {
+            return snapshot["__typename"]! as! String
+          }
+          set {
+            snapshot.updateValue(newValue, forKey: "__typename")
+          }
+        }
+
+        public var testId: Int {
+          get {
+            return snapshot["TestID"]! as! Int
+          }
+          set {
+            snapshot.updateValue(newValue, forKey: "TestID")
+          }
+        }
+
+        public var testfield: String? {
+          get {
+            return snapshot["Testfield"] as? String
+          }
+          set {
+            snapshot.updateValue(newValue, forKey: "Testfield")
+          }
         }
       }
     }
@@ -13378,7 +13689,7 @@ public final class ListUserLoginsQuery: GraphQLQuery {
 
 public final class GetVideoQuery: GraphQLQuery {
   public static let operationString =
-    "query GetVideo($video_uuid: String!) {\n  getVideo(video_uuid: $video_uuid) {\n    __typename\n    video_uuid\n    user_uuid\n    datetime\n    video_name\n    video_size\n    video_info\n    path\n    share\n    video_duration\n    active\n    upload_status\n    analyse_status\n    likes_count\n    comments_count\n  }\n}"
+    "query GetVideo($video_uuid: String!) {\n  getVideo(video_uuid: $video_uuid) {\n    __typename\n    video_uuid\n    user_uuid\n    datetime\n    video_name\n    video_size\n    video_info\n    path\n    share\n    video_duration\n    active\n    upload_status\n    analyse_status\n    likes_count\n    comments_count\n    title\n    longitude\n    latitude\n  }\n}"
 
   public var video_uuid: String
 
@@ -13435,6 +13746,9 @@ public final class GetVideoQuery: GraphQLQuery {
         GraphQLField("analyse_status", type: .scalar(String.self)),
         GraphQLField("likes_count", type: .scalar(Int.self)),
         GraphQLField("comments_count", type: .scalar(Int.self)),
+        GraphQLField("title", type: .scalar(String.self)),
+        GraphQLField("longitude", type: .scalar(String.self)),
+        GraphQLField("latitude", type: .scalar(String.self)),
       ]
 
       public var snapshot: Snapshot
@@ -13443,8 +13757,8 @@ public final class GetVideoQuery: GraphQLQuery {
         self.snapshot = snapshot
       }
 
-      public init(videoUuid: String, userUuid: String, datetime: String, videoName: String? = nil, videoSize: String? = nil, videoInfo: String? = nil, path: String? = nil, share: Int? = nil, videoDuration: Double? = nil, active: Int? = nil, uploadStatus: String? = nil, analyseStatus: String? = nil, likesCount: Int? = nil, commentsCount: Int? = nil) {
-        self.init(snapshot: ["__typename": "video", "video_uuid": videoUuid, "user_uuid": userUuid, "datetime": datetime, "video_name": videoName, "video_size": videoSize, "video_info": videoInfo, "path": path, "share": share, "video_duration": videoDuration, "active": active, "upload_status": uploadStatus, "analyse_status": analyseStatus, "likes_count": likesCount, "comments_count": commentsCount])
+      public init(videoUuid: String, userUuid: String, datetime: String, videoName: String? = nil, videoSize: String? = nil, videoInfo: String? = nil, path: String? = nil, share: Int? = nil, videoDuration: Double? = nil, active: Int? = nil, uploadStatus: String? = nil, analyseStatus: String? = nil, likesCount: Int? = nil, commentsCount: Int? = nil, title: String? = nil, longitude: String? = nil, latitude: String? = nil) {
+        self.init(snapshot: ["__typename": "video", "video_uuid": videoUuid, "user_uuid": userUuid, "datetime": datetime, "video_name": videoName, "video_size": videoSize, "video_info": videoInfo, "path": path, "share": share, "video_duration": videoDuration, "active": active, "upload_status": uploadStatus, "analyse_status": analyseStatus, "likes_count": likesCount, "comments_count": commentsCount, "title": title, "longitude": longitude, "latitude": latitude])
       }
 
       public var __typename: String {
@@ -13581,14 +13895,40 @@ public final class GetVideoQuery: GraphQLQuery {
           snapshot.updateValue(newValue, forKey: "comments_count")
         }
       }
+
+      public var title: String? {
+        get {
+          return snapshot["title"] as? String
+        }
+        set {
+          snapshot.updateValue(newValue, forKey: "title")
+        }
+      }
+
+      public var longitude: String? {
+        get {
+          return snapshot["longitude"] as? String
+        }
+        set {
+          snapshot.updateValue(newValue, forKey: "longitude")
+        }
+      }
+
+      public var latitude: String? {
+        get {
+          return snapshot["latitude"] as? String
+        }
+        set {
+          snapshot.updateValue(newValue, forKey: "latitude")
+        }
+      }
     }
   }
 }
 
-
 public final class ListVideosQuery: GraphQLQuery {
   public static let operationString =
-    "query ListVideos {\n  listVideos {\n    __typename\n    video_uuid\n    user_uuid\n    datetime\n    video_name\n    video_size\n    video_info\n    path\n    share\n    video_duration\n    active\n    upload_status\n    analyse_status\n    likes_count\n    comments_count\n  }\n}"
+    "query ListVideos {\n  listVideos {\n    __typename\n    video_uuid\n    user_uuid\n    datetime\n    video_name\n    video_size\n    video_info\n    path\n    share\n    video_duration\n    active\n    upload_status\n    analyse_status\n    likes_count\n    comments_count\n    title\n    longitude\n    latitude\n  }\n}"
 
   public init() {
   }
@@ -13638,6 +13978,9 @@ public final class ListVideosQuery: GraphQLQuery {
         GraphQLField("analyse_status", type: .scalar(String.self)),
         GraphQLField("likes_count", type: .scalar(Int.self)),
         GraphQLField("comments_count", type: .scalar(Int.self)),
+        GraphQLField("title", type: .scalar(String.self)),
+        GraphQLField("longitude", type: .scalar(String.self)),
+        GraphQLField("latitude", type: .scalar(String.self)),
       ]
 
       public var snapshot: Snapshot
@@ -13646,8 +13989,8 @@ public final class ListVideosQuery: GraphQLQuery {
         self.snapshot = snapshot
       }
 
-      public init(videoUuid: String, userUuid: String, datetime: String, videoName: String? = nil, videoSize: String? = nil, videoInfo: String? = nil, path: String? = nil, share: Int? = nil, videoDuration: Double? = nil, active: Int? = nil, uploadStatus: String? = nil, analyseStatus: String? = nil, likesCount: Int? = nil, commentsCount: Int? = nil) {
-        self.init(snapshot: ["__typename": "video", "video_uuid": videoUuid, "user_uuid": userUuid, "datetime": datetime, "video_name": videoName, "video_size": videoSize, "video_info": videoInfo, "path": path, "share": share, "video_duration": videoDuration, "active": active, "upload_status": uploadStatus, "analyse_status": analyseStatus, "likes_count": likesCount, "comments_count": commentsCount])
+      public init(videoUuid: String, userUuid: String, datetime: String, videoName: String? = nil, videoSize: String? = nil, videoInfo: String? = nil, path: String? = nil, share: Int? = nil, videoDuration: Double? = nil, active: Int? = nil, uploadStatus: String? = nil, analyseStatus: String? = nil, likesCount: Int? = nil, commentsCount: Int? = nil, title: String? = nil, longitude: String? = nil, latitude: String? = nil) {
+        self.init(snapshot: ["__typename": "video", "video_uuid": videoUuid, "user_uuid": userUuid, "datetime": datetime, "video_name": videoName, "video_size": videoSize, "video_info": videoInfo, "path": path, "share": share, "video_duration": videoDuration, "active": active, "upload_status": uploadStatus, "analyse_status": analyseStatus, "likes_count": likesCount, "comments_count": commentsCount, "title": title, "longitude": longitude, "latitude": latitude])
       }
 
       public var __typename: String {
@@ -13784,6 +14127,504 @@ public final class ListVideosQuery: GraphQLQuery {
           snapshot.updateValue(newValue, forKey: "comments_count")
         }
       }
+
+      public var title: String? {
+        get {
+          return snapshot["title"] as? String
+        }
+        set {
+          snapshot.updateValue(newValue, forKey: "title")
+        }
+      }
+
+      public var longitude: String? {
+        get {
+          return snapshot["longitude"] as? String
+        }
+        set {
+          snapshot.updateValue(newValue, forKey: "longitude")
+        }
+      }
+
+      public var latitude: String? {
+        get {
+          return snapshot["latitude"] as? String
+        }
+        set {
+          snapshot.updateValue(newValue, forKey: "latitude")
+        }
+      }
+    }
+  }
+}
+
+public final class ListVideobyUserQuery: GraphQLQuery {
+  public static let operationString =
+    "query ListVideobyUser($user_uuid: String!) {\n  listVideobyUser(user_uuid: $user_uuid) {\n    __typename\n    video_uuid\n    user_uuid\n    datetime\n    video_name\n    video_size\n    video_info\n    path\n    share\n    video_duration\n    active\n    upload_status\n    analyse_status\n    likes_count\n    comments_count\n    title\n    longitude\n    latitude\n  }\n}"
+
+  public var user_uuid: String
+
+  public init(user_uuid: String) {
+    self.user_uuid = user_uuid
+  }
+
+  public var variables: GraphQLMap? {
+    return ["user_uuid": user_uuid]
+  }
+
+  public struct Data: GraphQLSelectionSet {
+    public static let possibleTypes = ["Query"]
+
+    public static let selections: [GraphQLSelection] = [
+      GraphQLField("listVideobyUser", arguments: ["user_uuid": GraphQLVariable("user_uuid")], type: .list(.object(ListVideobyUser.selections))),
+    ]
+
+    public var snapshot: Snapshot
+
+    public init(snapshot: Snapshot) {
+      self.snapshot = snapshot
+    }
+
+    public init(listVideobyUser: [ListVideobyUser?]? = nil) {
+      self.init(snapshot: ["__typename": "Query", "listVideobyUser": listVideobyUser.flatMap { $0.map { $0.flatMap { $0.snapshot } } }])
+    }
+
+    public var listVideobyUser: [ListVideobyUser?]? {
+      get {
+        return (snapshot["listVideobyUser"] as? [Snapshot?]).flatMap { $0.map { $0.flatMap { ListVideobyUser(snapshot: $0) } } }
+      }
+      set {
+        snapshot.updateValue(newValue.flatMap { $0.map { $0.flatMap { $0.snapshot } } }, forKey: "listVideobyUser")
+      }
+    }
+
+    public struct ListVideobyUser: GraphQLSelectionSet {
+      public static let possibleTypes = ["video"]
+
+      public static let selections: [GraphQLSelection] = [
+        GraphQLField("__typename", type: .nonNull(.scalar(String.self))),
+        GraphQLField("video_uuid", type: .nonNull(.scalar(String.self))),
+        GraphQLField("user_uuid", type: .nonNull(.scalar(String.self))),
+        GraphQLField("datetime", type: .nonNull(.scalar(String.self))),
+        GraphQLField("video_name", type: .scalar(String.self)),
+        GraphQLField("video_size", type: .scalar(String.self)),
+        GraphQLField("video_info", type: .scalar(String.self)),
+        GraphQLField("path", type: .scalar(String.self)),
+        GraphQLField("share", type: .scalar(Int.self)),
+        GraphQLField("video_duration", type: .scalar(Double.self)),
+        GraphQLField("active", type: .scalar(Int.self)),
+        GraphQLField("upload_status", type: .scalar(String.self)),
+        GraphQLField("analyse_status", type: .scalar(String.self)),
+        GraphQLField("likes_count", type: .scalar(Int.self)),
+        GraphQLField("comments_count", type: .scalar(Int.self)),
+        GraphQLField("title", type: .scalar(String.self)),
+        GraphQLField("longitude", type: .scalar(String.self)),
+        GraphQLField("latitude", type: .scalar(String.self)),
+      ]
+
+      public var snapshot: Snapshot
+
+      public init(snapshot: Snapshot) {
+        self.snapshot = snapshot
+      }
+
+      public init(videoUuid: String, userUuid: String, datetime: String, videoName: String? = nil, videoSize: String? = nil, videoInfo: String? = nil, path: String? = nil, share: Int? = nil, videoDuration: Double? = nil, active: Int? = nil, uploadStatus: String? = nil, analyseStatus: String? = nil, likesCount: Int? = nil, commentsCount: Int? = nil, title: String? = nil, longitude: String? = nil, latitude: String? = nil) {
+        self.init(snapshot: ["__typename": "video", "video_uuid": videoUuid, "user_uuid": userUuid, "datetime": datetime, "video_name": videoName, "video_size": videoSize, "video_info": videoInfo, "path": path, "share": share, "video_duration": videoDuration, "active": active, "upload_status": uploadStatus, "analyse_status": analyseStatus, "likes_count": likesCount, "comments_count": commentsCount, "title": title, "longitude": longitude, "latitude": latitude])
+      }
+
+      public var __typename: String {
+        get {
+          return snapshot["__typename"]! as! String
+        }
+        set {
+          snapshot.updateValue(newValue, forKey: "__typename")
+        }
+      }
+
+      public var videoUuid: String {
+        get {
+          return snapshot["video_uuid"]! as! String
+        }
+        set {
+          snapshot.updateValue(newValue, forKey: "video_uuid")
+        }
+      }
+
+      public var userUuid: String {
+        get {
+          return snapshot["user_uuid"]! as! String
+        }
+        set {
+          snapshot.updateValue(newValue, forKey: "user_uuid")
+        }
+      }
+
+      public var datetime: String {
+        get {
+          return snapshot["datetime"]! as! String
+        }
+        set {
+          snapshot.updateValue(newValue, forKey: "datetime")
+        }
+      }
+
+      public var videoName: String? {
+        get {
+          return snapshot["video_name"] as? String
+        }
+        set {
+          snapshot.updateValue(newValue, forKey: "video_name")
+        }
+      }
+
+      public var videoSize: String? {
+        get {
+          return snapshot["video_size"] as? String
+        }
+        set {
+          snapshot.updateValue(newValue, forKey: "video_size")
+        }
+      }
+
+      public var videoInfo: String? {
+        get {
+          return snapshot["video_info"] as? String
+        }
+        set {
+          snapshot.updateValue(newValue, forKey: "video_info")
+        }
+      }
+
+      public var path: String? {
+        get {
+          return snapshot["path"] as? String
+        }
+        set {
+          snapshot.updateValue(newValue, forKey: "path")
+        }
+      }
+
+      public var share: Int? {
+        get {
+          return snapshot["share"] as? Int
+        }
+        set {
+          snapshot.updateValue(newValue, forKey: "share")
+        }
+      }
+
+      public var videoDuration: Double? {
+        get {
+          return snapshot["video_duration"] as? Double
+        }
+        set {
+          snapshot.updateValue(newValue, forKey: "video_duration")
+        }
+      }
+
+      public var active: Int? {
+        get {
+          return snapshot["active"] as? Int
+        }
+        set {
+          snapshot.updateValue(newValue, forKey: "active")
+        }
+      }
+
+      public var uploadStatus: String? {
+        get {
+          return snapshot["upload_status"] as? String
+        }
+        set {
+          snapshot.updateValue(newValue, forKey: "upload_status")
+        }
+      }
+
+      public var analyseStatus: String? {
+        get {
+          return snapshot["analyse_status"] as? String
+        }
+        set {
+          snapshot.updateValue(newValue, forKey: "analyse_status")
+        }
+      }
+
+      public var likesCount: Int? {
+        get {
+          return snapshot["likes_count"] as? Int
+        }
+        set {
+          snapshot.updateValue(newValue, forKey: "likes_count")
+        }
+      }
+
+      public var commentsCount: Int? {
+        get {
+          return snapshot["comments_count"] as? Int
+        }
+        set {
+          snapshot.updateValue(newValue, forKey: "comments_count")
+        }
+      }
+
+      public var title: String? {
+        get {
+          return snapshot["title"] as? String
+        }
+        set {
+          snapshot.updateValue(newValue, forKey: "title")
+        }
+      }
+
+      public var longitude: String? {
+        get {
+          return snapshot["longitude"] as? String
+        }
+        set {
+          snapshot.updateValue(newValue, forKey: "longitude")
+        }
+      }
+
+      public var latitude: String? {
+        get {
+          return snapshot["latitude"] as? String
+        }
+        set {
+          snapshot.updateValue(newValue, forKey: "latitude")
+        }
+      }
+    }
+  }
+}
+
+public final class ListShareableVideoQuery: GraphQLQuery {
+  public static let operationString =
+    "query ListShareableVideo {\n  listShareableVideo {\n    __typename\n    video_uuid\n    user_uuid\n    datetime\n    video_name\n    video_size\n    video_info\n    path\n    share\n    video_duration\n    active\n    upload_status\n    analyse_status\n    likes_count\n    comments_count\n    title\n    longitude\n    latitude\n  }\n}"
+
+  public init() {
+  }
+
+  public struct Data: GraphQLSelectionSet {
+    public static let possibleTypes = ["Query"]
+
+    public static let selections: [GraphQLSelection] = [
+      GraphQLField("listShareableVideo", type: .list(.object(ListShareableVideo.selections))),
+    ]
+
+    public var snapshot: Snapshot
+
+    public init(snapshot: Snapshot) {
+      self.snapshot = snapshot
+    }
+
+    public init(listShareableVideo: [ListShareableVideo?]? = nil) {
+      self.init(snapshot: ["__typename": "Query", "listShareableVideo": listShareableVideo.flatMap { $0.map { $0.flatMap { $0.snapshot } } }])
+    }
+
+    public var listShareableVideo: [ListShareableVideo?]? {
+      get {
+        return (snapshot["listShareableVideo"] as? [Snapshot?]).flatMap { $0.map { $0.flatMap { ListShareableVideo(snapshot: $0) } } }
+      }
+      set {
+        snapshot.updateValue(newValue.flatMap { $0.map { $0.flatMap { $0.snapshot } } }, forKey: "listShareableVideo")
+      }
+    }
+
+    public struct ListShareableVideo: GraphQLSelectionSet {
+      public static let possibleTypes = ["video"]
+
+      public static let selections: [GraphQLSelection] = [
+        GraphQLField("__typename", type: .nonNull(.scalar(String.self))),
+        GraphQLField("video_uuid", type: .nonNull(.scalar(String.self))),
+        GraphQLField("user_uuid", type: .nonNull(.scalar(String.self))),
+        GraphQLField("datetime", type: .nonNull(.scalar(String.self))),
+        GraphQLField("video_name", type: .scalar(String.self)),
+        GraphQLField("video_size", type: .scalar(String.self)),
+        GraphQLField("video_info", type: .scalar(String.self)),
+        GraphQLField("path", type: .scalar(String.self)),
+        GraphQLField("share", type: .scalar(Int.self)),
+        GraphQLField("video_duration", type: .scalar(Double.self)),
+        GraphQLField("active", type: .scalar(Int.self)),
+        GraphQLField("upload_status", type: .scalar(String.self)),
+        GraphQLField("analyse_status", type: .scalar(String.self)),
+        GraphQLField("likes_count", type: .scalar(Int.self)),
+        GraphQLField("comments_count", type: .scalar(Int.self)),
+        GraphQLField("title", type: .scalar(String.self)),
+        GraphQLField("longitude", type: .scalar(String.self)),
+        GraphQLField("latitude", type: .scalar(String.self)),
+      ]
+
+      public var snapshot: Snapshot
+
+      public init(snapshot: Snapshot) {
+        self.snapshot = snapshot
+      }
+
+      public init(videoUuid: String, userUuid: String, datetime: String, videoName: String? = nil, videoSize: String? = nil, videoInfo: String? = nil, path: String? = nil, share: Int? = nil, videoDuration: Double? = nil, active: Int? = nil, uploadStatus: String? = nil, analyseStatus: String? = nil, likesCount: Int? = nil, commentsCount: Int? = nil, title: String? = nil, longitude: String? = nil, latitude: String? = nil) {
+        self.init(snapshot: ["__typename": "video", "video_uuid": videoUuid, "user_uuid": userUuid, "datetime": datetime, "video_name": videoName, "video_size": videoSize, "video_info": videoInfo, "path": path, "share": share, "video_duration": videoDuration, "active": active, "upload_status": uploadStatus, "analyse_status": analyseStatus, "likes_count": likesCount, "comments_count": commentsCount, "title": title, "longitude": longitude, "latitude": latitude])
+      }
+
+      public var __typename: String {
+        get {
+          return snapshot["__typename"]! as! String
+        }
+        set {
+          snapshot.updateValue(newValue, forKey: "__typename")
+        }
+      }
+
+      public var videoUuid: String {
+        get {
+          return snapshot["video_uuid"]! as! String
+        }
+        set {
+          snapshot.updateValue(newValue, forKey: "video_uuid")
+        }
+      }
+
+      public var userUuid: String {
+        get {
+          return snapshot["user_uuid"]! as! String
+        }
+        set {
+          snapshot.updateValue(newValue, forKey: "user_uuid")
+        }
+      }
+
+      public var datetime: String {
+        get {
+          return snapshot["datetime"]! as! String
+        }
+        set {
+          snapshot.updateValue(newValue, forKey: "datetime")
+        }
+      }
+
+      public var videoName: String? {
+        get {
+          return snapshot["video_name"] as? String
+        }
+        set {
+          snapshot.updateValue(newValue, forKey: "video_name")
+        }
+      }
+
+      public var videoSize: String? {
+        get {
+          return snapshot["video_size"] as? String
+        }
+        set {
+          snapshot.updateValue(newValue, forKey: "video_size")
+        }
+      }
+
+      public var videoInfo: String? {
+        get {
+          return snapshot["video_info"] as? String
+        }
+        set {
+          snapshot.updateValue(newValue, forKey: "video_info")
+        }
+      }
+
+      public var path: String? {
+        get {
+          return snapshot["path"] as? String
+        }
+        set {
+          snapshot.updateValue(newValue, forKey: "path")
+        }
+      }
+
+      public var share: Int? {
+        get {
+          return snapshot["share"] as? Int
+        }
+        set {
+          snapshot.updateValue(newValue, forKey: "share")
+        }
+      }
+
+      public var videoDuration: Double? {
+        get {
+          return snapshot["video_duration"] as? Double
+        }
+        set {
+          snapshot.updateValue(newValue, forKey: "video_duration")
+        }
+      }
+
+      public var active: Int? {
+        get {
+          return snapshot["active"] as? Int
+        }
+        set {
+          snapshot.updateValue(newValue, forKey: "active")
+        }
+      }
+
+      public var uploadStatus: String? {
+        get {
+          return snapshot["upload_status"] as? String
+        }
+        set {
+          snapshot.updateValue(newValue, forKey: "upload_status")
+        }
+      }
+
+      public var analyseStatus: String? {
+        get {
+          return snapshot["analyse_status"] as? String
+        }
+        set {
+          snapshot.updateValue(newValue, forKey: "analyse_status")
+        }
+      }
+
+      public var likesCount: Int? {
+        get {
+          return snapshot["likes_count"] as? Int
+        }
+        set {
+          snapshot.updateValue(newValue, forKey: "likes_count")
+        }
+      }
+
+      public var commentsCount: Int? {
+        get {
+          return snapshot["comments_count"] as? Int
+        }
+        set {
+          snapshot.updateValue(newValue, forKey: "comments_count")
+        }
+      }
+
+      public var title: String? {
+        get {
+          return snapshot["title"] as? String
+        }
+        set {
+          snapshot.updateValue(newValue, forKey: "title")
+        }
+      }
+
+      public var longitude: String? {
+        get {
+          return snapshot["longitude"] as? String
+        }
+        set {
+          snapshot.updateValue(newValue, forKey: "longitude")
+        }
+      }
+
+      public var latitude: String? {
+        get {
+          return snapshot["latitude"] as? String
+        }
+        set {
+          snapshot.updateValue(newValue, forKey: "latitude")
+        }
+      }
     }
   }
 }
@@ -13829,6 +14670,145 @@ public final class GetCommentQuery: GraphQLQuery {
     }
 
     public struct GetComment: GraphQLSelectionSet {
+      public static let possibleTypes = ["comment"]
+
+      public static let selections: [GraphQLSelection] = [
+        GraphQLField("__typename", type: .nonNull(.scalar(String.self))),
+        GraphQLField("comment_uuid", type: .nonNull(.scalar(String.self))),
+        GraphQLField("video_uuid", type: .nonNull(.scalar(String.self))),
+        GraphQLField("user_uuid", type: .nonNull(.scalar(String.self))),
+        GraphQLField("comment", type: .nonNull(.scalar(String.self))),
+        GraphQLField("created_on", type: .scalar(String.self)),
+        GraphQLField("replied_to", type: .scalar(String.self)),
+        GraphQLField("modified_on", type: .scalar(String.self)),
+      ]
+
+      public var snapshot: Snapshot
+
+      public init(snapshot: Snapshot) {
+        self.snapshot = snapshot
+      }
+
+      public init(commentUuid: String, videoUuid: String, userUuid: String, comment: String, createdOn: String? = nil, repliedTo: String? = nil, modifiedOn: String? = nil) {
+        self.init(snapshot: ["__typename": "comment", "comment_uuid": commentUuid, "video_uuid": videoUuid, "user_uuid": userUuid, "comment": comment, "created_on": createdOn, "replied_to": repliedTo, "modified_on": modifiedOn])
+      }
+
+      public var __typename: String {
+        get {
+          return snapshot["__typename"]! as! String
+        }
+        set {
+          snapshot.updateValue(newValue, forKey: "__typename")
+        }
+      }
+
+      public var commentUuid: String {
+        get {
+          return snapshot["comment_uuid"]! as! String
+        }
+        set {
+          snapshot.updateValue(newValue, forKey: "comment_uuid")
+        }
+      }
+
+      public var videoUuid: String {
+        get {
+          return snapshot["video_uuid"]! as! String
+        }
+        set {
+          snapshot.updateValue(newValue, forKey: "video_uuid")
+        }
+      }
+
+      public var userUuid: String {
+        get {
+          return snapshot["user_uuid"]! as! String
+        }
+        set {
+          snapshot.updateValue(newValue, forKey: "user_uuid")
+        }
+      }
+
+      public var comment: String {
+        get {
+          return snapshot["comment"]! as! String
+        }
+        set {
+          snapshot.updateValue(newValue, forKey: "comment")
+        }
+      }
+
+      public var createdOn: String? {
+        get {
+          return snapshot["created_on"] as? String
+        }
+        set {
+          snapshot.updateValue(newValue, forKey: "created_on")
+        }
+      }
+
+      public var repliedTo: String? {
+        get {
+          return snapshot["replied_to"] as? String
+        }
+        set {
+          snapshot.updateValue(newValue, forKey: "replied_to")
+        }
+      }
+
+      public var modifiedOn: String? {
+        get {
+          return snapshot["modified_on"] as? String
+        }
+        set {
+          snapshot.updateValue(newValue, forKey: "modified_on")
+        }
+      }
+    }
+  }
+}
+
+public final class ListCommentbyVideoQuery: GraphQLQuery {
+  public static let operationString =
+    "query ListCommentbyVideo($video_uuid: String!) {\n  listCommentbyVideo(video_uuid: $video_uuid) {\n    __typename\n    comment_uuid\n    video_uuid\n    user_uuid\n    comment\n    created_on\n    replied_to\n    modified_on\n  }\n}"
+
+  public var video_uuid: String
+
+  public init(video_uuid: String) {
+    self.video_uuid = video_uuid
+  }
+
+  public var variables: GraphQLMap? {
+    return ["video_uuid": video_uuid]
+  }
+
+  public struct Data: GraphQLSelectionSet {
+    public static let possibleTypes = ["Query"]
+
+    public static let selections: [GraphQLSelection] = [
+      GraphQLField("listCommentbyVideo", arguments: ["video_uuid": GraphQLVariable("video_uuid")], type: .list(.object(ListCommentbyVideo.selections))),
+    ]
+
+    public var snapshot: Snapshot
+
+    public init(snapshot: Snapshot) {
+      self.snapshot = snapshot
+    }
+
+    public init(listCommentbyVideo: [ListCommentbyVideo?]? = nil) {
+      self.init(snapshot: ["__typename": "Query", "listCommentbyVideo": listCommentbyVideo.flatMap { $0.map { $0.flatMap { $0.snapshot } } }])
+    }
+
+    public var listCommentbyVideo: [ListCommentbyVideo?]? {
+      get {
+        return (snapshot["listCommentbyVideo"] as? [Snapshot?]).flatMap { $0.map { $0.flatMap { ListCommentbyVideo(snapshot: $0) } } }
+      }
+      set {
+        snapshot.updateValue(newValue.flatMap { $0.map { $0.flatMap { $0.snapshot } } }, forKey: "listCommentbyVideo")
+      }
+    }
+
+    public struct ListCommentbyVideo: GraphQLSelectionSet {
       public static let possibleTypes = ["comment"]
 
       public static let selections: [GraphQLSelection] = [
@@ -15973,7 +16953,7 @@ public final class OnCreateUserLoginSubscription: GraphQLSubscription {
 
 public final class OnCreateVideoSubscription: GraphQLSubscription {
   public static let operationString =
-    "subscription OnCreateVideo {\n  onCreateVideo {\n    __typename\n    video_uuid\n    user_uuid\n    datetime\n    video_name\n    video_size\n    video_info\n    path\n    share\n    video_duration\n    active\n    upload_status\n    analyse_status\n    likes_count\n    comments_count\n  }\n}"
+    "subscription OnCreateVideo {\n  onCreateVideo {\n    __typename\n    video_uuid\n    user_uuid\n    datetime\n    video_name\n    video_size\n    video_info\n    path\n    share\n    video_duration\n    active\n    upload_status\n    analyse_status\n    likes_count\n    comments_count\n    title\n    longitude\n    latitude\n  }\n}"
 
   public init() {
   }
@@ -16023,6 +17003,9 @@ public final class OnCreateVideoSubscription: GraphQLSubscription {
         GraphQLField("analyse_status", type: .scalar(String.self)),
         GraphQLField("likes_count", type: .scalar(Int.self)),
         GraphQLField("comments_count", type: .scalar(Int.self)),
+        GraphQLField("title", type: .scalar(String.self)),
+        GraphQLField("longitude", type: .scalar(String.self)),
+        GraphQLField("latitude", type: .scalar(String.self)),
       ]
 
       public var snapshot: Snapshot
@@ -16031,8 +17014,8 @@ public final class OnCreateVideoSubscription: GraphQLSubscription {
         self.snapshot = snapshot
       }
 
-      public init(videoUuid: String, userUuid: String, datetime: String, videoName: String? = nil, videoSize: String? = nil, videoInfo: String? = nil, path: String? = nil, share: Int? = nil, videoDuration: Double? = nil, active: Int? = nil, uploadStatus: String? = nil, analyseStatus: String? = nil, likesCount: Int? = nil, commentsCount: Int? = nil) {
-        self.init(snapshot: ["__typename": "video", "video_uuid": videoUuid, "user_uuid": userUuid, "datetime": datetime, "video_name": videoName, "video_size": videoSize, "video_info": videoInfo, "path": path, "share": share, "video_duration": videoDuration, "active": active, "upload_status": uploadStatus, "analyse_status": analyseStatus, "likes_count": likesCount, "comments_count": commentsCount])
+      public init(videoUuid: String, userUuid: String, datetime: String, videoName: String? = nil, videoSize: String? = nil, videoInfo: String? = nil, path: String? = nil, share: Int? = nil, videoDuration: Double? = nil, active: Int? = nil, uploadStatus: String? = nil, analyseStatus: String? = nil, likesCount: Int? = nil, commentsCount: Int? = nil, title: String? = nil, longitude: String? = nil, latitude: String? = nil) {
+        self.init(snapshot: ["__typename": "video", "video_uuid": videoUuid, "user_uuid": userUuid, "datetime": datetime, "video_name": videoName, "video_size": videoSize, "video_info": videoInfo, "path": path, "share": share, "video_duration": videoDuration, "active": active, "upload_status": uploadStatus, "analyse_status": analyseStatus, "likes_count": likesCount, "comments_count": commentsCount, "title": title, "longitude": longitude, "latitude": latitude])
       }
 
       public var __typename: String {
@@ -16167,6 +17150,33 @@ public final class OnCreateVideoSubscription: GraphQLSubscription {
         }
         set {
           snapshot.updateValue(newValue, forKey: "comments_count")
+        }
+      }
+
+      public var title: String? {
+        get {
+          return snapshot["title"] as? String
+        }
+        set {
+          snapshot.updateValue(newValue, forKey: "title")
+        }
+      }
+
+      public var longitude: String? {
+        get {
+          return snapshot["longitude"] as? String
+        }
+        set {
+          snapshot.updateValue(newValue, forKey: "longitude")
+        }
+      }
+
+      public var latitude: String? {
+        get {
+          return snapshot["latitude"] as? String
+        }
+        set {
+          snapshot.updateValue(newValue, forKey: "latitude")
         }
       }
     }

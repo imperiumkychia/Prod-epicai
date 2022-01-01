@@ -67,47 +67,49 @@ class EPICAIProfileVM: NSObject {
     
     func getVideosList(){
         var results = [EPICAIFeedItem]()
-        appSyncClient?.fetch(query: ListVideosQuery(),cachePolicy: .fetchIgnoringCacheData) {(result, error) in
-            guard let unWrappedVideosList = result?.data?.listVideos else { self.items = nil ; return }
-            let group = DispatchGroup()
-            for video in unWrappedVideosList {
-                if let uwvideo = video {
-                    group.enter()
-                    appSyncClient?.fetch(query: GetUserQuery(user_uuid:uwvideo.userUuid), cachePolicy: .fetchIgnoringCacheData) {
-                        (result, error) in
-                        if let user = result?.data?.getUser {
-                            if let imageURLString = user.imageUrl {
-                                AWSManager.shared().downloadProfileImage(key: imageURLString) { imageURL in
-                                    if let imageURL = imageURL {
-                                        do {
-                                            let data = try Data(contentsOf: imageURL)
-                                            var feedItem = EPICAIFeedItem(video: EPICAIVideo(awsListVideo: uwvideo), user: EPICAIUser(awsListUser: user))
-                                            feedItem.userImage = UIImage(data: data)
-                                            results.append(feedItem)
-                                            group.leave()
-                                        } catch {
+        if let userUUID = EPICAISharedPreference.userSession?.uuid {
+            appSyncClient?.fetch(query: ListVideobyUserQuery(user_uuid: userUUID),cachePolicy: .fetchIgnoringCacheData) {(result, error) in
+                guard let unWrappedVideosList = result?.data?.listVideobyUser else { self.items = nil ; return }
+                let group = DispatchGroup()
+                for video in unWrappedVideosList {
+                    if let uwvideo = video {
+                        group.enter()
+                        appSyncClient?.fetch(query: GetUserQuery(user_uuid:uwvideo.userUuid), cachePolicy: .fetchIgnoringCacheData) {
+                            (result, error) in
+                            if let user = result?.data?.getUser {
+                                if let imageURLString = user.imageUrl {
+                                    AWSManager.shared().downloadProfileImage(key: imageURLString) { imageURL in
+                                        if let imageURL = imageURL {
+                                            do {
+                                                let data = try Data(contentsOf: imageURL)
+                                                var feedItem = EPICAIFeedItem(video: EPICAIVideo(awsListVideo: uwvideo), user: EPICAIUser(awsListUser: user))
+                                                feedItem.userImage = UIImage(data: data)
+                                                results.append(feedItem)
+                                                group.leave()
+                                            } catch {
+                                                let feedItem = EPICAIFeedItem(video: EPICAIVideo(awsListVideo: uwvideo), user: EPICAIUser(awsListUser: user))
+                                                results.append(feedItem)
+                                                group.leave()
+                                            }
+                                        } else {
                                             let feedItem = EPICAIFeedItem(video: EPICAIVideo(awsListVideo: uwvideo), user: EPICAIUser(awsListUser: user))
                                             results.append(feedItem)
                                             group.leave()
                                         }
-                                    } else {
-                                        let feedItem = EPICAIFeedItem(video: EPICAIVideo(awsListVideo: uwvideo), user: EPICAIUser(awsListUser: user))
-                                        results.append(feedItem)
-                                        group.leave()
                                     }
                                 }
-                            }
-                            else {
-                                let feedItem = EPICAIFeedItem(video: EPICAIVideo(awsListVideo: uwvideo), user: EPICAIUser(awsListUser: user))
-                                results.append(feedItem)
-                                group.leave()
+                                else {
+                                    let feedItem = EPICAIFeedItem(video: EPICAIVideo(awsListVideo: uwvideo), user: EPICAIUser(awsListUser: user))
+                                    results.append(feedItem)
+                                    group.leave()
+                                }
                             }
                         }
                     }
                 }
-            }
-            group.notify(queue: .main) {
-                self.items = results
+                group.notify(queue: .main) {
+                    self.items = results
+                }
             }
         }
     }

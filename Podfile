@@ -15,5 +15,6 @@ target 'EPICAI' do
   pod 'JGProgressHUD'
   pod 'SwipeCellKit'
   pod 'CDAlertView'
+  pod 'MagicTimer'
 
 end

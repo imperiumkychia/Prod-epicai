@@ -218,7 +218,7 @@ class EPICAISignInVC: UIViewController, AWSCognitoIdentityInteractiveAuthenticat
                                 let data = try Data(contentsOf: imageURL)
                                 EPICAISharedPreference.userSession =  EPICAIUser(awsListUser: user)
                                 if let image = UIImage(data: data) {
-                                    EPICAIFileManager.saveEPICAIUserSessionImage(image: image)
+                                    EPICAIFileManager.shared().saveEPICAIUserSessionImage(image: image)
                                 }
                             } catch {
                                 EPICAISharedPreference.userSession =  EPICAIUser(awsListUser: user)
@@ -245,7 +245,7 @@ class EPICAISignInVC: UIViewController, AWSCognitoIdentityInteractiveAuthenticat
             case .failure(let error):
                 self.mainQueue.async {
                     self.ai.dismiss()
-                    GenericAlertView().show(title: "Error", message: "\(error)", onViewController: self, isShort: false) {}
+                    EPICAIGenericAlertView().show(title: "Error", message: "\(error)", onViewController: self, isShort: false) {}
                 }
             case .success(let authResult):
                 if authResult.isSignedIn {
@@ -287,7 +287,7 @@ class EPICAISignInVC: UIViewController, AWSCognitoIdentityInteractiveAuthenticat
                 print("Error signing in: \(error)")
                 self.mainQueue.async {
                     self.ai.dismiss()
-                    GenericAlertView().show(title: "Error", message: "\(error)", onViewController: self, isShort: false) {}
+                    EPICAIGenericAlertView().show(title: "Error", message: "\(error)", onViewController: self, isShort: false) {}
                     
                 }
             case .success(let authResult):
@@ -318,7 +318,7 @@ class EPICAISignInVC: UIViewController, AWSCognitoIdentityInteractiveAuthenticat
             case .failure(let error):
                 print("Error signing in: \(error)")
                 self.mainQueue.async {
-                    GenericAlertView().show(title: "Error", message: "\(error)", onViewController: self, isShort: false) {}
+                    EPICAIGenericAlertView().show(title: "Error", message: "\(error)", onViewController: self, isShort: false) {}
                     //AlertUser.alertUser(title: "Error", message: "\(error)", type: .error)
                 }
             case .success(let authResult):
@@ -384,7 +384,7 @@ class EPICAISignInVC: UIViewController, AWSCognitoIdentityInteractiveAuthenticat
         let formatter = DateFormatter()
         formatter.dateFormat = format
         let now = Date()
-        let loginTime = formatter.string(from: now)
+        _ = formatter.string(from: now)
         
         var authMethod = ""
         switch provider {
@@ -398,7 +398,7 @@ class EPICAISignInVC: UIViewController, AWSCognitoIdentityInteractiveAuthenticat
             authMethod = "other"
         }
         
-        let logon_UUID = UUID().uuidString
+        _ = UUID().uuidString
         
         //        let userLogin = EPICAIUserLogin()
         //        userLogin?.logonUuid = logon_UUID

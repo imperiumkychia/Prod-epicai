@@ -11,7 +11,7 @@ import AVFoundation
 
 // ########################################################################
 // MARK: - Maximum video length in minutes
-let maximumVideoLength: Int = 60
+let maximumVideoLength: Int = 20
 
 // MARK: - Frame Per Second
 let fps: Int32 = 5
@@ -21,6 +21,11 @@ let videoQuality: AVCaptureSession.Preset = .high
 
 // MARK: - Audio bitrate
 let audioBitRate: Int = 44000
+
+let audioPoint = "AudioPoint"
+let bodyPoint = "BodyPoint"
+
+let videoTitlePlaceHolder = "Video title..."
 
 // #########################################################################
 // MARK: - Color Palette
@@ -75,9 +80,7 @@ public struct Palette {
         static let V2_SettingsTableHeader = UIColor(hex: "#686868")
         static let V2_VideoMoreButton = UIColor(hex: "#091065")
         static let V2_VideoTrimCancelButton = UIColor(hex: "#cecfe0")
-
     }
-
 }
 
 // MARK: - Fonts
@@ -106,7 +109,6 @@ class LatoFont {
     static let boldItalic = UIFont(name: Names.boldItalic, size: 14.0)!
     static let black = UIFont(name: Names.black, size: 14.0)!
     static let blackItalic = UIFont(name: Names.blackItalic, size: 14.0)!
-
 }
 
 // MARK: - Segues
@@ -143,26 +145,29 @@ public enum Joints: String {
 }
 
 // MARK - CSV header
-let csvHeader = ["timestamp_since1970",
-                 "hip_x", "hip_y", "hip_z",
-                 "rightFinger_x", "rightFinger_y", "rightFinger_z",
-                 "rightHand_x", "rightHand_y", "rightHand_z",
-                 "rightForeArm_x", "rightForeArm_y", "rightForeArm_z",
-                 "rightArm_x", "rightArm_y", "rightArm_z",
-                 "rightEye_x", "rightEye_y", "rightEye_z",
-                 "rightUpperLeg_x", "rightUpperLeg_y", "rightUpperLeg_z",
-                 "rightLeg_x", "rightLeg_y", "rightLeg_z",
-                 "rightFoot_x", "rightFoot_y", "rightFoot_z",
-                 "leftFinger_x", "leftFinger_y", "leftFinger_z",
-                 "leftHand_x", "leftHand_y", "leftHand_z",
-                 "leftForeArm_x", "leftForeArm_y", "leftForeArm_z",
-                 "leftArm_x", "leftArm_y", "leftArm_z",
-                 "leftEye_x", "leftEye_y", "leftEye_z",
-                 "leftUpperLeg_x", "leftUpperLeg_y", "leftUpperLeg_z",
-                 "leftLeg_x", "leftLeg_y", "leftLeg_z",
-                 "leftFoot_x", "leftFoot_y", "leftFoot_z",
-                 "nose_x", "nose_y", "nose_z",
-                 "neck_x", "neck_y", "neck_z"]
+let bodyPoseCSVHeader = ["timelapse",
+                 "nose_x", "nose_y",
+                 "neck_x", "neck_y",
+                 "r_shoulder_x", "r_shoulder_y",
+                 "r_elbow_x", "r_elbow_y",
+                 "r_wrist_x", "r_wrist_y",
+                 "l_shoulder_x", "l_shoulder_y",
+                 "l_elbow_x", "l_elbow_y",
+                 "l_wrist_x", "l_wrist_y",
+                 "root_x", "root_y",
+                 "r_hip_x", "r_hip_y",
+                 "r_knee_x", "r_knee_y",
+                 "r_ankle_x", "r_ankle_y",
+                 "l_hip_x", "l_hip_y",
+                 "l_knee_x", "l_knee_y",
+                 "l_ankle_x", "l_ankle_y",
+                 "l_eye_x", "l_eye_y",
+                 "r_eye_x", "r_eye_y",
+                 "l_ear_x", "l_ear_y",
+                 "r_ear_x", "r_ear_y"]
+
+let audioCSVHeader = ["timelapse", "sound_dB"]
+
 
 
 public let museoFont = UIFont(name: "Museo", size: 17.0)

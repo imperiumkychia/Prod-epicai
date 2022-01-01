@@ -30,6 +30,8 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
             DispatchQueue.main.sync {
                 let storyboard = UIStoryboard.init(name: "Main", bundle: .main)
                 if let _ = token {
+                    let epicUser = EPICAIUser(userUUID: token ?? "")
+                    EPICAISharedPreference.userSession = epicUser
                     window.rootViewController = storyboard.instantiateViewController(withIdentifier: "TabBarViewController")
                 }
                 else {

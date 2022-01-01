@@ -225,37 +225,26 @@ extension EPICAIProfileVC: UITableViewDelegate, UITableViewDataSource {
         switch indexPath.section {
         case 0:
             guard let cell = tableView.dequeueReusableCell(withIdentifier: "ProfileUserInfoCell", for: indexPath) as? ProfileUserInfoCell else { return UITableViewCell() }
-            
             cell.profileImage = userItem?.userImage
             cell.name = (userItem?.user.firstName ?? "") + " " + (userItem?.user.lastName ?? "")
             cell.detail = "Subscriptions"
-            
             return cell
-            
         case 1:
             guard let cell = tableView.dequeueReusableCell(withIdentifier: "ProfileOverviewCell", for: indexPath) as? ProfileOverviewCell else { return UITableViewCell() }
-            
             cell.data = [1, 9, 9, 7, 9, 9, 9, 8]
             cell.score = CGFloat(CGFloat(cell.data.sum()) / CGFloat(cell.data.count))
-            
             return cell
-            
         case 2:
             guard let cell = tableView.dequeueReusableCell(withIdentifier: "ProfileVideosCell", for: indexPath) as? ProfileVideosCell else { return UITableViewCell() }
-            
             cell.delegate = self
             cell.item = items[indexPath.row]
-            
             return cell
-         
         case 3:
             guard let cell = tableView.dequeueReusableCell(withIdentifier: "feedsEmptyCell", for: indexPath) as? FeedsEmptyCell else { return UITableViewCell() }
             return cell
         default:
             return UITableViewCell()
         }
-        
-        
     }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
@@ -267,15 +256,11 @@ extension EPICAIProfileVC: UITableViewDelegate, UITableViewDataSource {
         default:
             break
         }
-        
     }
-    
 }
 
 extension EPICAIProfileVC: ProfileVideosCellDelegate {
     func profileVideoCell(_ cell: ProfileVideosCell, didAskToShareVideoWithUUID videoUUID: String?) {
         
     }
-    
-    
 }

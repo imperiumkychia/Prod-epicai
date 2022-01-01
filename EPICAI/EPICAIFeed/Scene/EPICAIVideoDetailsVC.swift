@@ -325,7 +325,7 @@ extension EPICAIVideoDetailsVC: VideoNameCellDelegate {
                     
                 } else {
                     DispatchQueue.main.async {
-                        GenericAlertView().show(title: "Error", message: "You are not allowed to delete this video.", onViewController: self) {}
+                        EPICAIGenericAlertView().show(title: "Error", message: "You are not allowed to delete this video.", onViewController: self) {}
                     }
                 }
             }
@@ -379,7 +379,7 @@ extension EPICAIVideoDetailsVC: VideoNameCellDelegate {
                         case .success(let exists):
                             if exists {
                                 DispatchQueue.main.async {
-                                    GenericAlertView().show(title: "Error", message: "A video with this name already exists on database. Plase choose a different name and try again.", onViewController: self) {}
+                                    EPICAIGenericAlertView().show(title: "Error", message: "A video with this name already exists on database. Plase choose a different name and try again.", onViewController: self) {}
                                     self.ai.dismiss()
                                 }
                             } else {
@@ -450,7 +450,7 @@ extension EPICAIVideoDetailsVC: VideoNameCellDelegate {
             }
         } else {
             DispatchQueue.main.async {
-                GenericAlertView().show(title: "Error", message: "You are not allowed to rename this video.", onViewController: self) {}
+                EPICAIGenericAlertView().show(title: "Error", message: "You are not allowed to rename this video.", onViewController: self) {}
             }
         }
     }

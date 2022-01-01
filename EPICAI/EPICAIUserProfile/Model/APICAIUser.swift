@@ -18,6 +18,10 @@ struct EPICAIUser : Codable {
     var imageUrl:String = defaultText
     var gender:String = defaultText
     
+    init(userUUID:String) {
+        self.uuid = userUUID
+    }
+    
     init(awsListUser:GetUserQuery.Data.GetUser) {
         self.uuid = awsListUser.userUuid
         self.userName = awsListUser.username ?? defaultText

@@ -18,15 +18,30 @@
         <!--Camera View Controller-->
         <scene sceneID="tne-QT-ifu">
             <objects>
-                <viewController storyboardIdentifier="CameraViewController" id="BYZ-38-t0r" userLabel="Camera View Controller" customClass="CameraViewController" customModule="EPICAI" customModuleProvider="target" sceneMemberID="viewController">
+                <viewController storyboardIdentifier="EPICAICaptureVideoVC" useStoryboardIdentifierAsRestorationIdentifier="YES" id="BYZ-38-t0r" userLabel="Camera View Controller" customClass="EPICAICaptureVideoVC" customModule="EPICAI" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="8bC-Xf-vdC">
                         <rect key="frame" x="0.0" y="0.0" width="375" height="812"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="YKw-r1-Ahw">
+                                <rect key="frame" x="0.0" y="0.0" width="375" height="812"/>
+                                <color key="tintColor" systemColor="linkColor"/>
+                            </imageView>
+                        </subviews>
                         <viewLayoutGuide key="safeArea" id="nyU-fN-aJh"/>
-                        <color key="backgroundColor" white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                        <color key="backgroundColor" systemColor="systemBackgroundColor"/>
+                        <constraints>
+                            <constraint firstAttribute="bottom" secondItem="YKw-r1-Ahw" secondAttribute="bottom" id="9Fm-NW-c4r"/>
+                            <constraint firstItem="YKw-r1-Ahw" firstAttribute="leading" secondItem="nyU-fN-aJh" secondAttribute="leading" id="FDg-4Z-o4y"/>
+                            <constraint firstItem="YKw-r1-Ahw" firstAttribute="top" secondItem="8bC-Xf-vdC" secondAttribute="top" id="aMZ-Os-Zma"/>
+                            <constraint firstItem="YKw-r1-Ahw" firstAttribute="trailing" secondItem="nyU-fN-aJh" secondAttribute="trailing" id="yvg-B3-Oxa"/>
+                        </constraints>
                     </view>
-                    <tabBarItem key="tabBarItem" title="" image="CaptureIcon_disabled" selectedImage="CaptureIcon_enabled" id="Y14-rF-G0X"/>
+                    <navigationItem key="navigationItem" id="ZrK-MJ-0Iy"/>
                     <nil key="simulatedStatusBarMetrics"/>
+                    <connections>
+                        <outlet property="imageView" destination="YKw-r1-Ahw" id="t4h-hN-h4T"/>
+                    </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="dkx-z0-nzr" sceneMemberID="firstResponder"/>
                 <tapGestureRecognizer id="fY6-qX-ntV">
@@ -35,7 +50,7 @@
                     </connections>
                 </tapGestureRecognizer>
             </objects>
-            <point key="canvasLocation" x="1538" y="-630"/>
+            <point key="canvasLocation" x="1836" y="-630.29556650246309"/>
         </scene>
         <!--Item-->
         <scene sceneID="eBA-W2-6xZ">
@@ -52,7 +67,7 @@
                 </navigationController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="4aa-RN-7VI" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="286" y="137"/>
+            <point key="canvasLocation" x="286" y="83"/>
         </scene>
         <!--Item-->
         <scene sceneID="E3N-3h-6eg">
@@ -72,7 +87,7 @@
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="Eeg-sV-32q" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="1538" y="132"/>
+            <point key="canvasLocation" x="1062" y="83"/>
         </scene>
         <!--SettingsVC-->
         <scene sceneID="ZKT-wi-MCX">
@@ -88,9 +103,9 @@
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="kgZ-xc-S8S" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="2479" y="132"/>
+            <point key="canvasLocation" x="1866" y="83"/>
         </scene>
-        <!--Feed Controller-->
+        <!--Feed-->
         <scene sceneID="Oct-a0-ay5">
             <objects>
                 <viewController storyboardIdentifier="EPICAIFeedController" id="gZr-pK-zmi" customClass="EPICAIFeedController" customModule="EPICAI" customModuleProvider="target" sceneMemberID="viewController">
@@ -100,11 +115,12 @@
                         <viewLayoutGuide key="safeArea" id="cGo-Bx-EL3"/>
                         <color key="backgroundColor" systemColor="systemBackgroundColor"/>
                     </view>
-                    <navigationItem key="navigationItem" id="eBt-wh-sJW"/>
+                    <navigationItem key="navigationItem" title="Feed" largeTitleDisplayMode="never" id="eBt-wh-sJW"/>
+                    <simulatedNavigationBarMetrics key="simulatedTopBarMetrics" prompted="NO"/>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="n2k-F2-Nwo" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="2479.1999999999998" y="-1317.4876847290641"/>
+            <point key="canvasLocation" x="1836" y="-1299"/>
         </scene>
         <!--View Controller-->
         <scene sceneID="Yvb-us-JYi">
@@ -516,7 +532,7 @@
                     </tabBar>
                     <connections>
                         <segue destination="vg5-x3-Ec0" kind="relationship" relationship="viewControllers" id="PmQ-O8-Rjb"/>
-                        <segue destination="BYZ-38-t0r" kind="relationship" relationship="viewControllers" id="Jib-tn-El0"/>
+                        <segue destination="Uyv-7Z-a8z" kind="relationship" relationship="viewControllers" id="Jib-tn-El0"/>
                         <segue destination="bse-jP-ofE" kind="relationship" relationship="viewControllers" id="mjB-EU-9XP"/>
                     </connections>
                 </tabBarController>
@@ -530,8 +546,8 @@
                 <navigationController automaticallyAdjustsScrollViewInsets="NO" interfaceStyle="light" id="vg5-x3-Ec0" sceneMemberID="viewController">
                     <tabBarItem key="tabBarItem" title="" image="HomeIcon_disabled" selectedImage="HomeIcon_enabled" id="vWY-QN-rp4"/>
                     <toolbarItems/>
-                    <navigationBar key="navigationBar" contentMode="scaleToFill" backIndicatorImage="Chevron-left-2" largeTitles="YES" id="QCY-xc-GVU">
-                        <rect key="frame" x="0.0" y="44" width="375" height="96"/>
+                    <navigationBar key="navigationBar" contentMode="scaleToFill" backIndicatorImage="Chevron-left-2" id="QCY-xc-GVU">
+                        <rect key="frame" x="0.0" y="44" width="375" height="44"/>
                         <autoresizingMask key="autoresizingMask"/>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                         <textAttributes key="largeTitleTextAttributes">
@@ -546,7 +562,7 @@
                 </navigationController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="99n-1G-ag6" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="1536.8" y="-1317.4876847290641"/>
+            <point key="canvasLocation" x="1062" y="-1299"/>
         </scene>
         <!--Sign InVC-->
         <scene sceneID="9Qa-ZT-ix8">
@@ -574,6 +590,25 @@
                 <placeholder placeholderIdentifier="IBFirstResponder" id="EUC-Vz-PcX" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
             <point key="canvasLocation" x="-742" y="-630"/>
+        </scene>
+        <!--Navigation Controller-->
+        <scene sceneID="bPa-Fh-Yx7">
+            <objects>
+                <navigationController automaticallyAdjustsScrollViewInsets="NO" id="Uyv-7Z-a8z" sceneMemberID="viewController">
+                    <tabBarItem key="tabBarItem" title="" image="CaptureIcon_disabled" selectedImage="CaptureIcon_enabled" id="Y14-rF-G0X"/>
+                    <toolbarItems/>
+                    <navigationBar key="navigationBar" contentMode="scaleToFill" id="qde-UH-2HM">
+                        <rect key="frame" x="0.0" y="44" width="375" height="44"/>
+                        <autoresizingMask key="autoresizingMask"/>
+                    </navigationBar>
+                    <nil name="viewControllers"/>
+                    <connections>
+                        <segue destination="BYZ-38-t0r" kind="relationship" relationship="rootViewController" id="PzK-t1-1AN"/>
+                    </connections>
+                </navigationController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="MJj-si-182" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="1061.5999999999999" y="-630.29556650246309"/>
         </scene>
     </scenes>
     <color key="tintColor" name="AI2AR_lightBlue"/>
@@ -613,6 +648,9 @@
         <namedColor name="FPSC_yellow">
             <color red="1" green="0.76700001955032349" blue="0.14100000262260437" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
         </namedColor>
+        <systemColor name="linkColor">
+            <color red="0.0" green="0.47843137254901963" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+        </systemColor>
         <systemColor name="systemBackgroundColor">
             <color white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
         </systemColor>

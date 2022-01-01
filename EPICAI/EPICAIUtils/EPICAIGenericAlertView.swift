@@ -7,7 +7,7 @@
 
 import UIKit
 
-class GenericAlertView: UIView {
+class EPICAIGenericAlertView: UIView {
     
     struct Constant {
         static let backgroundAlphaTo: CGFloat = 0.6
@@ -155,8 +155,6 @@ class GenericAlertView: UIView {
                 }
             }
         }
-
-        
     }
     
     @objc func dismiss() {
