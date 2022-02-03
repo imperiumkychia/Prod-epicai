@@ -14,7 +14,7 @@ class EPICAIProfileVC: UIViewController {
     var profileViewModel: EPICAIProfileVM!
 
     let itemsMargin: CGFloat = 20.0
-    
+    var userDetails:EPICAIUser?
     var items = [EPICAIFeedItem]()
     var userItem: EPICAIUserAccountItem?
     
@@ -29,10 +29,16 @@ class EPICAIProfileVC: UIViewController {
     
     lazy var settingsButton: UIButton = {
         let button = UIButton(frame: .zero)
-        button.translatesAutoresizingMaskIntoConstraints = false
+        //button.translatesAutoresizingMaskIntoConstraints = false
         button.setImage(#imageLiteral(resourceName: "settings"), for: .normal)
         button.addTarget(self, action: #selector(settingsButtonTapped(_:)), for: .touchUpInside)
         return button
+    }()
+    
+    var refreshControl: UIRefreshControl = {
+        let controll = UIRefreshControl()
+        controll.addTarget(self, action: #selector(reloadVideoList), for: .valueChanged)
+        return controll
     }()
     
     lazy var profileTableView: UITableView = {
@@ -48,7 +54,7 @@ class EPICAIProfileVC: UIViewController {
         table.separatorStyle = .none
         table.backgroundColor = self.view.backgroundColor
         table.showsVerticalScrollIndicator = false
-        
+        table.addSubview(refreshControl)
         return table
     }()
     
@@ -60,27 +66,59 @@ class EPICAIProfileVC: UIViewController {
         return indicator
     }()
     
+    lazy var backButton: UIButton = {
+        let button = UIButton(frame: CGRect(x: 0, y: 5, width: 30, height: 30))
+        let image = UIImage(systemName: "chevron.left", withConfiguration: UIImage.SymbolConfiguration(pointSize: 25.0, weight: .regular))
+        button.setImage(image, for: .normal)
+        button.addTarget(self, action: #selector(backButtonTapped(_:)), for: .touchUpInside)
+        button.tintColor = Palette.V2.V2_VCTitle
+        return button
+    }()
+    
+    private func leftMenuItems() {
+        let leftOptionView = UIView(frame: CGRect(x: 100, y: 1, width: 50, height: 49))
+        leftOptionView.addSubview(self.backButton)
+        let leftBaritem = UIBarButtonItem(customView: leftOptionView)
+        self.navigationItem.leftBarButtonItem = leftBaritem
+    }
+    
+    @objc func backButtonTapped(_ sender: UIButton) {
+        _ = navigationController?.popViewController(animated: true)
+    }
     
     override func viewDidLoad() {
         super.viewDidLoad()
 
+        if self.userDetails != nil {
+            self.leftMenuItems()
+        }
+        else {
+            self.rightMenuItems()
+        }
         setupUIElements()
         initializeViewModel()
     }
     
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+    }
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        
-        navigationController?.isNavigationBarHidden = true
-        
+        self.title = "Profile"
+        self.applyCustomAppearance()
         if let tbar = tabBarController as? GenericTabBarController{
             tbar.floatingTabbarView.toggle(hide: false)
         }
     }
 
     func initializeViewModel() {
-        profileViewModel = EPICAIProfileVM()
+        profileViewModel = EPICAIProfileVM(user: self.userDetails)
+        
+        DispatchQueue.main.async {
+            self.ai.textLabel.text = "Please wait..."
+            self.ai.show(in: self.view, animated: true)
+        }
         
         profileViewModel.onUserInfoChange = { item in
             self.userItem = item
@@ -94,6 +132,7 @@ class EPICAIProfileVC: UIViewController {
                 self.profileViewModel.getVideoLocalURLs(for: items)
             } else {
                 DispatchQueue.main.async {
+                    self.refreshControl.endRefreshing()
                     self.ai.dismiss(afterDelay: 0.0, animated: true)
                 }
             }
@@ -104,6 +143,7 @@ class EPICAIProfileVC: UIViewController {
                 DispatchQueue.main.async {
                     self.items = itemsWithURL.sorted(by: { $0.videoDate! > $1.videoDate! })
                     self.profileTableView.reloadData()
+                    self.refreshControl.endRefreshing()
                     self.ai.dismiss(afterDelay: 0.0, animated: true)
                 }
             } else {
@@ -111,16 +151,9 @@ class EPICAIProfileVC: UIViewController {
                     self.ai.dismiss(afterDelay: 0.0, animated: true)
                 }
             }
-            
         }
-        DispatchQueue.main.async {
-            self.ai.textLabel.text = "Please wait..."
-            self.ai.show(in: self.view, animated: true)
-        }
-
         profileViewModel.getUserInfo()
         profileViewModel.getVideosList()
-
     }
     
     func setupUIElements() {
@@ -139,32 +172,23 @@ class EPICAIProfileVC: UIViewController {
                                                object: nil)
 
         view.backgroundColor = Palette.V2.V2_VCBackground
-        
-        view.addSubview(titleLabel)
-        view.addSubview(settingsButton)
         view.addSubview(profileTableView)
         view.addSubview(ai)
 
-        titleLabel.snp.makeConstraints { (make) in
-            make.leading.equalTo(view).offset(itemsMargin+5)
-            make.top.equalTo(view.snp.topMargin).offset(itemsMargin-20)
-            make.height.equalTo(44)
-        }
-        
-        settingsButton.snp.makeConstraints { (make) in
-            make.width.equalTo(25.0)
-            make.height.equalTo(25.0)
-            make.centerY.equalTo(titleLabel)
-            make.trailing.equalTo(view).offset(-itemsMargin)
-        }
-        
         profileTableView.snp.makeConstraints { (make) in
-            make.top.equalTo(settingsButton.snp.bottom).offset(itemsMargin)
+            make.top.equalTo(0).offset(itemsMargin)
             make.bottom.equalTo(view)
             make.leading.equalTo(view)
             make.trailing.equalTo(view)
         }
-        
+    }
+    
+    private func rightMenuItems() {
+        let rightOptionView = UIView(frame: CGRect(x: 100, y: 1, width: 50, height: 49))
+        self.settingsButton.frame = CGRect(x: 20, y: 5, width: 30, height: 30)
+        rightOptionView.addSubview(self.settingsButton)
+        let rightBaritem = UIBarButtonItem(customView: rightOptionView)
+        self.navigationItem.rightBarButtonItem = rightBaritem
     }
     
     @objc func settingsButtonTapped(_ sender: UIButton) {
@@ -172,21 +196,25 @@ class EPICAIProfileVC: UIViewController {
         navigationController?.pushViewController(toVC, animated: true)
     }
     
+    @objc func reloadVideoList() {
+        self.refreshProfileData()
+    }
+    
     @objc func updateUserInfo(_ notification: Notification) {
         profileViewModel.getUserInfo()
     }
     
     @objc func shouldRefreshFeedsTable(_ notification: Notification) {
-        refreshFeedsData()
+        refreshProfileData()
     }
     
     
-    private func refreshFeedsData() {
+    private func refreshProfileData() {
         DispatchQueue.main.async {
             self.ai.textLabel.text = "Please wait..."
             self.ai.show(in: self.view, animated: true)
         }
-        self.profileViewModel.getVideosList()
+        initializeViewModel()
     }
 }
 
@@ -216,7 +244,7 @@ extension EPICAIProfileVC: UITableViewDelegate, UITableViewDataSource {
         case 3:
             return 200.0
         default:
-            return 290.0
+            return 320.0
         }
     }
     
@@ -227,7 +255,6 @@ extension EPICAIProfileVC: UITableViewDelegate, UITableViewDataSource {
             guard let cell = tableView.dequeueReusableCell(withIdentifier: "ProfileUserInfoCell", for: indexPath) as? ProfileUserInfoCell else { return UITableViewCell() }
             cell.profileImage = userItem?.userImage
             cell.name = (userItem?.user.firstName ?? "") + " " + (userItem?.user.lastName ?? "")
-            cell.detail = "Subscriptions"
             return cell
         case 1:
             guard let cell = tableView.dequeueReusableCell(withIdentifier: "ProfileOverviewCell", for: indexPath) as? ProfileOverviewCell else { return UITableViewCell() }
@@ -237,6 +264,7 @@ extension EPICAIProfileVC: UITableViewDelegate, UITableViewDataSource {
         case 2:
             guard let cell = tableView.dequeueReusableCell(withIdentifier: "ProfileVideosCell", for: indexPath) as? ProfileVideosCell else { return UITableViewCell() }
             cell.delegate = self
+            cell.user = self.userDetails
             cell.item = items[indexPath.row]
             return cell
         case 3:
@@ -260,6 +288,14 @@ extension EPICAIProfileVC: UITableViewDelegate, UITableViewDataSource {
 }
 
 extension EPICAIProfileVC: ProfileVideosCellDelegate {
+    
+    func profileVideoCell(_ cell: ProfileVideosCell, didAskToShareVideoItem item: EPICAIFeedItem?) {
+        let viewController  = EPICAIVideoDetailsVC()
+        viewController.videoItem = item
+        self.navigationController?.pushViewController(viewController, animated: true)
+        print("Method called")
+    }
+    
     func profileVideoCell(_ cell: ProfileVideosCell, didAskToShareVideoWithUUID videoUUID: String?) {
         
     }

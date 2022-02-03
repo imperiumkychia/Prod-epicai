@@ -33,6 +33,16 @@ extension UIViewController {
         self.navigationController?.navigationBar.isHidden = false
         self.navigationController?.isNavigationBarHidden = false
     }
+    
+    func applyCustomAppearance() {
+        let appearance = UINavigationBarAppearance()
+        appearance.configureWithOpaqueBackground()
+        let navigationTitleFont = LatoFont.bold.withSize(25)
+        appearance.titleTextAttributes = [NSAttributedString.Key.font: navigationTitleFont, NSAttributedString.Key.foregroundColor: Palette.V2.V2_VCTitle]
+        appearance.backgroundColor = .systemBackground
+        self.navigationController?.navigationBar.standardAppearance = appearance;
+        self.navigationController?.navigationBar.scrollEdgeAppearance = self.navigationController?.navigationBar.standardAppearance
+    }
 }
 
 extension UIViewController {
@@ -81,37 +91,37 @@ extension UIViewController {
         let toVC = EPICAIAccountVC()
         navigationController?.pushViewController(toVC, animated: true)
     }
-//    
-//    func pushSubscriptionViewController() {
-//        let toVC = SubscriptionsViewController()
-//        navigationController?.pushViewController(toVC, animated: true)
-//    }
-//    
-//    func pushFeedbackViewController() {
-//        let toVC = FeedbackViewController()
-//        navigationController?.pushViewController(toVC, animated: true)
-//    }
-//    
-//    func pushCommonQuestionViewController() {
-//        let toVC = CommonQuestionViewController()
-//        navigationController?.pushViewController(toVC, animated: true)
-//    }
-//    
-//    func pushContactUsViewController() {
-//        let toVC = ContactUsViewController()
-//        navigationController?.pushViewController(toVC, animated: true)
-//    }
-//    
-//    func pushEndUserAgreementViewController() {
-//        let toVC = EndUserAgreementViewController()
-//        navigationController?.pushViewController(toVC, animated: true)
-//    }
-//    
-//    func pushPrivacyPolicyViewController() {
-//        let toVC = PrivacyPolicyViewController()
-//        navigationController?.pushViewController(toVC, animated: true)
-//    }
-//    
+    
+    func pushSubscriptionViewController() {
+        let toVC = EPICAISubscriptionsVC()
+        navigationController?.pushViewController(toVC, animated: true)
+    }
+    
+    func pushFeedbackViewController() {
+        let toVC = EPICAIFeedbackVC()
+        navigationController?.pushViewController(toVC, animated: true)
+    }
+    
+    func pushCommonQuestionViewController() {
+        let toVC = EPICAIQuestionVC()
+        navigationController?.pushViewController(toVC, animated: true)
+    }
+    
+    func pushContactUsViewController() {
+        let toVC = EPICAIContactVC()
+        navigationController?.pushViewController(toVC, animated: true)
+    }
+    
+    func pushEndUserAgreementViewController() {
+        let toVC = EPICAIAgreementVC()
+        navigationController?.pushViewController(toVC, animated: true)
+    }
+    
+    func pushPrivacyPolicyViewController() {
+        let toVC = EPICAIPrivacyPolicyVC()
+        navigationController?.pushViewController(toVC, animated: true)
+    }
+    
 }
 
 extension UIWindow {

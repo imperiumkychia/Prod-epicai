@@ -208,32 +208,149 @@ class EPICAISignInVC: UIViewController, AWSCognitoIdentityInteractiveAuthenticat
         }
     }
     
-    func manageUserSession(uuid:String) {
-        appSyncClient?.fetch(query: GetUserQuery(user_uuid: uuid), cachePolicy: .fetchIgnoringCacheData, resultHandler: { result, error in
-            if let user = result?.data?.getUser {
-                if let imageURLString = user.imageUrl {
-                    AWSManager.shared().downloadProfileImage(key: imageURLString) { imageURL in
-                        if let imageURL = imageURL {
-                            do {
-                                let data = try Data(contentsOf: imageURL)
-                                EPICAISharedPreference.userSession =  EPICAIUser(awsListUser: user)
-                                if let image = UIImage(data: data) {
-                                    EPICAIFileManager.shared().saveEPICAIUserSessionImage(image: image)
-                                }
-                            } catch {
-                                EPICAISharedPreference.userSession =  EPICAIUser(awsListUser: user)
-                            }
-                        } else {
-                            EPICAISharedPreference.userSession =  EPICAIUser(awsListUser: user)
+    func manageSession(user:GetUserQuery.Data.GetUser) {
+        if let imageURLString = user.imageUrl {
+            AWSManager.shared().downloadProfileImage(key: imageURLString) { imageURL in
+                if let imageURL = imageURL {
+                    do {
+                        let data = try Data(contentsOf: imageURL)
+                        EPICAISharedPreference.userSession =  EPICAIUser(awsListUser: user)
+                        if let image = UIImage(data: data) {
+                            EPICAIFileManager.shared().saveEPICAIUserSessionImage(image: image)
                         }
+                    } catch {
+                        EPICAISharedPreference.userSession =  EPICAIUser(awsListUser: user)
                     }
                 } else {
                     EPICAISharedPreference.userSession =  EPICAIUser(awsListUser: user)
                 }
             }
+        } else {
+            EPICAISharedPreference.userSession =  EPICAIUser(awsListUser: user)
+        }
+    }
+    
+    func manageUserSession(uuid:String, userAuthProvider:AuthProvider) {
+        appSyncClient?.fetch(query: GetUserQuery(user_uuid: uuid), cachePolicy: .fetchIgnoringCacheData, resultHandler: { result, error in
+            if error != nil {
+                print("Error in manageUserSession :\(String(describing: error?.localizedDescription))")
+            }
+            else if let errors = result?.errors {
+                print("Error in manageUserSession :\(errors[0].localizedDescription)")
+            }
+            else {
+                if let user = result?.data?.getUser {
+                    print("Manage user session :\(user) ")
+                    self.manageSession(user: user)
+                }
+                else {
+                    self.registerNewUser(authProvider: userAuthProvider, userUUID: uuid)
+                }
+            }
         })
     }
     
+    func registerNewUser(authProvider: AuthProvider, userUUID:String) {
+        var user = EPICAIUser()
+        var userImageURL:URL?
+        Amplify.Auth.fetchUserAttributes() { attributeResult in
+            switch(attributeResult) {
+            case .failure(let error): print("Error in fetchUserAttributes :\(error.localizedDescription)")
+            case .success(let attributes):
+                
+                user.uuid = userUUID
+                
+                if let email = attributes.filter({$0.key == AuthUserAttributeKey.email}).first?.value
+                { user.email = email } else { user.email = "" }
+                
+                if let name = attributes.filter({$0.key == AuthUserAttributeKey.name}).first?.value
+                { user.userName = name } else { user.userName = "" }
+                
+                if let firstName = attributes.filter({$0.key == AuthUserAttributeKey.givenName}).first?.value
+                { user.firstName = firstName } else { user.firstName = "" }
+                
+                if let lastName = attributes.filter({$0.key == AuthUserAttributeKey.familyName}).first?.value
+                { user.lastName = lastName } else { user.lastName = "" }
+                
+                if let gender = attributes.filter({$0.key == AuthUserAttributeKey.gender}).first?.value
+                { user.gender = gender } else { user.gender = "M" }
+                
+                if let attr = attributes.filter({$0.key == AuthUserAttributeKey.picture}).first {
+                    if attr.key == AuthUserAttributeKey.picture {
+                        /// If Google
+                        if let url = URL(string: attr.value) {
+                            userImageURL = url
+                        } else if let body = AuthService.shared().convertStringToDictionary(text: attr.value) {
+                            /// If Facebook
+                            if let data = body["data"] as? NSDictionary {
+                                if let str = data["url"] as? String, let url = URL(string: str) {
+                                    userImageURL = url
+                                } else { userImageURL = nil }
+                            } else { userImageURL = nil }
+                        } else { userImageURL = nil }
+                    } else { userImageURL = nil }
+                } else {
+                    userImageURL = nil
+                }
+                switch authProvider {
+                case .google:
+                    user.vendor = "Google"
+                    user.vendorId = "id_google"
+                case .apple:
+                    user.vendor = "Apple"
+                    user.vendorId = "id_apple"
+                case .facebook:
+                    user.vendor = "Facebook"
+                    user.vendorId = "id_facebook"
+                default:
+                    user.vendor = "Other"
+                    user.vendorId = "id_other"
+                }
+                
+                if let url = userImageURL {
+                    let downloader = ImageGet()
+                    downloader.download(from: url) { image in
+                        if let userImage = image {
+                            let imageKey = "profile_image__\(userUUID).png"
+                            AWSManager.shared().uploadProfileImage(image: userImage, key: imageKey) { result in
+                                switch result {
+                                case.failure(let error):
+                                    self.createUser(user: user, authProvider: authProvider)
+                                    print("Unable to upload user image: \(error)")
+                                case .success(let message):
+                                    self.createUser(user: user, authProvider: authProvider)
+                                    print("Uploaded user image: \(message)")
+                                }
+                            }
+                        }
+                        else {
+                            self.createUser(user: user, authProvider: authProvider)
+                        }
+                    }
+                }
+                else {
+                    self.createUser(user: user, authProvider: authProvider)
+                }
+            }
+        }
+    }
+    
+    func createUser(user:EPICAIUser, authProvider:AuthProvider) {
+        appSyncClient?.perform(mutation: CreateUserMutation(createUserInput: user.createUserMutationInput()), resultHandler: { result, error in
+            if error != nil {
+                print("Error in createUser\(String(describing: error?.localizedDescription))")
+            }
+            else if result?.errors != nil {
+                print("Error in createUser \(String(describing: result?.errors?[0].localizedDescription))")
+            }
+            else {
+                print("User register successfully.")
+                DispatchQueue.main.async {
+                    self.manageUserSession(uuid: user.uuid, userAuthProvider: authProvider)
+                }
+            }
+        })
+    }
     
     @objc func signInWithGoogleButtonTapped(_ sender: Any) {
         ai.textLabel.text = "Signing in..."
@@ -251,8 +368,9 @@ class EPICAISignInVC: UIViewController, AWSCognitoIdentityInteractiveAuthenticat
                 if authResult.isSignedIn {
                     AuthService.shared().getCurrentUserUUID { (uuid) in
                         if let uuid = uuid {
+                            print("Sign in user UUID :\(uuid)")
                             self.fetchedUserUUID = uuid
-                            self.manageUserSession(uuid: uuid)
+                            self.manageUserSession(uuid: uuid, userAuthProvider: .google)
                             DispatchQueue.main.async {
                                 self.ai.dismiss()
                                 guard let windowScene = self.view.window?.windowScene else { return }
@@ -266,8 +384,7 @@ class EPICAISignInVC: UIViewController, AWSCognitoIdentityInteractiveAuthenticat
                             self.mainQueue.async {
                                 self.ai.dismiss()
                             }
-                            /// Could not get uuid
-                            print("Unable to get UUID")
+                            print("User not found. Registering new user...")
                         }
                     }
                 }
@@ -294,18 +411,23 @@ class EPICAISignInVC: UIViewController, AWSCognitoIdentityInteractiveAuthenticat
                 if authResult.isSignedIn {
                     AuthService.shared().getCurrentUserUUID { (uuid) in
                         if let uuid = uuid {
-                            print("******** User id: \(uuid)")
                             self.fetchedUserUUID = uuid
+                            self.manageUserSession(uuid: uuid, userAuthProvider: .facebook)
+                            DispatchQueue.main.async {
+                                self.ai.dismiss()
+                                guard let windowScene = self.view.window?.windowScene else { return }
+                                let scene = UIApplication.shared.connectedScenes.first
+                                if let sd : SceneDelegate = (scene?.delegate as? SceneDelegate) {
+                                    sd.setRootViewController(windowSceen: windowScene)
+                                }
+                            }
+                            print("UUID with facebook sign in \(uuid)")
                         } else {
                             self.mainQueue.async {
                                 self.ai.dismiss()
                             }
-                            print("Unable to get UUID")
+                            print("User not found")
                         }
-                    }
-                } else {
-                    self.mainQueue.async {
-                        self.ai.dismiss()
                     }
                 }
             }
@@ -335,8 +457,6 @@ class EPICAISignInVC: UIViewController, AWSCognitoIdentityInteractiveAuthenticat
         }
     }
     
-    
-    
     private func randomNonceString(length: Int = 32) -> String {
         precondition(length > 0)
         let charset: Array<Character> =
@@ -353,19 +473,16 @@ class EPICAISignInVC: UIViewController, AWSCognitoIdentityInteractiveAuthenticat
                 }
                 return random
             }
-            
             randoms.forEach { random in
                 if remainingLength == 0 {
                     return
                 }
-                
                 if random < charset.count {
                     result.append(charset[Int(random)])
                     remainingLength -= 1
                 }
             }
         }
-        
         return result
     }
     
@@ -419,9 +536,3 @@ class EPICAISignInVC: UIViewController, AWSCognitoIdentityInteractiveAuthenticat
     }
 }
 
-extension EPICAISignInVC: UITextFieldDelegate {
-    func textFieldShouldReturn(_ textField: UITextField) -> Bool {
-        textField.resignFirstResponder()
-        return true
-    }
-}

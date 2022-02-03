@@ -7,6 +7,7 @@
 
 import Foundation
 import SnapKit
+import UIKit
 
 class ProfileUserInfoCell: UITableViewCell {
     
@@ -16,13 +17,17 @@ class ProfileUserInfoCell: UITableViewCell {
     private var detailLabel: UILabel!
     private var dividerView: UIView!
     
-    var detail: String? {
+    private var followingBtn: UIButton!
+    private var followerBtn: UIButton!
+    private var subscriptionBtn: UIButton!
+    
+    var name: String? {
         didSet {
-            detailLabel.text = detail
+            nameLabel.text = name
         }
     }
     
-    var name: String? {
+    var following: String? {
         didSet {
             nameLabel.text = name
         }
@@ -76,13 +81,33 @@ class ProfileUserInfoCell: UITableViewCell {
         nameLabel.numberOfLines = 0
         contentView.addSubview(nameLabel)
         
-        detailLabel = UILabel(frame: .zero)
-        detailLabel.translatesAutoresizingMaskIntoConstraints = false
-        detailLabel.font = LatoFont.regular.withSize(13.0)
-        detailLabel.textColor = Palette.V2.V2_VCTitle
-        detailLabel.textAlignment = .left
-        detailLabel.numberOfLines = 0
-        contentView.addSubview(detailLabel)
+        followerBtn = UIButton(frame: .zero)
+        followerBtn.translatesAutoresizingMaskIntoConstraints = false
+        followerBtn.setTitle("Followers 150", for: .normal)
+        followerBtn.contentHorizontalAlignment  = .left
+        followerBtn.titleLabel?.font = LatoFont.bold.withSize(13)
+        followerBtn.setTitleColor(Palette.darkPurple, for: .normal)
+        followerBtn.addTarget(self, action: #selector(moveToFollowers(_ :)), for: .touchUpInside)
+        contentView.addSubview(followerBtn)
+        
+        followingBtn = UIButton(frame: .zero)
+        followingBtn.translatesAutoresizingMaskIntoConstraints = false
+        followingBtn.setTitle("Following 150", for: .normal)
+        followingBtn.contentHorizontalAlignment  = .left
+        followingBtn.titleLabel?.font = LatoFont.bold.withSize(13)
+        followingBtn.setTitleColor(Palette.darkPurple, for: .normal)
+        followingBtn.addTarget(self, action: #selector(moveToFollowings(_ :)), for: .touchUpInside)
+        contentView.addSubview(followingBtn)
+        
+        subscriptionBtn = UIButton(frame: .zero)
+        subscriptionBtn.translatesAutoresizingMaskIntoConstraints = false
+        subscriptionBtn.setTitle("Subscriptions -> Tier 1", for: .normal)
+        subscriptionBtn.contentHorizontalAlignment  = .left
+        subscriptionBtn.titleLabel?.font = LatoFont.bold.withSize(13)
+        subscriptionBtn.setTitleColor(Palette.darkPurple, for: .normal)
+        subscriptionBtn.addTarget(self, action: #selector(moveToSubscription(_ :)), for: .touchUpInside)
+        contentView.addSubview(subscriptionBtn)
+        
         
         dividerView.snp.makeConstraints { (make) in
             make.height.equalTo(1.0)
@@ -94,7 +119,7 @@ class ProfileUserInfoCell: UITableViewCell {
         profileImageViewContainer.snp.makeConstraints { (make) in
             make.width.equalTo(profileImageWidth)
             make.height.equalTo(profileImageWidth)
-            make.top.equalTo(contentView)
+            make.top.equalTo(contentView).offset(20)
             make.leading.equalTo(contentView).offset(20.0)
         }
         
@@ -103,16 +128,43 @@ class ProfileUserInfoCell: UITableViewCell {
         }
         
         nameLabel.snp.makeConstraints { (make) in
-            make.top.equalTo(15)
-            make.topMargin.equalTo(20)
+            make.top.equalTo(35)
             make.leading.equalTo(profileImageViewContainer.snp.trailing).offset(15.0)
             make.trailing.equalTo(contentView).offset(-20.0)
         }
         
-        detailLabel.snp.makeConstraints { (make) in
-            make.top.equalTo(nameLabel.snp.bottom)
+        followerBtn.snp.makeConstraints { make in
+            make.width.equalTo(150)
+            make.height.equalTo(30)
+            make.top.equalTo(nameLabel.snp.bottom).offset(10)
             make.leading.equalTo(nameLabel)
-            make.trailing.equalTo(nameLabel)
+        }
+        
+        followingBtn.snp.makeConstraints { make in
+            make.width.equalTo(150)
+            make.height.equalTo(30)
+            make.top.equalTo(nameLabel.snp.bottom).offset(10)
+            make.trailing.equalTo(contentView)
+        }
+        
+        subscriptionBtn.snp.makeConstraints { make in
+            make.top.equalTo(followerBtn.snp.bottom)
+            make.leading.equalTo(nameLabel)
+            make.trailing.equalTo(contentView).offset(-20)
         }
     }
+    
+    @objc func moveToFollowers(_ sender:UIButton) {
+        print("Move to moveToFollowers")
+    }
+    
+    @objc func moveToFollowings(_ sender:UIButton) {
+        print("Move to moveToFollowings")
+    }
+    
+    @objc func moveToSubscription(_ sender:UIButton) {
+        print("Move to moveToSubscription")
+    }
+    
+
 }

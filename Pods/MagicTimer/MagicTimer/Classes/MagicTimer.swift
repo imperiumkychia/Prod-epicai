@@ -57,7 +57,7 @@ public class MagicTimer: MGLogable {
         }
     }
     /// Set time interval to executive timeInerval.
-    public var timeInterval: TimeInterval = 1  {
+    public var timeInterval: TimeInterval = 0.5  {
         willSet {
             let positiveValue = max(0, newValue)
             executive.setTimeInterval(positiveValue)

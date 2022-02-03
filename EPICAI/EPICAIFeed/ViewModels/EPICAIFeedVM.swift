@@ -11,6 +11,7 @@ import Amplify
 
 class EPICAIFeedVM: NSObject {
     
+    var requestOnProgress = false
     var onReceiveVideos: (([EPICAIFeedItem]?) -> Void) = { _ in }
     var onReceiveVideosURLs: (([EPICAIFeedItem]?) -> Void) = { _ in }
     
@@ -33,68 +34,107 @@ class EPICAIFeedVM: NSObject {
 
 extension EPICAIFeedVM {
     
-    func updateLikeCount(videoItem:EPICAIFeedItem, indexPath:IndexPath, completion:@escaping (IndexPath?) -> Void ) {
-        let videoMutaionInput = UpdateVideoInput(videoUuid: videoItem.video.videoUUID, likesCount: videoItem.video.likeCount+1)
-        appSyncClient?.perform(mutation: UpdateVideoMutation(updateVideoInput: videoMutaionInput), resultHandler: { result, error in
-            if error != nil{
-                completion(nil)
-                print(error ?? "Error Getting Lists")
+    func updateLikeCount(videoItem:EPICAIFeedItem, indexPath:IndexPath,likeState:Bool, completion:@escaping (IndexPath?) -> Void ) {
+        
+        print("Index path :\(indexPath)")
+        if self.requestOnProgress { return }
+        
+        guard let userUUID = EPICAISharedPreference.userSession?.uuid else { return }
+        self.requestOnProgress = true
+        let checkUserLikeTable = ListVideoLikebyVideoAndUserQuery(user_uuid: userUUID, video_uuid: videoItem.video.videoUUID)
+        
+        appSyncClient?.fetch(query: checkUserLikeTable, cachePolicy: .fetchIgnoringCacheData, resultHandler: { result, error in
+            if let error = error {
+                print("Error while fetching like details : \(error.localizedDescription)")
             }
-            if let resultError = result?.errors {
-                completion(nil)
-                print("Error saving the item on server: \(resultError)")
-                return
+            else if let errors = result?.errors {
+                print("Error while fetching like details : \(errors[0].localizedDescription)")
             }
             else {
-                completion(indexPath)
-                print("Success updateLikeCount : \(String(describing: result))")
+                if let result = result?.data?.listVideoLikebyVideoAndUser {
+                    print("Result : \(result)")
+                   
+                    if result.count > 0 {
+                        appSyncClient?.perform(mutation: DeleteVideoLikeMutation(video_like_uuid:  result[0]!.videoLikeUuid), resultHandler: { result, error in
+                            if let error = error {
+                                print("Error while deleting record :\(error)")
+                            }
+                            else if let errors = result?.errors {
+                                print("Error while deleting record :\(errors[0])")
+                            }
+                            else {
+                                completion(indexPath)
+                                print("Record deleted successfully")
+                            }
+                        })
+                    }
+                    else {
+                        let createVideoLike = CreateVideo_likeInput(videoLikeUuid: UUID().uuidString, userUuid: userUUID, videoUuid:videoItem.video.videoUUID, createdDatetime: Date().getServerDate())
+                        appSyncClient?.perform(mutation: CreateVideoLikeMutation(createVideo_likeInput: createVideoLike), resultHandler: { result, error in
+                            if let error = error {
+                                print("Error while create video like record :\(error)")
+                            }
+                            else if let errors = result?.errors {
+                                print("Error while create video like record :\(errors[0])")
+                            }
+                            else {
+                                completion(indexPath)
+                                print("Record created successfully")
+                            }
+                        })
+                    }
+                }
             }
+            self.requestOnProgress = false
         })
     }
     
     func getVideosList(){
         var results = [EPICAIFeedItem]()
-        appSyncClient?.fetch(query: ListShareableVideoQuery(),cachePolicy: .fetchIgnoringCacheData) {(result, error) in
-            guard let unWrappedVideosList = result?.data?.listShareableVideo else { self.items = nil ; return }
-            let group = DispatchGroup()
-            for video in unWrappedVideosList {
-                if let uwvideo = video {
-                    group.enter()
-                    appSyncClient?.fetch(query: GetUserQuery(user_uuid:uwvideo.userUuid), cachePolicy: .fetchIgnoringCacheData) {
-                        (result, error) in
-                        if let user = result?.data?.getUser {
-                            if let imageURLString = user.imageUrl {
-                                AWSManager.shared().downloadProfileImage(key: imageURLString) { imageURL in
-                                    if let imageURL = imageURL {
-                                        do {
-                                            let data = try Data(contentsOf: imageURL)
-                                            var feedItem = EPICAIFeedItem(video: EPICAIVideo(awsListVideo: uwvideo), user: EPICAIUser(awsListUser: user))
-                                            feedItem.userImage = UIImage(data: data)
-                                            results.append(feedItem)
-                                            group.leave()
-                                        } catch {
+        print("User uuid :\(String(describing: EPICAISharedPreference.userSession?.uuid))")
+        if let userUUID = EPICAISharedPreference.userSession?.uuid {
+            appSyncClient?.fetch(query: ListVideoShareWithLikeQuery(user_uuid: userUUID),cachePolicy: .fetchIgnoringCacheData) {(result, error) in
+                guard let unWrappedVideosList = result?.data?.listVideoShareWithLike else { self.items = nil ; return }
+                let group = DispatchGroup()
+                for video in unWrappedVideosList {
+                    if let uwvideo = video {
+                        group.enter()
+                        appSyncClient?.fetch(query: GetUserQuery(user_uuid:uwvideo.userUuid), cachePolicy: .fetchIgnoringCacheData) {
+                            (result, error) in
+                            if let user = result?.data?.getUser {
+                                if let imageURLString = user.imageUrl {
+                                    AWSManager.shared().downloadProfileImage(key: imageURLString) { imageURL in
+                                        if let imageURL = imageURL {
+                                            do {
+                                                let data = try Data(contentsOf: imageURL)
+                                                var feedItem = EPICAIFeedItem(video: EPICAIVideo(awsListVideo: uwvideo), user: EPICAIUser(awsListUser: user))
+                                                feedItem.userImage = UIImage(data: data)
+                                                results.append(feedItem)
+                                                group.leave()
+                                            } catch {
+                                                let feedItem = EPICAIFeedItem(video: EPICAIVideo(awsListVideo: uwvideo), user: EPICAIUser(awsListUser: user))
+                                                results.append(feedItem)
+                                                group.leave()
+                                            }
+                                        } else {
                                             let feedItem = EPICAIFeedItem(video: EPICAIVideo(awsListVideo: uwvideo), user: EPICAIUser(awsListUser: user))
                                             results.append(feedItem)
                                             group.leave()
                                         }
-                                    } else {
-                                        let feedItem = EPICAIFeedItem(video: EPICAIVideo(awsListVideo: uwvideo), user: EPICAIUser(awsListUser: user))
-                                        results.append(feedItem)
-                                        group.leave()
                                     }
                                 }
-                            }
-                            else {
-                                let feedItem = EPICAIFeedItem(video: EPICAIVideo(awsListVideo: uwvideo), user: EPICAIUser(awsListUser: user))
-                                results.append(feedItem)
-                                group.leave()
+                                else {
+                                    let feedItem = EPICAIFeedItem(video: EPICAIVideo(awsListVideo: uwvideo), user: EPICAIUser(awsListUser: user))
+                                    results.append(feedItem)
+                                    group.leave()
+                                }
                             }
                         }
                     }
                 }
-            }
-            group.notify(queue: .main) {
-                self.items = results
+                group.notify(queue: .main) {
+                    self.items = results
+                }
             }
         }
     }
@@ -105,6 +145,7 @@ extension EPICAIFeedVM {
         for item in items {
             group.enter()
             if !item.video.videoName.isEmpty {
+                print("Video name: \(item.video.videoName)")
                 _ = Amplify.Storage.getURL(key: item.video.videoName, options: .none, resultListener: { result in
                     var dummyItem = item
                     switch result {

@@ -14,7 +14,7 @@ import AVFoundation
 let maximumVideoLength: Int = 20
 
 // MARK: - Frame Per Second
-let fps: Int32 = 5
+let fps: Int32 = 2
 
 // MARK: - Video preset
 let videoQuality: AVCaptureSession.Preset = .high
@@ -22,10 +22,17 @@ let videoQuality: AVCaptureSession.Preset = .high
 // MARK: - Audio bitrate
 let audioBitRate: Int = 44000
 
+let videoExtension = ".mp4"
+
+let videoBucketkey = ""
+let bodyPointBucketkey = "bodypoint/"
+let audioPointBucketkey = "audio/"
+let profileImagesBucketkey = "profileImages/"
+
 let audioPoint = "AudioPoint"
 let bodyPoint = "BodyPoint"
-
 let videoTitlePlaceHolder = "Video title..."
+let extractedAudioFileName = "EPICAudioFromVideo.m4a"
 
 // #########################################################################
 // MARK: - Color Palette
@@ -45,7 +52,7 @@ public struct Palette {
         static let v2_lightOrange = UIColor(named: "v2_lightOrange")
         static let v2_orange = UIColor(named: "v2_orange")
         static let V2_tabBarBackground = UIColor.modedColor(light: "#ffffff", dark: "#161728")
-        static let V2_tabBarItemBackground = UIColor.modedColor(light: "#474c8c", dark: "#b3b4bc")
+        static let V2_tabBarItemBackground = UIColor.modedColor(light: "#474c8c", dark: "#474c8c")
         static let V2_tabBarTitle = V2_tabBarBackground
         static let V2_feedsDate = UIColor.modedColor(light: "#c1c1c6", dark: "#91919a")
         static let V2_pageControlIndicatorSelected = UIColor.modedColor(light: "#8487b2", dark: "#474c8e")
@@ -85,7 +92,6 @@ public struct Palette {
 
 // MARK: - Fonts
 class LatoFont {
-    
     class Names {
         static let regular = "Lato-Regular"
         static let italic = "Lato-Italic"

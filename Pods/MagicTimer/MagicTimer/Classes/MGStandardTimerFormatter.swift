@@ -30,7 +30,6 @@ class MGStandardTimerFormatter: DateComponentsFormatter, MGTimeFormatter {
         fatalError("init(coder:) has not been implemented")
     }
     
-    
     func converToValidFormat(ti: TimeInterval) -> String? {
         switch ti {
         case let x where Int(x) >= MGTimeUnit.hour.rawValue:

@@ -24,6 +24,13 @@ class AWSManager: NSObject {
         let downloadToFileName = FileManager.default.urls(for: .documentDirectory,
                                                           in: .userDomainMask)[0]
             .appendingPathComponent(key)
+        
+        if FileManager.default.fileExists(atPath: downloadToFileName.path) {
+            completion(downloadToFileName)
+            return
+        }
+        
+        
         //let options = StorageDownloadFileRequest.Options(accessLevel: .protected, targetIdentityId: identityId, pluginOptions: nil)
         _ = Amplify.Storage.downloadFile(key: "profileImages/" + key, local: downloadToFileName,
             progressListener: { progress in

@@ -1,15 +1,17 @@
 //
-//  ResultWithVideoCell.swift
+//  EPICAIComposePostPlayerCell.swift
 //  EPICAI
 //
-//  Created by Abdul fattah on 24/12/21.
+//  Created by Abdul fattah on 05/01/22.
 //
 
 import UIKit
 import Player
 
-class ResultWithVideoCell: UITableViewCell {
-    static let identifier:String = "ResultWithVideoCell"
+class EPICAIComposePostPlayerCell: UITableViewCell {
+    
+    static var identifier = "EPICAIComposePostPlayerCell"
+    
     
     private var previewView: Player!
     private var playButtonContainer: UIView!
@@ -49,7 +51,8 @@ class ResultWithVideoCell: UITableViewCell {
         
         snapshotImageView = UIImageView(frame: .zero)
         snapshotImageView.translatesAutoresizingMaskIntoConstraints = false
-        snapshotImageView.image = #imageLiteral(resourceName: "noVideo")
+        // UIImage(systemName: "chevron.left", withConfiguration: UIImage.SymbolConfiguration(pointSize: 25.0, weight: .regular))
+        //snapshotImageView.image = #imageLiteral(resourceName: "noVideo")
         snapshotImageView.contentMode = .scaleAspectFill
         contentView.addSubview(snapshotImageView)
 
@@ -94,8 +97,8 @@ class ResultWithVideoCell: UITableViewCell {
 
     override func awakeFromNib() {
         super.awakeFromNib()
-        // Initialization code
         self.configureUI()
+        // Initialization code
     }
 
     override func setSelected(_ selected: Bool, animated: Bool) {
@@ -106,7 +109,7 @@ class ResultWithVideoCell: UITableViewCell {
 
 }
 
-extension ResultWithVideoCell : PlayerDelegate, PlayerPlaybackDelegate {
+extension EPICAIComposePostPlayerCell : PlayerDelegate, PlayerPlaybackDelegate {
     
     func playerReady(_ player: Player) {
         
@@ -154,3 +157,4 @@ extension ResultWithVideoCell : PlayerDelegate, PlayerPlaybackDelegate {
     
     
 }
+

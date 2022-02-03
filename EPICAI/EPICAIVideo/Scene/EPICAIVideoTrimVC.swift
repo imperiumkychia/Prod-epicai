@@ -9,6 +9,8 @@ import UIKit
 import SnapKit
 import AVFoundation
 import AVKit
+import CDAlertView
+import Photos
 
 protocol VideoTrimViewControllerDelegate: AnyObject {
     func videoTrim(_ viewController: EPICAIVideoTrimVC, didFinishTrimmimgWithVideoURL url: URL?)
@@ -24,7 +26,7 @@ class EPICAIVideoTrimVC: UIViewController {
         let label = UILabel(frame: .zero)
         label.translatesAutoresizingMaskIntoConstraints = false
         label.text = "Preview"
-        label.font = LatoFont.bold.withSize(27.0)
+        label.font = LatoFont.bold.withSize(25.0)
         label.textColor = Palette.V2.V2_VCTitle
         return label
     }()
@@ -39,7 +41,6 @@ class EPICAIVideoTrimVC: UIViewController {
         return button
     }()
     
-    
     lazy var resetButton: UIButton = {
         let button = UIButton(frame: .zero)
         button.translatesAutoresizingMaskIntoConstraints = false
@@ -48,7 +49,6 @@ class EPICAIVideoTrimVC: UIViewController {
         return button
     }()
 
-    
     var durationView: VideoDurationView!
     //var resetButton: UIButton!
     var player: AVPlayer!
@@ -101,7 +101,7 @@ class EPICAIVideoTrimVC: UIViewController {
             make.trailing.equalTo(view).offset(-itemsMargin)
         }
         
-        print("Self Video URL \(self.videoURL)")
+        print("Self Video URL \(String(describing: self.videoURL))")
         guard let url = videoURL,
            let duration = getDurationForVideo(at: url) else {
             return
@@ -109,7 +109,6 @@ class EPICAIVideoTrimVC: UIViewController {
         
         originalDuration = duration
         durationView.totalDurationInSeconds = duration
-        
         
         view.addSubview(durationView)
         durationView.snp.makeConstraints { (make) in
@@ -125,7 +124,6 @@ class EPICAIVideoTrimVC: UIViewController {
             make.centerY.equalTo(durationView)
             make.trailing.equalTo(closeButton)
         }
-        
         
         playerContainer = UIView(frame: CGRect(x: 0.0,
                                                y: 0.0,
@@ -244,27 +242,86 @@ class EPICAIVideoTrimVC: UIViewController {
     }
     
     @objc func analyzeButtonTapped(_ sender: UIButton) {
-//        if let navController = self.navigationController {
-//           let controller = EPICAIComposePost.instantiateFromAppStoryBoard(appStoryBoard: .VPStoryboard)
-//            controller.videoURL = self.videoURL
-//            navController.pushViewController(controller, animated: true)
-//        }
+        if let navController = self.navigationController {
+           let controller = EPICAIComposePost.instantiateFromAppStoryBoard(appStoryBoard: .VPStoryboard)
+            controller.videoURL = self.videoURL
+            navController.pushViewController(controller, animated: true)
+            if let videoURL = self.videoURL {
+                self.checkPhotoLibraryPermissionToWriteVideoFor(url: videoURL)
+            }
+        }
+    }
+    
+    func checkPhotoLibraryPermissionToWriteVideoFor(url:URL)  {
+        switch(PHPhotoLibrary.authorizationStatus()) {
+        case .authorized:
+            self.writeVideoInPhotoAlbum(url: url)
+        case .denied:
+            print("Permission denied.")
+        case .notDetermined:
+            PHPhotoLibrary.requestAuthorization { (status) in
+                if status == .authorized {
+                    self.writeVideoInPhotoAlbum(url: url)
+                }
+            }
+        case .restricted:
+            print("Permission restricted to write video in photo album.")
+        default: return
+        }
+    }
+    
+    private func writeVideoInPhotoAlbum(url:URL) {
+        DispatchQueue.main.async {
+            PHPhotoLibrary.shared().performChanges({
+                PHAssetChangeRequest.creationRequestForAssetFromVideo(atFileURL: url)
+            }) { saved, error in
+                if saved {
+                    DispatchQueue.main.async {
+                        print("Video saved successfully.")
+                    }
+                }
+                if error != nil {
+                    //os_log("Video did not save for some reason", error.debugDescription);
+                    debugPrint(error?.localizedDescription ?? "error is nil");
+                }
+            }
+        }
     }
     
     @objc func trimButtonTapped(_ sender: UIButton) {
+        return
         if let url = self.videoURL {
             EPICAIFileManager.cropVideo(sourceURL: url, statTime: Float(self.rangeSeeker.selectedMinValue), endTime: Float(self.rangeSeeker.selectedMaxValue)) { outPuturl, trimStatus in
             }
         }
     }
     
-    @objc func closeButtonTapped(_ sender: UIButton) {
-        EPICAIGenericAlertView().show(title: "EPICAI Alert", message: "Video and it's data will get deleted", onViewController: self) {
-            print("Completion handler")
-//            if let navCon = self.navigationController {
-//                navCon.popViewController(animated: true)
-//            }
+    func showAlertWithOption() {
+        let alert = CDAlertView(title: "EPICAI Alert!", message: "Are you sure, you wants to delete all files and video", type: .alarm)
+        let doneAction = CDAlertViewAction(title: "Ok", font: nil, textColor: nil, backgroundColor: nil) { (_) -> Bool in
+            //self.dismiss(animated: true, completion: nil)
+            EPICAIFileManager.shared().manageDeleteVideoAndAssets(videoURL: self.videoURL!)
+            if let tabCont = self.tabBarController as? GenericTabBarController {
+                tabCont.floatingTabbarView.changeTab(toIndex: 0)
+            }
+            self.navigationController?.popToRootViewController(animated: true)
+            return true
         }
+        let cancelAction = CDAlertViewAction(title: "Cancel", font: nil, textColor: nil, backgroundColor: nil) { (_) -> Bool in
+            return true
+        }
+        
+        alert.circleFillColor = Palette.darkPurple
+        doneAction.buttonTextColor = Palette.darkPurple
+        cancelAction.buttonTextColor = Palette.darkPurple
+        
+        alert.add(action: doneAction)
+        alert.add(action: cancelAction)
+        alert.show()
+    }
+    
+    @objc func closeButtonTapped(_ sender: UIButton) {
+        self.showAlertWithOption()
     }
 
     @objc func resetButtonTapped(_ sender: UIButton) {

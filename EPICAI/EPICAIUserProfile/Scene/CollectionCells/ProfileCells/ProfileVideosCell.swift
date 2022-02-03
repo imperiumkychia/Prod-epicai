@@ -12,7 +12,7 @@ import SnapKit
 import Player
 
 protocol ProfileVideosCellDelegate: AnyObject {
-    func profileVideoCell(_ cell: ProfileVideosCell, didAskToShareVideoWithUUID videoUUID: String?)
+    func profileVideoCell(_ cell: ProfileVideosCell, didAskToShareVideoItem item: EPICAIFeedItem?)
 }
 
 class ProfileVideosCell: UITableViewCell {
@@ -36,6 +36,18 @@ class ProfileVideosCell: UITableViewCell {
             updateValues()
         }
     }
+    var user:EPICAIUser? {
+        didSet {
+            if let user = self.user {
+                if user.uuid == EPICAISharedPreference.userSession?.uuid {
+                    self.shareButton.isHidden = false
+                }
+                else {
+                    self.shareButton.isHidden = true
+                }
+            }
+        }
+    }
     
     var videoURL: URL? = nil {
         didSet {
@@ -46,7 +58,7 @@ class ProfileVideosCell: UITableViewCell {
             }
         }
     }
-    
+        
     weak var delegate: ProfileVideosCellDelegate?
     
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
@@ -60,11 +72,26 @@ class ProfileVideosCell: UITableViewCell {
     
     private func updateValues() {
         guard let item = self.item else { return }
-        statusLabel.text = item.video.analyseStatus
-        videoNameLabel.text = item.video.videoName
+        
+        print("Items :\(item)")
+        
+        if item.video.title == "null" || item.video.title.isEmpty ||  item.video.title == ""{
+            statusLabel.text = "No title"
+        }
+        else {
+            statusLabel.text = item.video.title
+        }
+        
+        if item.video.status == "null" || item.video.status.isEmpty  || item.video.status == ""{
+            videoNameLabel.text = "None"
+        }
+        else {
+            videoNameLabel.text = item.video.status
+        }
+       
         videoDateLabel.text = formattedDateString(string: item.video.dataTime)
         videoURL = item.videoLocalURL
-        videoScoreLabel.text = "score: 60/100"
+        videoScoreLabel.text = "score: \(item.video.score)/100"
     }
     
     private func configureUI() {
@@ -109,7 +136,6 @@ class ProfileVideosCell: UITableViewCell {
         shareButton.addTarget(self, action: #selector(shareButtonTapped(_:)), for: .touchUpInside)
         contentView.addSubview(shareButton)
         
-        
         previewView = Player()
         previewView.view.frame = contentView.bounds
         previewView.view.translatesAutoresizingMaskIntoConstraints = true
@@ -146,17 +172,17 @@ class ProfileVideosCell: UITableViewCell {
         
         statusLabel.snp.makeConstraints { (make) in
             make.top.equalTo(contentView).offset(10.0)
-            make.centerX.equalTo(contentView)
+            make.leading.equalTo(contentView).offset(25)
         }
         
         videoNameLabel.snp.makeConstraints { (make) in
             make.top.equalTo(statusLabel).offset(30.0)
-            make.leading.equalTo(contentView).offset(40.0)
+            make.leading.equalTo(contentView).offset(25.0)
         }
         
         videoDateLabel.snp.makeConstraints { (make) in
             make.centerY.equalTo(videoNameLabel)
-            make.trailing.equalTo(contentView).offset(-40.0)
+            make.trailing.equalTo(contentView).offset(-25.0)
         }
         
         videoScoreLabel.snp.makeConstraints { (make) in
@@ -211,7 +237,7 @@ class ProfileVideosCell: UITableViewCell {
     }
     
     @objc func shareButtonTapped(_ sender: UIButton) {
-        delegate?.profileVideoCell(self, didAskToShareVideoWithUUID: item?.video.videoUUID)
+        self.delegate?.profileVideoCell(self, didAskToShareVideoItem: self.item)
     }
 }
 

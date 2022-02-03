@@ -9,21 +9,102 @@ import Foundation
 import UIKit
 import MediaPlayer
 import CoreLocation
+import CDAlertView
+import Reachability
 
 class EPICAIComposePost : UIViewController {
     
     @IBOutlet weak var postTV: UITableView!
     @IBOutlet weak var closeBtn:UIButton!
+    @IBOutlet weak var titleLbl:UILabel!
+    
+    @IBOutlet weak var activityIndicator: UIActivityIndicatorView!
     
     var videoURL:URL?
     var currentLocation:CLLocation?
     var videoTitle = videoTitlePlaceHolder
-    var expandingCellHeight: CGFloat = 60
-    let expandingIndexRow = 2
-    var imageArrName:[String] = []
+    var expandingCellHeight: CGFloat = 70
+    let expandingIndexRow = 1
+    var uploadOption = false
+    
+    var videoUploadVM = EPICAICreatePostVideoVM()
+    //var offileVideoManager = EPICAIOfflineVideoManager()
     
     @IBAction func moveBack(_ sender: Any) {
-        self.dismiss(animated: true, completion: nil)
+        showAlertWithOption()
+    }
+    
+    func manageProgress() {
+        self.videoUploadVM.showProgress = { (progress, uploadState, error) in
+            DispatchQueue.main.async {
+                print("Progress state :\(String(describing: uploadState))")
+                switch(uploadState) {
+                case .Start: self.closeBtn.isHidden = false ;
+                case .Video: self.closeBtn.isHidden = false ;self.activityIndicator.startAnimating()
+                case .BodyPoint: self.closeBtn.isHidden = true
+                case .AudioPoint: self.closeBtn.isHidden = true
+                case .Finish: self.closeBtn.isHidden = true ; self.activityIndicator.stopAnimating()
+                default: self.closeBtn.isHidden = false ;self.activityIndicator.stopAnimating()
+                }
+            }
+        }
+    }
+    
+    func cancelUpload() {
+        if self.videoUploadVM.progresType == .Video {
+            if self.activityIndicator.isAnimating {
+                EPICAIFileManager.shared().manageDeleteVideoAndAssets(videoURL: self.videoURL!)
+                if let tabCont = self.tabBarController as? GenericTabBarController {
+                    tabCont.floatingTabbarView.changeTab(toIndex: 0)
+                }
+                self.videoUploadVM.progressDiscard(videoURL: self.videoURL!) { state in
+                    print("Video bucket delete function : \(state)")
+                }
+            }
+        }
+        else if self.videoUploadVM.progresType == .Finish ||  self.videoUploadVM.progresType  == .Start {
+            EPICAIFileManager.shared().manageDeleteVideoAndAssets(videoURL: self.videoURL!)
+            if let tabCont = self.tabBarController as? GenericTabBarController {
+                tabCont.floatingTabbarView.changeTab(toIndex: 0)
+            }
+            self.navigationController?.popToRootViewController(animated: true)
+        }
+    }
+    
+    func uploadSuccess() {
+        EPICAIFileManager.shared().manageDeleteVideoAndAssets(videoURL: self.videoURL!)
+        if let tabCont = self.tabBarController as? GenericTabBarController {
+            tabCont.floatingTabbarView.changeTab(toIndex: 2)
+        }
+        self.navigationController?.popToRootViewController(animated: true)
+    }
+    
+    func showAlertWithOption() {
+        guard let videoURL = self.videoURL else {return}
+        if EPICAIFileManager.shared().videoFileExist(videoURL.lastPathComponent) {
+            let alert = CDAlertView(title: "EPICAI Alert!", message: "Are you sure, you wants to delete all files and video", type: .alarm)
+            let doneAction = CDAlertViewAction(title: "Yes", font: nil, textColor: nil, backgroundColor: nil) { (_) -> Bool in
+                self.cancelUpload()
+                return true
+            }
+            let cancelAction = CDAlertViewAction(title: "No", font: nil, textColor: nil, backgroundColor: nil) { (_) -> Bool in
+                return true
+            }
+            alert.circleFillColor = Palette.darkPurple
+            doneAction.buttonTextColor = Palette.darkPurple
+            cancelAction.buttonTextColor = Palette.darkPurple
+            
+            alert.add(action: doneAction)
+            alert.add(action: cancelAction)
+            alert.show()
+        }
+        else
+        {
+            if let tabCont = self.tabBarController as? GenericTabBarController {
+                tabCont.floatingTabbarView.changeTab(toIndex: 0)
+            }
+            self.navigationController?.popToRootViewController(animated: true)
+        }
     }
     
     override func viewDidLoad() {
@@ -32,21 +113,104 @@ class EPICAIComposePost : UIViewController {
         super.viewDidLoad()
         self.closeBtn.setTitle("", for: .normal)
         registerKeyboardNotifications()
+        self.titleLbl.font = LatoFont.bold.withSize(25)
+        self.titleLbl.textColor = Palette.V2.V2_VCTitle
+        closeBtn.tintColor = Palette.V2.V2_VCTitle
+        switch(traitCollection.userInterfaceStyle) {
+        case .light, .unspecified: self.view.backgroundColor = UIColor.init(white: 0.95, alpha: 1)
+        case .dark: self.view.backgroundColor = .black
+        default: break
+        }
+    }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        self.hideNavBar()
     }
     
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
+        self.showNavBar()
     }
     
-    @IBAction func submit(_ sender: Any) {
-        print("Submit clicked")
-    }
-    
-    func isFormValidated() -> Bool {
-        if videoTitle == videoTitlePlaceHolder {
-            self.videoTitle = ""
+    func callUploadVideoDetails() {
+        self.manageProgress()
+        self.videoUploadVM.createVideoRecord(videoTitle: self.videoTitle, videoURL: self.videoURL!, location: self.currentLocation) { videoDetails, error  in
+            if let error = error {
+                print("Error \(error.localizedDescription)")
+            }
+            else {
+                self.uploadSuccess()
+            }
+            print("Video details \(String(describing: videoDetails))")
         }
-        return true
+    }
+    
+    func showDataAlertOption() {
+        let alert = CDAlertView(title: "EPICAI Alert!", message: "You are not connected to wi-fi, Allow mobile data to upload files and video", type: .warning)
+        let doneAction = CDAlertViewAction(title: "Sure", font: nil, textColor: nil, backgroundColor: nil) { (_) -> Bool in
+            self.callUploadVideoDetails()
+            return true
+        }
+        
+        let cancelAction:CDAlertViewAction
+        alert.circleFillColor = Palette.darkPurple
+        doneAction.buttonTextColor = Palette.darkPurple
+        
+        if EPICAIOfflineVideoManager.shared.getDataStoreCount() > 2 {
+            cancelAction = CDAlertViewAction(title: "Discard upload", font: nil, textColor: nil, backgroundColor: nil) { (_) -> Bool in
+                self.cancelUpload()
+                return true
+            }
+        }
+        else {
+            cancelAction = CDAlertViewAction(title: "Save to future use", font: nil, textColor: nil, backgroundColor: nil) { (_) -> Bool in
+                let epicVideo = EPICAIVideo(videoTitle: self.videoTitle, videoURL: self.videoURL!, location: self.currentLocation)
+                if let messsage = EPICAIOfflineVideoManager.shared.saveVideoRecord(epicVideo: epicVideo) {
+                    print("Message from core data : \(messsage)")
+                    if let tabCont = self.tabBarController as? GenericTabBarController {
+                        tabCont.floatingTabbarView.changeTab(toIndex: 0)
+                    }
+                    self.navigationController?.popToRootViewController(animated: true)
+                }
+                return true
+            }
+        }
+        cancelAction.buttonTextColor = Palette.darkPurple
+        alert.add(action: doneAction)
+        alert.add(action: cancelAction)
+        alert.show()
+    }
+    
+    func composePost() {
+        if postValidation() {
+            do {
+                let hostName = "google.com"
+                let reachability = try Reachability(hostname: hostName)
+                if reachability.connection == .wifi {
+                    self.callUploadVideoDetails()
+                }
+                else {
+                    self.showDataAlertOption()
+                }
+            }
+            catch {
+                print("Exception in composePost while netword check : \(error.localizedDescription)")
+            }
+        }
+    }
+    
+    func postValidation() -> Bool {
+        if videoTitle.trimmingCharacters(in: .whitespacesAndNewlines) != videoTitlePlaceHolder && !videoTitle.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            if self.videoURL == nil {
+                return false
+            }
+            return true
+        }
+        else {
+            EPICAIGenericAlertView().show(title: "EPICAI Alert!", message: "Put title for your video", onViewController: self) { }
+            return false
+        }
     }
     
     override func didReceiveMemoryWarning() {
@@ -61,37 +225,35 @@ extension EPICAIComposePost : UITableViewDataSource {
     }
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return 5
+        return 4
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        var listCell = PostCellTV()
+        var listCell = EPICAIComposePostPCell()
         
         if indexPath.row == 0 {
-            listCell = tableView.dequeueReusableCell(withIdentifier: PostCellTV.identifierProfile) as! PostCellTV
+            listCell = tableView.dequeueReusableCell(withIdentifier: EPICAIComposePostPCell.identifierProfile) as! EPICAIComposePostPCell
             return listCell
         }
-        if indexPath.row == 1 {
-            let cell = tableView.dequeueReusableCell(withIdentifier: ResultWithVideoCell.identifier) as! ResultWithVideoCell
-            return cell
-        }
-        else if indexPath.row == 2 {
-            listCell = tableView.dequeueReusableCell(withIdentifier: PostCellTV.identifierText) as! PostCellTV
-            //listCell.textViewData(creadtedText : textViewText)
+        else if indexPath.row == 1 {
+            listCell = tableView.dequeueReusableCell(withIdentifier: EPICAIComposePostPCell.identifierText) as! EPICAIComposePostPCell
             listCell.delegate = self
             return listCell
         }
-        else if indexPath.row == 3{
-            listCell = tableView.dequeueReusableCell(withIdentifier: PostCellTV.identifierImageVideo) as! PostCellTV
-            return listCell
+        else if indexPath.row == 2 {
+            let videoCell = tableView.dequeueReusableCell(withIdentifier: EPICAIComposePostPlayerCell.identifier) as! EPICAIComposePostPlayerCell
+            if let videoURL = self.videoURL {
+                videoCell.videoURL = videoURL
+            }
+            return videoCell
         }
         else {
-            if indexPath.row == 4 {
-                let actionCell = tableView.dequeueReusableCell(withIdentifier: CreatePostActionCell.identifier, for: indexPath) as! CreatePostActionCell
-                return actionCell
+            let actionCell = tableView.dequeueReusableCell(withIdentifier: EPICAIComposePostUploadActionCell.identifier, for: indexPath) as! EPICAIComposePostUploadActionCell
+            actionCell.uploadAcknowledgement = {
+                self.composePost()
             }
+            return actionCell
         }
-        return UITableViewCell()
     }
 }
 
@@ -99,56 +261,25 @@ extension EPICAIComposePost : UITableViewDelegate {
     
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
         if indexPath.row == 0 {
-            return 60
-        }
-        if indexPath.row == 1 {
-            return 50
+            return 70
         }
         else if indexPath.row == expandingIndexRow {
             return expandingCellHeight
         }
-        else if indexPath.row == 3 {
+        else if indexPath.row == 2 {
             return 250
         }
         else {
-            return 55
+            return  self.videoUploadVM.progressState ? 80 : 65
         }
     }
-    
-    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        if indexPath.row == 2 {
-        }
-    }
-    
-    func tableView(_ tableView: UITableView, didEndDisplaying cell: UITableViewCell, forRowAt indexPath: IndexPath) {
-        //        if let videoCell = cell as? ASAutoPlayVideoLayerContainer, let _ = videoCell.videoURL {
-        //            ASVideoPlayerController.sharedVideoPlayer.removeLayerFor(cell: videoCell)
-        //        }
-    }
-    
-    //    func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
-    //        pausePlayeVideos()
-    //    }
-    //
-    //    func scrollViewDidEndDragging(_ scrollView: UIScrollView, willDecelerate decelerate: Bool) {
-    //        if !decelerate {
-    //            pausePlayeVideos()
-    //        }
-    //    }
-    
-    //    func pausePlayeVideos(){
-    //        ASVideoPlayerController.sharedVideoPlayer.pausePlayeVideosFor(tableView: self.postTV)
-    //    }
-    //
-    //    @objc func appEnteredFromBackground() {
-    //        ASVideoPlayerController.sharedVideoPlayer.pausePlayeVideosFor(tableView: self.postTV, appEnteredFromBackground: true)
-    //    }
 }
 
 extension EPICAIComposePost: ExpandingCellDelegate {
     
     func updatedHeight(height: CGFloat,textView: UITextView)
     {
+        print("Updated video title \(String(describing: textView.text))")
         videoTitle = textView.text
         expandingCellHeight = height
         UIView.setAnimationsEnabled(false)
@@ -183,7 +314,7 @@ extension EPICAIComposePost : EPICAILocationManagerDelegate {
     func deviceCurrentLocDetails(errorWhilegettingGeoCode: Bool, location: CLLocation) {
         EPICAILocationManager.dispose()
         if errorWhilegettingGeoCode {
-           print("Error while getting location : \(errorWhilegettingGeoCode)")
+            print("Error while getting location : \(errorWhilegettingGeoCode)")
         }
         else {
             self.currentLocation = location

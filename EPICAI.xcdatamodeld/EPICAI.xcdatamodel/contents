@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="19461" systemVersion="21A559" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="">
+    <entity name="EPICAIVideoTable" representedClassName="EPICAIVideoTable" syncable="YES" codeGenerationType="class">
+        <attribute name="active" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="commentCount" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="dateTime" optional="YES" attributeType="String"/>
+        <attribute name="latitude" optional="YES" attributeType="String"/>
+        <attribute name="likeCount" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="longitude" optional="YES" attributeType="String"/>
+        <attribute name="share" optional="YES" attributeType="Integer 16" usesScalarValueType="YES"/>
+        <attribute name="uploadStatus" optional="YES" attributeType="String"/>
+        <attribute name="userUUID" optional="YES" attributeType="String"/>
+        <attribute name="videoDuration" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="videoInfo" optional="YES" attributeType="String"/>
+        <attribute name="videoName" optional="YES" attributeType="String"/>
+        <attribute name="videoSize" optional="YES" attributeType="String"/>
+        <attribute name="videoTitle" optional="YES" attributeType="String"/>
+        <attribute name="videoURL" optional="YES" attributeType="String"/>
+        <attribute name="videoUUID" optional="YES" attributeType="String"/>
+    </entity>
+    <elements>
+        <element name="EPICAIVideoTable" positionX="-63" positionY="-18" width="128" height="269"/>
+    </elements>
+</model>

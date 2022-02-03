@@ -35,7 +35,6 @@ class EPICAICommentsVC: UICollectionViewController {
     }
     
     var lastPagerViewIndices = [Int]()
-    
     var viewModel:EPICAICommentVM!
     var delegate:UpdateCommentCountDelegate?
     //var comments:[PostComment] = []
@@ -45,7 +44,6 @@ class EPICAICommentsVC: UICollectionViewController {
     
     fileprivate let writeMessageView:UIView = {
         let wMessageView  = UIView()
-        wMessageView.backgroundColor = UIColor.init(white: 0.95, alpha: 1)
         wMessageView.translatesAutoresizingMaskIntoConstraints = false
         return wMessageView
     }()
@@ -113,9 +111,7 @@ class EPICAICommentsVC: UICollectionViewController {
     }()
     
     func addBottomMessageView() {
-        
         self.navigationItem.leftBarButtonItem?.customView = backButton
-        
         //self.textView.delegate = self
         self.view.addSubview(writeMessageView)
         self.messageViewHeightContraints = writeMessageView.heightAnchor.constraint(equalToConstant: 60)
@@ -133,13 +129,19 @@ class EPICAICommentsVC: UICollectionViewController {
         }
         writeMessageView.addSubview(textView)
         writeMessageView.addSubview(sendMessageBtn)
-        writeMessageView.addSubview(replyTitleLbl)
-        writeMessageView.addConstraintsWithFormat(format: "V:|-0-[v0(15)]-2-|", views: replyTitleLbl)
-        writeMessageView.addConstraintsWithFormat(format: "H:|-10-[v0]-10-|", views: replyTitleLbl)
+        //writeMessageView.addSubview(replyTitleLbl)
+        //writeMessageView.addConstraintsWithFormat(format: "V:|-0-[v0(15)]-2-|", views: replyTitleLbl)
+        //writeMessageView.addConstraintsWithFormat(format: "H:|-10-[v0]-10-|", views: replyTitleLbl)
         writeMessageView.addConstraintsWithFormat(format: "V:|-7-[v0]-7-|", views: textView)
         writeMessageView.addConstraintsWithFormat(format: "V:[v0(40)]-10-|", views: sendMessageBtn)
         writeMessageView.addConstraintsWithFormat(format: "H:|-8-[v0]-10-[v1(40)]-8-|", views: textView, sendMessageBtn)
         view.addConstraint(self.messageBottonAnchorContraints)
+        
+        switch(traitCollection.userInterfaceStyle) {
+        case .light, .unspecified : writeMessageView.backgroundColor = UIColor.init(white: 0.90, alpha: 1)
+        case .dark: writeMessageView.backgroundColor = UIColor.init(white: 0.15, alpha: 1)
+        default:break
+        }
     }
     
     @objc func initiateVideoModel() {
@@ -187,13 +189,15 @@ class EPICAICommentsVC: UICollectionViewController {
                     self.ai.textLabel.text = "Please wait..."
                     self.ai.show(in: self.view, animated: true)
                 }
-                self.viewModel.addComment(feedItem: feedItem, text: text) { commentItem in
+                self.viewModel.addComment(feedItem: feedItem, text: text, indexPath: self.indexPath ?? [0,0]) { commentItem in
                     if let item = commentItem {
                         self.viewModel.items?.insert(item, at: 0)
                         self.collectionView.reloadData()
                         self.ai.dismiss(afterDelay: 0.0, animated: true)
                         self.textView.text = ""
-                        self.delegate?.updateFeedCommentCount(indexPath: self.indexPath)
+                    }
+                    self.viewModel.onUpdateCommentsCount = { indexPath in
+                        self.delegate?.updateFeedCommentCount(indexPath: indexPath)
                     }
                 }
             }
@@ -216,12 +220,12 @@ class EPICAICommentsVC: UICollectionViewController {
         
         self.navigationController?.navigationBar.prefersLargeTitles = false
         let layout = UICollectionViewFlowLayout()
-        layout.sectionInset = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 0)
+        layout.sectionInset = UIEdgeInsets(top: 0, left: 0, bottom: 150, right: 0)
         layout.minimumInteritemSpacing = 3
         layout.minimumLineSpacing = 3
         
         self.collectionView.collectionViewLayout = layout
-        self.collectionView.contentInset = UIEdgeInsets(top: 0, left: 0, bottom: 100, right: 0)
+        self.collectionView.contentInset = UIEdgeInsets(top: 0, left: 0, bottom: 150, right: 0)
         self.collectionView.addSubview(refreshControl)
         
         NotificationCenter.default.addObserver(self, selector: #selector(self.keyboadHandler(notification:)), name: UIResponder.keyboardWillShowNotification, object: nil)
@@ -242,9 +246,15 @@ class EPICAICommentsVC: UICollectionViewController {
             self.view.layoutIfNeeded()
         }, completion: {[unowned self] (completed) in
             if isKeyBoardShowing {
-                if let indexPath = self.indexPath {
-                    self.collectionView.scrollToItem(at: indexPath, at: .bottom, animated: true)
+                let lastSection = collectionView.numberOfSections - 1
+                if lastSection > 0 {
+                    let lastRow = collectionView.numberOfItems(inSection: lastSection)
+                    let indexPath = IndexPath(row: lastRow - 1, section: lastSection)
+                    self.collectionView.scrollToItem(at: indexPath, at: .right, animated: true)
                 }
+                //                if let indexPath = self.indexPath {
+                //                    self.collectionView.scrollToItem(at: indexPath, at: .bottom, animated: true)
+                //                }
                 if let keyFrame = notification.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? NSValue {
                     self.collectionView.contentInset.bottom = keyFrame.cgRectValue.height + self.view.safeAreaInsets.bottom+50
                 }
@@ -277,6 +287,7 @@ class EPICAICommentsVC: UICollectionViewController {
             let commentCell = collectionView.dequeueReusableCell(withReuseIdentifier: EPICAICommentCell.identifier, for: indexPath) as! EPICAICommentCell
             commentCell.commnet = self.viewModel.items?[indexPath.section]
             commentCell.performReply = { indexPath in
+                print("performReply index path : \(indexPath)")
                 let controller = EPICAINotePopUpVC.instantiateFromAppStoryBoard(appStoryBoard: .Comment)
                 controller.indexPath = indexPath
                 controller.delegate = self
@@ -288,8 +299,8 @@ class EPICAICommentsVC: UICollectionViewController {
             if let count = self.viewModel.items?[indexPath.section].replies.count, count > 0  {
                 let commentReplyCell = collectionView.dequeueReusableCell(withReuseIdentifier: EPICAIReplyCell.identifier, for: indexPath) as! EPICAIReplyCell
                 if indexPath.row > 0 {
-                    commentReplyCell.commentItem = self.viewModel.items?[indexPath.section]
-                    commentReplyCell.comment = self.viewModel.items?[indexPath.section].replies[indexPath.row-1]
+                    //commentReplyCell.commentItem = self.viewModel.items?[indexPath.section]
+                    commentReplyCell.commentItem = self.viewModel.items?[indexPath.section].replies[indexPath.row-1]
                 }
                 return commentReplyCell
             }
@@ -302,21 +313,14 @@ extension EPICAICommentsVC : EPICAINotePopUpProtocol {
     
     func addReplyOnCommnet(indexPath: IndexPath, message: String) {
         if let feedItem = self.feedItem {
-            if let comment = self.viewModel.items?[indexPath.row].comment {
+            if let comment = self.viewModel.items?[indexPath.section].comment {
                 DispatchQueue.main.async {
                     self.ai.textLabel.text = "Please wait..."
                     self.ai.show(in: self.view, animated: true)
                 }
-                self.viewModel.addReplyOnComment(item: comment, feedItem: feedItem, text: message) { newComment in
-                    if let newComment = newComment {
-                        var newCommentItem = EPICAICommentItem(comment: comment, user: feedItem.user)
-                        newCommentItem.userImage = feedItem.userImage
-                        if let replies = self.viewModel.items?[indexPath.section].replies {
-                            newCommentItem.replies =  replies
-                            newCommentItem.replies.insert(newComment, at: 0)
-                        }
-                        self.viewModel.items?[indexPath.section] = newCommentItem
-                        //self.viewModel.items?[indexPath.section].replies.insert(newComment, at: 0)
+                self.viewModel.addReplyOnComment(item: comment, feedItem: feedItem, text: message) { newCommentItem in
+                    if let newCommentItem = newCommentItem {
+                        self.viewModel.items?[indexPath.section].replies.insert(newCommentItem, at: 0)
                         self.collectionView.reloadData()
                         self.ai.dismiss(afterDelay: 0.0, animated: true)
                     }
@@ -330,7 +334,26 @@ extension EPICAICommentsVC : EPICAINotePopUpProtocol {
 extension EPICAICommentsVC : UICollectionViewDelegateFlowLayout {
     
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize  {
-        return CGSize(width: UIScreen.main.bounds.width, height: 100)
+        var preDefineHeight:CGFloat = 80
+        if indexPath.row == 0 {
+            let message = self.viewModel.items?[indexPath.section].comment.comment ?? ""
+            if message.sizeOfString(font: UIFont.systemFont(ofSize: 14), constrainedToWidth: Double(UIScreen.main.bounds.width-16)).height > 80  {
+            preDefineHeight = 80 + 10
+            }
+            return CGSize(width: UIScreen.main.bounds.width, height: message.sizeOfString(font: UIFont.systemFont(ofSize: 14), constrainedToWidth: Double(UIScreen.main.bounds.width-16)).height + preDefineHeight)
+        }
+        else {
+            var message = ""
+            if indexPath.row > 0 {
+                message = self.viewModel.items?[indexPath.section].replies[indexPath.row-1].comment.comment ?? ""
+            }
+
+            if message.sizeOfString(font: UIFont.systemFont(ofSize: 14), constrainedToWidth: Double(UIScreen.main.bounds.width-16)).height > 80 {
+                preDefineHeight = 80 + 10
+            }
+            return CGSize(width: UIScreen.main.bounds.width-16, height: message.sizeOfString(font: UIFont.systemFont(ofSize: 14), constrainedToWidth: Double(UIScreen.main.bounds.width-16)).height + preDefineHeight)
+        }
+        // return CGSize(width: UIScreen.main.bounds.width, height: 100)
     }
     
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, insetForSectionAt section: Int) -> UIEdgeInsets {

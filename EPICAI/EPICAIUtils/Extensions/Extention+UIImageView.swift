@@ -11,6 +11,47 @@ import UIKit
 
 let imageCache = NSCache<NSString, UIImage>()
 
+extension UIImageView {
+    
+    func loadImage(url:URL?) {
+        
+        print("Image load url:\(String(describing: url?.absoluteString))")
+        guard let url = url
+        else {
+            print("Failed in user recinving")
+            self.image = #imageLiteral(resourceName: "profile_unselected")
+            return
+        }
+        if let imageFromCache = imageCache.object(forKey: url.absoluteString as NSString) {
+            self.image = imageFromCache
+            return
+        }
+        guard let data = try? Data(contentsOf: url) else {
+            print("Failed in data reciving")
+            self.image = #imageLiteral(resourceName: "profile_unselected")
+            return
+        }
+        DispatchQueue.main.async {
+            print("data recived : \(data)")
+            self.image = UIImage(data: data)
+            imageCache.setObject(self.image!, forKey: url.absoluteString as NSString)
+        }
+    }
+    
+    func applyTheme(_ value:Bool) {
+        switch(traitCollection.userInterfaceStyle) {
+        case .light,.unspecified:
+            self.tintColor = UIColor.init(white: 0.10, alpha: 1)
+            self.tintColor = UIColor.init(white: 0.10, alpha: 1)
+        case .dark:
+            self.tintColor = UIColor.init(white: 0.80, alpha: 1)
+            self.tintColor = UIColor.init(white: 0.80, alpha: 1)
+        default:break
+        }
+    }
+}
+
+
 class CustomImageView: UIImageView {
     
     var imageUrlString:String?

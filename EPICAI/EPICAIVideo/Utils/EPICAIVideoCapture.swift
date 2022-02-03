@@ -10,12 +10,11 @@ import AVFoundation
 import CoreVideo
 import UIKit
 import VideoToolbox
-import Photos
+import SQLite
 
 enum CaptureState {
     case idle, start, capturing, end, pause
 }
-
 
 protocol VideoCaptureDelegate: AnyObject {
     func videoCapture(_ videoCapture: EPICAIVideoCapture, didCaptureFrame image: CGImage?)
@@ -33,13 +32,13 @@ class EPICAIVideoCapture: NSObject {
     weak var delegate: VideoCaptureDelegate?
     
     /// A capture session used to coordinate the flow of data from input devices to capture outputs.
-    let captureSession = AVCaptureSession()
+    var captureSession = AVCaptureSession()
     
     /// A capture output that records video and provides access to video frames. Captured frames are passed to the
     /// delegate via the `captureOutput()` method.
     private var _videoDevice: AVCaptureDevice?
-    let videoOutput = AVCaptureVideoDataOutput()
-    let audioOutput = AVCaptureAudioDataOutput()
+    var videoOutput = AVCaptureVideoDataOutput()
+    var audioOutput = AVCaptureAudioDataOutput()
     
     private var _audioConnection: AVCaptureConnection?
     private var _videoConnection: AVCaptureConnection?
@@ -66,11 +65,17 @@ class EPICAIVideoCapture: NSObject {
     var videoURL:URL?
     var videoCuptureDone:((URL) -> Void)?
     var videoCuptureSessionStarted:((Bool) -> Void)?
+    var updateCountDown:((Int) -> Void)?
     var timer:Timer?
     var countDown = 5
+    var timeLapse: String = ""
     
     override init() {
         super.init()
+    }
+    
+    deinit {
+        print("Deinit called")
     }
     
     func toggleTorch(on: Bool) {
@@ -85,10 +90,12 @@ class EPICAIVideoCapture: NSObject {
                 }
                 device.unlockForConfiguration()
             } catch {
-                print("Torch could not be used")
+                self.timer?.invalidate()
+                //self.startCapturing()
             }
         } else {
-            print("Torch is not available")
+            self.timer?.invalidate()
+            //self.startCapturing()
         }
     }
     /// Toggles between the front and back camera.
@@ -138,40 +145,27 @@ class EPICAIVideoCapture: NSObject {
         if captureSession.isRunning {
             captureSession.stopRunning()
         }
-        
         captureSession.beginConfiguration()
-        
-        captureSession.sessionPreset = .vga640x480
-        
+        captureSession.sessionPreset = .hd1280x720
         try setCaptureSessionInput()
-        
         try setCaptureSessionOutput()
-        
         captureSession.commitConfiguration()
-        
-        //self.nextLevelSession = NextLevelSession(queue: self._sessionQueue, queueKey: NextLevelCaptureSessionQueueSpecificKey)
-        //self.videoRWManager.captureState = .start
+        self.captureSession.startRunning()
     }
     
     private func setCaptureSessionInput() throws {
         // Use the default capture device to obtain access to the physical device
         // and associated properties.
-        guard let captureDevice = AVCaptureDevice.default(
-            .builtInWideAngleCamera,
-            for: AVMediaType.video,
-            position: cameraPostion) else {
-                throw VideoCaptureError.invalidInput
-            }
+        guard let captureDevice = AVCaptureDevice.default(.builtInWideAngleCamera, for: AVMediaType.video,position: cameraPostion)
+        else {  throw VideoCaptureError.invalidInput }
         
         // Remove any existing inputs.
         captureSession.inputs.forEach { input in
             captureSession.removeInput(input)
         }
-        
         self._videoDevice = captureDevice
         
         guard let audioCaptureDevice = AVCaptureDevice.default(for: AVMediaType.audio) else {  throw VideoCaptureError.invalidInput }
-        
         // Create an instance of AVCaptureDeviceInput to capture the data from
         // the capture device.
         guard let videoInput = try? AVCaptureDeviceInput(device: captureDevice) else { throw VideoCaptureError.invalidInput }
@@ -188,7 +182,6 @@ class EPICAIVideoCapture: NSObject {
         }
         self.captureSession.addInput(audioInput)
         self.captureSession.addInput(videoInput)
-        
     }
     
     private func setCaptureSessionOutput() throws {
@@ -215,7 +208,6 @@ class EPICAIVideoCapture: NSObject {
         // Discard newer frames that arrive while the dispatch queue is already busy with
         // an older frame.
         videoOutput.alwaysDiscardsLateVideoFrames = true
-        
         videoOutput.setSampleBufferDelegate(self, queue: sessionQueue)
         
         guard captureSession.canAddOutput(videoOutput) else {
@@ -224,7 +216,6 @@ class EPICAIVideoCapture: NSObject {
         captureSession.addOutput(videoOutput)
         
         _videoConnection = videoOutput.connection(with: AVMediaType.video)
-        
         
         // Update the video orientation
         if let connection = videoOutput.connection(with: .video),
@@ -241,10 +232,8 @@ class EPICAIVideoCapture: NSObject {
                 connection.videoOrientation = .landscapeLeft
             }
         }
-        
         _audioCompressionSettings = audioOutput.recommendedAudioSettingsForAssetWriter(writingTo: AVFileType.mov)! as [String: AnyObject]
         _videoCompressionSettings = videoOutput.recommendedVideoSettingsForAssetWriter(writingTo: AVFileType.mov)! as [String: AnyObject]
-        
         print(_videoCompressionSettings) // Change AverageBitRate to increase/decrease quality, also fixing to 720p instead of 1080p will aid reducing.
     }
     
@@ -254,7 +243,7 @@ class EPICAIVideoCapture: NSObject {
             self.toggleTorch(on: false)
         }
         if (finalShot) {
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.75) {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.55) {
                 self.toggleTorch(on: true)
             }
             DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
@@ -265,16 +254,25 @@ class EPICAIVideoCapture: NSObject {
         }
     }
     
+    public func stopTimer() {
+        self.countDown = 5
+        self.toggleTorch(on: false)
+        timer?.invalidate()
+    }
+    
     public func prepareCapturing() {
         timer = Timer.scheduledTimer(timeInterval: 1, target: self, selector:  #selector(manageTorchOnOff), userInfo: nil, repeats: true)
     }
     
-    
     @objc func manageTorchOnOff() {
+        if let countDown = self.updateCountDown {
+            countDown(self.countDown)
+        }
         self.countDown = self.countDown - 1
         if (self.countDown == 0){
             self.tourchOnOff(finalShot: true)
             timer?.invalidate()
+            self.updateCountDown = nil
             return
         }
         self.tourchOnOff(finalShot: false)
@@ -288,12 +286,17 @@ class EPICAIVideoCapture: NSObject {
     ///     - completionHandler: Handler called once the session has started running.
     public func startCapturing() {
         if !self.captureSession.isRunning {
-            self.captureState = .start
             self.captureSession.startRunning()
-            if let startSession = self.videoCuptureSessionStarted {
-                startSession(true)
-            }
         }
+        self.captureState = .start
+        if let startSession = self.videoCuptureSessionStarted {
+            startSession(true)
+        }
+    }
+    
+    public func udpateTimerValue(timeLapse:String) {
+        self.timeLapse = timeLapse
+        //print("Time interval \(self.timeLapse)")
     }
     /// End capturing frames
     ///
@@ -306,12 +309,24 @@ class EPICAIVideoCapture: NSObject {
             self.captureState = .end
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                 self.captureSession.stopRunning()
+                self.reset()
             }
         }
     }
     
-    public func saveVideoToFileSystem() {
-        
+    public func reset() {
+        self.captureSession = AVCaptureSession()
+        self._audioConnection = nil
+        self._videoConnection = nil
+        self._videoDevice  = nil
+        self.videoOutput = AVCaptureVideoDataOutput()
+        self.audioOutput = AVCaptureAudioDataOutput()
+        self.adpater = nil
+        self.assetWriter = nil
+        self.videoWriterInput = nil
+        self.audioWriterInput = nil
+        self.hasWrittenFirstVideoFrame = false
+        // self.videoFileName = UUID().uuidString
     }
 }
 
@@ -322,9 +337,9 @@ extension EPICAIVideoCapture: AVCaptureVideoDataOutputSampleBufferDelegate, AVCa
     public func captureOutput(_ output: AVCaptureOutput,
                               didOutput sampleBuffer: CMSampleBuffer,
                               from connection: AVCaptureConnection) {
-        
         let timestamp = CMSampleBufferGetPresentationTimeStamp(sampleBuffer).seconds
-        print("capture state in video capture \(captureState)")
+        
+        
         switch(self.captureState) {
         case .start:
             self.videoURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!.appendingPathComponent("\(videoFileName).mp4")
@@ -349,10 +364,10 @@ extension EPICAIVideoCapture: AVCaptureVideoDataOutputSampleBufferDelegate, AVCa
             audioInput.expectsMediaDataInRealTime = true
             if writer.canAdd(audioInput) { writer.add(audioInput) }
             
-            writer.startWriting()
+            //writer.startWriting()
             //writer.startSession(atSourceTime: CMSampleBufferGetPresentationTimeStamp(sampleBuffer))
-        
-            writer.startSession(atSourceTime: CMTime(seconds: timestamp, preferredTimescale: CMTimeScale(600)))
+            
+            //writer.startSession(atSourceTime: CMTime(seconds: timestamp, preferredTimescale: CMTimeScale(600)))
             //self.v = videoPath!.absoluteString
             assetWriter = writer
             videoWriterInput = videoInput
@@ -363,37 +378,24 @@ extension EPICAIVideoCapture: AVCaptureVideoDataOutputSampleBufferDelegate, AVCa
             
         case .capturing:
             if output == self.videoOutput {
+                if !hasWrittenFirstVideoFrame {
+                    hasWrittenFirstVideoFrame = true
+                    self.assetWriter?.startWriting()
+                    assetWriter?.startSession(atSourceTime: CMSampleBufferGetPresentationTimeStamp(sampleBuffer))
+                }
                 if videoWriterInput?.isReadyForMoreMediaData == true {
                     let time = CMTime(seconds: timestamp, preferredTimescale: CMTimeScale(600))
                     adpater?.append(CMSampleBufferGetImageBuffer(sampleBuffer)!, withPresentationTime: time)
-                    if !hasWrittenFirstVideoFrame {
-                        hasWrittenFirstVideoFrame = true
-                        //assetWriter?.startSession(atSourceTime: CMTime(seconds: timeStamp, preferredTimescale: CMTimeScale(600)))
-                    }
                 }
             } else if output == self.audioOutput {
-                if audioWriterInput?.isReadyForMoreMediaData == true, hasWrittenFirstVideoFrame {
+                if audioWriterInput?.isReadyForMoreMediaData == true && hasWrittenFirstVideoFrame {
                     audioWriterInput?.append(sampleBuffer)
                 }
-            }
-            if assetWriter?.status == .writing {
-                print("AVAssetWriterStatus  : writing")
-            }
-            if assetWriter?.status == .unknown {
-                print("AVAssetWriterStatus  : unknown")
-            }
-            if assetWriter?.status == .completed {
-                print("AVAssetWriterStatus  : completed")
-            }
-            if assetWriter?.status == .failed {
-                print("AVAssetWriterStatus  : failed")
             }
             break
             
         case .end:
-            print("FINISH CAPTURING one:\(videoWriterInput?.isReadyForMoreMediaData == true), two:\(assetWriter!.status != .failed)")
-            guard videoWriterInput?.isReadyForMoreMediaData == true, assetWriter!.status != .failed else { break }
-            print("END CAPTURING")
+            guard videoWriterInput?.isReadyForMoreMediaData == true, assetWriter?.status != .failed else { break }
             videoWriterInput?.markAsFinished()
             audioWriterInput?.markAsFinished()
             assetWriter?.finishWriting { [weak self] in
@@ -406,10 +408,9 @@ extension EPICAIVideoCapture: AVCaptureVideoDataOutputSampleBufferDelegate, AVCa
                 if let captureDone = self?.videoCuptureDone {
                     captureDone(outputURL)
                 }
-                self?.checkPhotoLibraryPermissionToWriteVideoFor(url: outputURL)
             }
             
-        default : print("Default case")
+        default : break
             
         }
         
@@ -464,51 +465,13 @@ extension EPICAIVideoCapture: AVCaptureVideoDataOutputSampleBufferDelegate, AVCa
             decibels = 10*log10f(power);
         }
         DispatchQueue.main.async {
-            print("Decible power : \(String(decibels))" )
             if decibels.isFinite && decibels > 0 {
-                DispatchQueue.concurrentPerform(iterations: 1) { _ in
-                    EPICAIFileManager.shared().writeAudioPointsIntoCSV(volume: Int(decibels),closeFlasg: self.captureState == .end)
-                }
-                DispatchQueue.main.asyncAfter(deadline: .now()+0.2) {
-                    EPICAIFileManager.shared().writeAudioPointsIntoCSV(volume: Int(decibels),closeFlasg: self.captureState == .end)
-                }
-            }
-        }
-    }
-    
-    func checkPhotoLibraryPermissionToWriteVideoFor(url:URL)  {
-        switch(PHPhotoLibrary.authorizationStatus()) {
-        case .authorized:
-            self.writeVideoInPhotoAlbum(url: url)
-        case .denied:
-            print("Permission denied.")
-        case .notDetermined:
-            PHPhotoLibrary.requestAuthorization { (status) in
-                if status == .authorized {
-                    self.writeVideoInPhotoAlbum(url: url)
-                }
-            }
-        case .restricted:
-            print("Permission restricted to write video in photo album.")
-        default: return
-        }
-    }
-    
-    private func writeVideoInPhotoAlbum(url:URL) {
-        DispatchQueue.main.async {
-            PHPhotoLibrary.shared().performChanges({
-                PHAssetChangeRequest.creationRequestForAssetFromVideo(atFileURL: url)
-            }) { saved, error in
-                if saved {
-                    DispatchQueue.main.async {
-                        print("Video saved successfully.")
-                    }
-                }
-                if error != nil {
-                    //os_log("Video did not save for some reason", error.debugDescription);
-                    debugPrint(error?.localizedDescription ?? "error is nil");
+                //print("Decible power : \(String(decibels))")
+                if self.timeLapse != "" {
+                    EPICAIFileManager.shared().writeAudioPointsIntoCSV(volume: Int(decibels),closeFlasg: self.captureState == .end, timeLapse: self.timeLapse)
                 }
             }
         }
     }
 }
+

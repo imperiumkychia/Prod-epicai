@@ -19,21 +19,31 @@ class EPICAICommentCell: UICollectionViewCell {
     @IBOutlet weak var timeAgoLbl:UILabel!
     @IBOutlet weak var replyView:UIView!
     
+    @IBOutlet weak var replyImgView: UIImageView!
+    @IBOutlet weak var reportImgView: UIImageView!
+    
+    
     var performReply:((IndexPath) -> Void)?
     
     @IBAction func replyBtnClicked(sender:UIButton) {
         self.performReply?(self.indexPath)
     }
+    
+    @IBAction func reportComment(_ sender: Any) {
+        print("Report comment called")
+    }
+    
     override func awakeFromNib() {
         super.awakeFromNib()
         self.setUpView()
     }
     
     private func setUpView(){
+        self.replyImgView.applyTheme(true)
+        self.reportImgView.applyTheme(true)
         
         self.backgroundColor = Palette.V2.V2_VCBackground
         self.contentView.backgroundColor = self.backgroundColor
-        
         
         if self.profileImgView != nil {
             self.profileImgView.contentMode = .scaleAspectFill
@@ -60,9 +70,7 @@ class EPICAICommentCell: UICollectionViewCell {
     
     var commnet:EPICAICommentItem? {
         didSet {
-            if let image = commnet?.userImage {
-                self.profileImgView.image = image
-            }
+            self.profileImgView.image = commnet?.userImage ?? #imageLiteral(resourceName: "noProfileImage")
             if let firstName = commnet?.user.firstName, let lastName = commnet?.user.lastName {
                 let attributedTxt = NSMutableAttributedString(string: firstName + " " + lastName, attributes: [NSAttributedString.Key.font:LatoFont.bold.withSize(14.0), NSAttributedString.Key.foregroundColor: Palette.V2.V2_VCTitle])
                 titleLbl.attributedText = attributedTxt

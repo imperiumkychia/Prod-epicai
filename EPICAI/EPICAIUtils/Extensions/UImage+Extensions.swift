@@ -9,8 +9,9 @@ import Foundation
 import UIKit
 
 extension CGImage {
+    
     func drawPoints(points:[CGPoint]) -> UIImage? {
-        print("Points in Draw \(points)")
+        //print("Points in Draw \(points)")
         let cntx = CGContext(data: nil, width: Int(width), height: Int(height), bitsPerComponent: bitsPerComponent , bytesPerRow: 0, space: colorSpace ?? CGColorSpaceCreateDeviceRGB(), bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue)
         
         cntx?.draw(self, in: CGRect(x: 0, y: 0, width: width, height: height))

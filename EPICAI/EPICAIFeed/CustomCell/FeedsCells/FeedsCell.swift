@@ -34,8 +34,20 @@ class FeedsCell: UITableViewCell {
     @IBOutlet private weak var commnetBtn:UIButton!
     @IBOutlet private weak var reportBtn:UIButton!
     
-    var likePost:((EPICAIFeedItem) -> Void)!
-    var displayAllCommnets:((EPICAIFeedItem,_ indexPath:IndexPath) -> Void)!
+    @IBOutlet weak var profileNavigationBtn: UIButton!
+    
+    
+    @IBAction func moveUserProfile(_ sender: Any) {
+        if let actionDefine = self.selectedUserDetails {
+            if let user = item?.user {
+                actionDefine(user)
+            }
+        }
+    }
+    
+    var selectedUserDetails:((EPICAIUser) -> Void)?
+    var likePost:((EPICAIFeedItem, IndexPath?) -> Void)!
+    var displayAllCommnets:((EPICAIFeedItem,_ indexPath:IndexPath?) -> Void)!
     var reportInappropriateContent:((EPICAIFeedItem) -> Void)!
     
     weak var delegate: FeedsCellDelegate?
@@ -64,6 +76,13 @@ class FeedsCell: UITableViewCell {
     var item: EPICAIFeedItem? {
         didSet {
             updateValues()
+            DispatchQueue.main.async {
+                if let isVideoPage = self.item?.video.videoShare, isVideoPage == 0 {
+                    self.pagerView.reloadData()
+                    self.pagerView.scrollToItem(at: 0, animated: false)
+                    self.pageControl.currentPage = 0
+                }
+            }
         }
     }
     
@@ -87,7 +106,13 @@ class FeedsCell: UITableViewCell {
     }
 
     @IBAction func hitLikeButton(_ sender: Any) {
-        self.likePost(self.item!)
+        if !EPICAIFeedVM().requestOnProgress {
+            self.likePost(self.item!, self.indexPath)
+            self.likeButton.isEnabled  = true
+        }
+        else {
+            self.likeButton.isEnabled  = false
+        }
     }
     
     @IBAction func displayComments(_ sender: Any) {
@@ -100,15 +125,26 @@ class FeedsCell: UITableViewCell {
     
     private func updateValues() {
         guard let item = self.item else { return }
-        print("Video items \(item)")
+        if item.video.videoShare == 0 {
+            self.pageControl.numberOfPages = self.numberOfPages - 1
+        }
+        else {
+            self.pageControl.numberOfPages = self.numberOfPages
+        }
         userImageView.image = item.userImage ?? #imageLiteral(resourceName: "noProfileImage")
         userNameLabel.text = "\(item.user.firstName) \(item.user.lastName)"
-        userDetailLabel.text = item.video.videoName
+        userDetailLabel.text = item.video.title
         dateLabel.text = formattedDateString(string: item.video.dataTime)
         commentCountLbl.text  = String(item.video.commentsCount)
-        print("Like count \(String(item.video.likeCount))")
         likeCountLbl.text = String(item.video.likeCount)
         videoURL = item.videoLocalURL
+        if item.video.likeStatus == 1 {
+            self.likeButton.tintColor = Palette.darkPurple
+        }
+        else {
+            self.likeButton.tintColor = UIColor.init(white: 0.80, alpha: 1)
+        }
+        self.scoreLabel.text = "Score \(item.video.score)/100"
     }
     
     private func setupElements() {
@@ -117,6 +153,8 @@ class FeedsCell: UITableViewCell {
         self.contentView.backgroundColor = self.backgroundColor
         
         userImageView.layer.cornerRadius = userImageView.bounds.height / 2.0
+        
+        self.profileNavigationBtn.setTitle("", for: .normal)
         
         userNameLabel.font = LatoFont.bold.withSize(18.0)
         userNameLabel.textColor = Palette.V2.V2_VCTitle
@@ -129,6 +167,12 @@ class FeedsCell: UITableViewCell {
         
         scoreLabel.font = LatoFont.bold.withSize(13.0)
         scoreLabel.textColor = Palette.V2.V2_pageControlIndicatorSelected
+        
+        self.likeCountLbl.font = LatoFont.bold.withSize(12)
+        self.likeCountLbl.textColor = Palette.V2.V2_VCTitle
+        
+        self.commentCountLbl.font = LatoFont.bold.withSize(12)
+        self.commentCountLbl.textColor = Palette.V2.V2_VCTitle
         
         cellDividerView.backgroundColor = Palette.V2.V2_pageControlIndicatorUnselected
         cellDividerView.layer.cornerRadius = cellDividerView.bounds.height / 2.0
@@ -148,14 +192,12 @@ class FeedsCell: UITableViewCell {
         pagerView.register(FeedsTonalityCell.self, forCellWithReuseIdentifier: "FeedsTonalityCell")
         pagerView.register(FeedsFillerWordsCell.self, forCellWithReuseIdentifier: "FeedsFillerWordsCell")
 
-
         pagerView.layer.cornerRadius = 25.0
         pagerView.layer.cornerCurve = .continuous
         pagerView.backgroundColor = pageViewContainer.backgroundColor
         pagerView.clipsToBounds = true
         pagerView.transformer = CustomPagerViewTransformer() //FSPagerViewTransformer(type: .zoomOut)
         pagerView.isInfinite = true
-        
         
         pageViewContainer.addSubview(pagerView)
         pagerView.snp.makeConstraints { (make) in
@@ -176,10 +218,9 @@ class FeedsCell: UITableViewCell {
         pageControl.contentInsets = UIEdgeInsets(top: 0.0, left: 0.0, bottom: 0.0, right: 0.0)
         
         pageViewContainer.addSubview(pageControl)
+        
         pageControl.snp.makeConstraints { (make) in
-            make.centerX.equalTo(pageViewContainer.center.x-40)
-            //make.leading.equalTo(userImageView)
-            //make.trailing.equalTo(pageViewContainer)
+            make.centerX.equalTo(pageViewContainer.snp.centerX).offset(-pageControl.frame.width/2)
             make.bottom.equalTo(pageViewContainer)
             make.height.equalTo(20.0)
             make.width.equalTo(10)
@@ -188,17 +229,27 @@ class FeedsCell: UITableViewCell {
         self.likeButton.setTitle("", for: .normal)
         self.reportBtn.setTitle("", for: .normal)
         self.commnetBtn.setTitle("", for: .normal)
-        self.likeButton.setImage(UIImage(named: "like")?.resized(toWidth: 30), for: .normal)
-        self.reportBtn.setImage(UIImage(named: "reportContent")?.resized(toWidth: 25)?.withTintColor(.lightGray), for: .normal)
-        self.commnetBtn.setImage(UIImage(named: "comment")?.resized(toWidth: 30)?.withTintColor(.lightGray), for: .normal)
+        self.likeButton.setImage(UIImage(named: "like")?.resized(toWidth: 30)?.withRenderingMode(.alwaysTemplate), for: .normal)
+        self.reportBtn.setImage(UIImage(named: "reporting_light")?.resized(toWidth: 25)?.withRenderingMode(.alwaysTemplate), for: .normal)
+        self.commnetBtn.setImage(UIImage(named: "comment")?.resized(toWidth: 30)?.withRenderingMode(.alwaysTemplate), for: .normal)
         
+        switch (traitCollection.userInterfaceStyle) {
+            case .light, .unspecified:
+            self.likeButton.tintColor = .lightGray
+            self.commnetBtn.tintColor = .lightGray
+            self.reportBtn.tintColor = .lightGray
+            case .dark:
+            self.likeButton.tintColor = UIColor.init(white: 0.80, alpha: 1)
+            self.commnetBtn.tintColor = UIColor.init(white: 0.80, alpha: 1)
+            self.reportBtn.tintColor = UIColor.init(white: 0.80, alpha: 1)
+            default: break
+        }
     }
     
     override func prepareForReuse() {
         super.prepareForReuse()
         videoURL = nil
     }
-    
     
     func formattedDateString(string: String?) -> String? {
         dateFormatter.dateFormat = originalDateFormat
@@ -210,80 +261,108 @@ class FeedsCell: UITableViewCell {
 
 extension FeedsCell: FSPagerViewDelegate, FSPagerViewDataSource {
     func numberOfItems(in pagerView: FSPagerView) -> Int {
-        return numberOfPages
+        if let videoShare = self.item?.video.videoShare, videoShare == 0 {
+            return numberOfPages-1
+        }
+        else {
+            return numberOfPages
+        }
     }
     
+    func feedsVideoPageCell(index:Int) -> FSPagerViewCell {
+        guard let cell = pagerView.dequeueReusableCell(withReuseIdentifier: "FeedsVideoPageCell", at: index) as? FeedsVideoPageCell else { return FSPagerViewCell() }
+        cell.videoURL = self.videoURL
+        return cell
+    }
+    
+    func feedsPieChartCell(index:Int) -> FSPagerViewCell {
+        guard let cell = pagerView.dequeueReusableCell(withReuseIdentifier: "FeedsPieChartCell", at: index) as? FeedsPieChartCell else { return FSPagerViewCell() }
+        cell.categories = [(title: "Hand in pocket",
+                            color: Palette.V2.V2_pieChartRed,
+                            percentage: pieChartData[0]),
+                           (title: "Touch chin",
+                            color: Palette.V2.V2_pieChartYellow,
+                            percentage: pieChartData[1]),
+                           (title: "Cross arm",
+                            color: Palette.V2.V2_pieChartBlue,
+                            percentage: pieChartData[2]),
+                           (title: "Normal",
+                            color: Palette.V2.V2_pieChartGreen,
+                            percentage: pieChartData[3])]
+        
+        return cell
+    }
+    
+    func feedsGauseCell(index:Int) -> FSPagerViewCell {
+        guard let cell = pagerView.dequeueReusableCell(withReuseIdentifier: "FeedsGauseCell", at: index) as? FeedsGauseCell else { return FSPagerViewCell() }
+        cell.value = gaugeData
+        return cell
+    }
+    
+    func feedsTonalityCell(index:Int) -> FSPagerViewCell {
+        guard let cell = pagerView.dequeueReusableCell(withReuseIdentifier: "FeedsTonalityCell", at: index) as? FeedsTonalityCell else { return FSPagerViewCell() }
+        cell.data = tonalityData
+        return cell
+    }
+    
+    func feedsFillerWordsCell(index:Int) -> FSPagerViewCell {
+        guard let cell = pagerView.dequeueReusableCell(withReuseIdentifier: "FeedsFillerWordsCell", at: index) as? FeedsFillerWordsCell else { return FSPagerViewCell() }
+        
+        cell.data = [(title: "Um", color: Palette.V2.V2_fillerWordsGrey, value: 10),
+                     (title: "You Know", color: Palette.V2.V2_fillerWordsLightBlue, value: 7),
+                     (title: "I Mean", color: Palette.V2.V2_fillerWordsBlue, value: 4)]
+        
+        return cell
+    }
     
     func pagerView(_ pagerView: FSPagerView, cellForItemAt index: Int) -> FSPagerViewCell {
-        
         switch index {
-        
         // Video
         case 0:
-            guard let cell = pagerView.dequeueReusableCell(withReuseIdentifier: "FeedsVideoPageCell", at: index) as? FeedsVideoPageCell else { return FSPagerViewCell() }
-            
-            //cell.videoURL =  URL(fileURLWithPath: Bundle.main.path(forResource: "SampleVideo_720x480_1mb", ofType: "mp4")!)
-            /*
-            if let url = self.videoURL {
-                cell.videoURL = url
+            if let shareableVideo = self.item?.video.videoShare, shareableVideo == 0 {
+                return self.feedsPieChartCell(index: index)
             }
-            */
-            cell.videoURL = self.videoURL
-            
-            return cell
-            
+            else {
+                return self.feedsVideoPageCell(index: index)
+            }
         // Pie chart
         case 1:
-            guard let cell = pagerView.dequeueReusableCell(withReuseIdentifier: "FeedsPieChartCell", at: index) as? FeedsPieChartCell else { return FSPagerViewCell() }
-            
-            cell.categories = [(title: "Hand in pocket",
-                                color: Palette.V2.V2_pieChartRed,
-                                percentage: pieChartData[0]),
-                               (title: "Touch chin",
-                                color: Palette.V2.V2_pieChartYellow,
-                                percentage: pieChartData[1]),
-                               (title: "Cross arm",
-                                color: Palette.V2.V2_pieChartBlue,
-                                percentage: pieChartData[2]),
-                               (title: "Normal",
-                                color: Palette.V2.V2_pieChartGreen,
-                                percentage: pieChartData[3])]
-            
-            return cell
-            
+            if let shareableVideo = self.item?.video.videoShare, shareableVideo == 0 {
+                return self.feedsGauseCell(index: index)
+            }
+            else {
+                return self.feedsPieChartCell(index: index)
+            }
         // Gauge view
         case 2:
-            guard let cell = pagerView.dequeueReusableCell(withReuseIdentifier: "FeedsGauseCell", at: index) as? FeedsGauseCell else { return FSPagerViewCell() }
-            
-            cell.value = gaugeData
-            
-            return cell
-            
+            if let shareableVideo = self.item?.video.videoShare, shareableVideo == 0 {
+                return self.feedsTonalityCell(index: index)
+            }
+            else {
+                return self.feedsGauseCell(index: index)
+            }
         // Tonality chart
         case 3:
-            guard let cell = pagerView.dequeueReusableCell(withReuseIdentifier: "FeedsTonalityCell", at: index) as? FeedsTonalityCell else { return FSPagerViewCell() }
-            
-            cell.data = tonalityData
-            
-            return cell
+            if let shareableVideo = self.item?.video.videoShare, shareableVideo == 0 {
+                return self.feedsFillerWordsCell(index: index)
+            }
+            else {
+                return self.feedsTonalityCell(index: index)
+            }
             
         // Filler words
         case 4:
             guard let cell = pagerView.dequeueReusableCell(withReuseIdentifier: "FeedsFillerWordsCell", at: index) as? FeedsFillerWordsCell else { return FSPagerViewCell() }
-            
             cell.data = [(title: "Um", color: Palette.V2.V2_fillerWordsGrey, value: 10),
                          (title: "You Know", color: Palette.V2.V2_fillerWordsLightBlue, value: 7),
                          (title: "I Mean", color: Palette.V2.V2_fillerWordsBlue, value: 4)]
             
             return cell
             
-          
-            
         default:
             let cell = pagerView.dequeueReusableCell(withReuseIdentifier: "GenericPageCell", at: index)
             return cell
         }
-        
     }
     
     func pagerViewWillEndDragging(_ pagerView: FSPagerView, targetIndex: Int) {
@@ -294,7 +373,6 @@ extension FeedsCell: FSPagerViewDelegate, FSPagerViewDataSource {
     func pagerView(_ pagerView: FSPagerView, didSelectItemAt index: Int) {
 
     }
-    
 }
 
 class RandomDataGenerator {
@@ -306,12 +384,10 @@ class RandomDataGenerator {
         if count == 1 {
             return [Double.random(in: 0.0...100.0)]
         }
-        
         while idx < (count - 1) {
             data.append(Double.random(in: 0...(100.0 - data.sum())))
             idx += 1
         }
-        
         data.append(100.0 - data.sum())
         
         return data
@@ -373,6 +449,5 @@ class CustomPagerViewTransformer: FSPagerViewTransformer {
         }
         attributes.alpha = alpha
         attributes.transform = transform
-        
     }
 }

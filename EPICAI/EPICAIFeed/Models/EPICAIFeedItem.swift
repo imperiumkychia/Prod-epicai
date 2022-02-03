@@ -24,6 +24,7 @@ struct EPICAIFeedItem {
     var video: EPICAIVideo
     var videoLocalURL: URL? = nil
     var userImage: UIImage? = nil
+    var userImageURL:URL? = nil
     var videoDate: Date? {
         get {
             formatter.dateFormat = originalDateFormat

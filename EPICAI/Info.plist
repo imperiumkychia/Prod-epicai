@@ -56,5 +56,9 @@
 	<string>EPIC AI  saves captured photos and videos to your Photo Library.</string>
 	<key>UIFileSharingEnabled</key>
 	<true/>
+	<key>NSDocumentsFolderUsageDescription</key>
+	<string>EPIC AI  needs videos for body points processing purpus to your Photo Library.</string>
+	<key>NSFileProviderDomainUsageDescription</key>
+	<string>EPIC AI  needs videos for body points processing purpus to your Photo Library.</string>
 </dict>
 </plist>

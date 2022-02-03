@@ -20,15 +20,15 @@ class EPICAISettingsVC: UIViewController {
         return label
     }()
     
-    lazy var backButton: UIButton = {
-        let button = UIButton(frame: .zero)
-        button.translatesAutoresizingMaskIntoConstraints = false
-        let image = UIImage(systemName: "chevron.left", withConfiguration: UIImage.SymbolConfiguration(pointSize: 25.0, weight: .regular))
-        button.setImage(image, for: .normal)
-        button.addTarget(self, action: #selector(backButtonTapped(_:)), for: .touchUpInside)
-        button.tintColor = Palette.V2.V2_VCTitle
-        return button
-    }()
+//    lazy var backButton: UIButton = {
+//        let button = UIButton(frame: .zero)
+//        button.translatesAutoresizingMaskIntoConstraints = false
+//        let image = UIImage(systemName: "chevron.left", withConfiguration: UIImage.SymbolConfiguration(pointSize: 25.0, weight: .regular))
+//        button.setImage(image, for: .normal)
+//        button.addTarget(self, action: #selector(backButtonTapped(_:)), for: .touchUpInside)
+//        button.tintColor = Palette.V2.V2_VCTitle
+//        return button
+//    }()
     
     lazy var settingsTableView: UITableView = {
         let table = UITableView(frame: .zero, style: .plain)
@@ -48,9 +48,24 @@ class EPICAISettingsVC: UIViewController {
         return table
     }()
     
+    lazy var backButton: UIButton = {
+        let button = UIButton(frame: CGRect(x: 0, y: 5, width: 30, height: 30))
+        let image = UIImage(systemName: "chevron.left", withConfiguration: UIImage.SymbolConfiguration(pointSize: 25.0, weight: .regular))
+        button.setImage(image, for: .normal)
+        button.addTarget(self, action: #selector(backButtonTapped(_:)), for: .touchUpInside)
+        button.tintColor = Palette.V2.V2_VCTitle
+        return button
+    }()
+    
     var appVersion: String? {
         return Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String
         
+    }
+    private func leftMenuItems() {
+        let rightOptionView = UIView(frame: CGRect(x: 100, y: 1, width: 50, height: 49))
+        rightOptionView.addSubview(self.backButton)
+        let rightBaritem = UIBarButtonItem(customView: rightOptionView)
+        self.navigationItem.leftBarButtonItem = rightBaritem
     }
     
     var profileViewModel: EPICAIProfileVM!
@@ -68,8 +83,9 @@ class EPICAISettingsVC: UIViewController {
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        
-        navigationController?.isNavigationBarHidden = true
+        self.title = "Settings"
+        self.leftMenuItems()
+        //navigationController?.isNavigationBarHidden = true
         
         if let tbar = tabBarController as? GenericTabBarController{
             tbar.floatingTabbarView.toggle(hide: true)
@@ -84,21 +100,21 @@ class EPICAISettingsVC: UIViewController {
         view.addSubview(titleLabel)
         view.addSubview(settingsTableView)
         
-        backButton.snp.makeConstraints { (make) in
-            make.leading.equalTo(view).offset(itemsMargin)
-            make.height.equalTo(25)
-            make.width.equalTo(25)
-            make.top.equalTo(view.snp.topMargin).offset(itemsMargin-15)
-        }
-        
-        titleLabel.snp.makeConstraints { (make) in
-            make.height.equalTo(44)
-            make.leading.equalTo(backButton.snp.trailing).offset(itemsMargin)
-            make.centerY.equalTo(backButton)
-        }
+//        backButton.snp.makeConstraints { (make) in
+//            make.leading.equalTo(view).offset(itemsMargin)
+//            make.height.equalTo(25)
+//            make.width.equalTo(25)
+//            make.top.equalTo(view.snp.topMargin).offset(itemsMargin-15)
+//        }
+//
+//        titleLabel.snp.makeConstraints { (make) in
+//            make.height.equalTo(44)
+//            make.leading.equalTo(backButton.snp.trailing).offset(itemsMargin)
+//            make.centerY.equalTo(backButton)
+//        }
         
         settingsTableView.snp.makeConstraints { (make) in
-            make.top.equalTo(backButton.snp.bottom).offset(10.0)
+            make.top.equalTo(0).offset(10.0)
             make.bottom.equalTo(view)
             make.leading.equalTo(view)
             make.trailing.equalTo(view)
@@ -148,7 +164,7 @@ extension EPICAISettingsVC: UITableViewDelegate, UITableViewDataSource {
         case 0:
             return 1
         case 1:
-            return 2
+            return 3
         case 2:
             return 3
         case 3:
@@ -190,12 +206,20 @@ extension EPICAISettingsVC: UITableViewDelegate, UITableViewDataSource {
                 cell.title = "Subscription Tier"
                 cell.detail = "Detail"
                 return cell
-            } else {
+            } else if indexPath.row == 1{
                 guard let cell = tableView.dequeueReusableCell(withIdentifier: "SettingsGenericLinkCell", for: indexPath) as? EPICGenericLinkCell else { return UITableViewCell() }
                 
                 cell.isArrowHidden = false
                 cell.title = "Logged in Account"
                 cell.detail = userItem?.user.vendor
+                return cell
+            }
+            else {
+                guard let cell = tableView.dequeueReusableCell(withIdentifier: "SettingsGenericLinkCell", for: indexPath) as? EPICGenericLinkCell else { return UITableViewCell() }
+                
+                cell.isArrowHidden = false
+                cell.title = "Advance settings"
+                cell.detail = ""
                 return cell
             }
             
@@ -337,32 +361,32 @@ extension EPICAISettingsVC: UITableViewDelegate, UITableViewDataSource {
             print("...")
         case 1:
             if indexPath.row == 0 {
-                //self.pushSubscriptionViewController()
+                self.pushSubscriptionViewController()
             }
         case 2:
             print("...")
         case 3:
             if indexPath.row == 0 {
-                //self.pushFeedbackViewController()
+                self.pushFeedbackViewController()
                 break
             }
             if indexPath.row == 1 {
-                //self.pushCommonQuestionViewController()
+                self.pushCommonQuestionViewController()
                 break
             }
             
             if indexPath.row == 2 {
-                //self.pushContactUsViewController()
+                self.pushContactUsViewController()
                 break
             }
             
             if indexPath.row == 3 {
-                //self.pushEndUserAgreementViewController()
+                self.pushEndUserAgreementViewController()
                 break
             }
             
             if indexPath.row == 4 {
-                //self.pushPrivacyPolicyViewController()
+                self.pushPrivacyPolicyViewController()
                 break
             }
             

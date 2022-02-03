@@ -6,16 +6,17 @@
 //
 import UIKit
 import JGProgressHUD
+import Amplify
 
 class EPICAIVideoDetailsVC: UIViewController {
-
+    
     
     let itemsMargin: CGFloat = 20.0
     
     private var dateFormatter = DateFormatter()
     private let targetDateFormat = "dd/MM/yyyy"
     private let originalDateFormat = "yyyy-MM-dd HH:mm:ss"
-    
+    var indexPath:IndexPath?
     var videoItem: EPICAIFeedItem?
     var gaugeData: Double = RandomDataGenerator.generateRandomGaugeData()
     var tonalityData = RandomDataGenerator.generateRandomTonalityData()
@@ -30,13 +31,7 @@ class EPICAIVideoDetailsVC: UIViewController {
         return label
     }()
     
-    lazy var settingsButton: UIButton = {
-        let button = UIButton(frame: .zero)
-        button.translatesAutoresizingMaskIntoConstraints = false
-        button.setImage(#imageLiteral(resourceName: "settings"), for: .normal)
-        button.addTarget(self, action: #selector(settingsButtonTapped(_:)), for: .touchUpInside)
-        return button
-    }()
+    
     
     lazy var videoDetailTableView: UITableView = {
         let table = UITableView(frame: .zero, style: .plain)
@@ -49,7 +44,7 @@ class EPICAIVideoDetailsVC: UIViewController {
         table.register(VideoSpeedOfSpeechCell.self, forCellReuseIdentifier: "VideoSpeedOfSpeechCell")
         table.register(VideoTonalityCell.self, forCellReuseIdentifier: "VideoTonalityCell")
         table.register(VideoFillerWords.self, forCellReuseIdentifier: "VideoFillerWords")
-
+        
         table.separatorStyle = .none
         table.backgroundColor = self.view.backgroundColor
         table.showsVerticalScrollIndicator = false
@@ -58,12 +53,20 @@ class EPICAIVideoDetailsVC: UIViewController {
     }()
     
     lazy var backButton: UIButton = {
-        let button = UIButton(frame: .zero)
-        button.translatesAutoresizingMaskIntoConstraints = false
-        let image = UIImage(systemName: "chevron.left", withConfiguration: UIImage.SymbolConfiguration(pointSize: 40.0, weight: .regular))
+        let button = UIButton(frame: CGRect(x: 0, y: 5, width: 30, height: 30))
+        let image = UIImage(systemName: "chevron.left", withConfiguration: UIImage.SymbolConfiguration(pointSize: 25.0, weight: .regular))
         button.setImage(image, for: .normal)
         button.addTarget(self, action: #selector(backButtonTapped(_:)), for: .touchUpInside)
         button.tintColor = Palette.V2.V2_VCTitle
+        return button
+    }()
+    
+    lazy var settingsButton: UIButton = {
+        let button = UIButton(frame: CGRect(x: 0, y: 5, width: 30, height: 30))
+        button.translatesAutoresizingMaskIntoConstraints = false
+        let img = UIImage(systemName: "ellipsis", withConfiguration: UIImage.SymbolConfiguration(pointSize: 30.0, weight: .bold))
+        button.setImage(img, for: .normal)
+        button.addTarget(self, action: #selector(settingsButtonTapped(_:)), for: .touchUpInside)
         return button
     }()
     
@@ -75,10 +78,25 @@ class EPICAIVideoDetailsVC: UIViewController {
         return indicator
     }()
     
+    private func leftMenuItems() {
+        let leftOptionView = UIView(frame: CGRect(x: 100, y: 1, width: 50, height: 49))
+        leftOptionView.addSubview(self.backButton)
+        let leftBaritem = UIBarButtonItem(customView: leftOptionView)
+        self.navigationItem.leftBarButtonItem = leftBaritem
+    }
+    
+    //    private func rightMenuItems() {
+    //        let rightOptionView = UIView(frame: CGRect(x: 100, y: 1, width: 50, height: 49))
+    //        rightOptionView.addSubview(self.settingsButton)
+    //        let rightBaritem = UIBarButtonItem(customView: rightOptionView)
+    //        self.navigationItem.rightBarButtonItem = rightBaritem
+    //    }
+    
     
     override func viewDidLoad() {
         super.viewDidLoad()
-
+        self.leftMenuItems()
+        //self.rightMenuItems()
         setupUIElements()
     }
     
@@ -86,7 +104,8 @@ class EPICAIVideoDetailsVC: UIViewController {
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         
-        navigationController?.isNavigationBarHidden = true
+        self.applyCustomAppearance()
+        self.title = "Video details"
         
         if let tbar = tabBarController as? GenericTabBarController{
             tbar.floatingTabbarView.toggle(hide: false)
@@ -101,32 +120,11 @@ class EPICAIVideoDetailsVC: UIViewController {
     
     func setupUIElements() {
         view.backgroundColor = Palette.V2.V2_VCBackground
-        
-        view.addSubview(backButton)
-        view.addSubview(titleLabel)
-        view.addSubview(settingsButton)
         view.addSubview(videoDetailTableView)
         view.addSubview(ai)
         
-        backButton.snp.makeConstraints { (make) in
-            make.leading.equalTo(view).offset(itemsMargin)
-            make.top.equalTo(view.snp.topMargin).offset(itemsMargin)
-        }
-        
-        titleLabel.snp.makeConstraints { (make) in
-            make.leading.equalTo(backButton.snp.trailing).offset(itemsMargin)
-            make.centerY.equalTo(backButton)
-        }
-        
-        settingsButton.snp.makeConstraints { (make) in
-            make.width.equalTo(40.0)
-            make.height.equalTo(40.0)
-            make.centerY.equalTo(titleLabel)
-            make.trailing.equalTo(view).offset(-itemsMargin)
-        }
-        
         videoDetailTableView.snp.makeConstraints { (make) in
-            make.top.equalTo(settingsButton.snp.bottom).offset(itemsMargin)
+            make.top.equalTo(0).offset(itemsMargin)
             make.bottom.equalTo(view)
             make.leading.equalTo(view)
             make.trailing.equalTo(view)
@@ -176,9 +174,9 @@ extension EPICAIVideoDetailsVC: UITableViewDelegate, UITableViewDataSource {
             
             cell.delegate = self
             cell.videoUUID = videoItem?.video.videoUUID
-            cell.videoName = videoItem?.video.videoName
+            cell.videoName = videoItem?.video.title
             cell.videoDate = formattedDateString(string: videoItem?.video.dataTime)
-            cell.videoScore = "score: 60/10"
+            cell.videoScore = "Score: 60/100"
             
             return cell
         }
@@ -237,13 +235,14 @@ extension EPICAIVideoDetailsVC: UITableViewDelegate, UITableViewDataSource {
         }
         
         return UITableViewCell()
-
+        
     }
     
     
 }
 
 extension EPICAIVideoDetailsVC: VideoNameCellDelegate {
+    
     func videoNameCell(_ cell: VideoNameCell, didAskToShowMoreForVideo videoUUID: String?) {
         
         let controller = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
@@ -254,10 +253,13 @@ extension EPICAIVideoDetailsVC: VideoNameCellDelegate {
         let renameAction = UIAlertAction(title: "Rename", style: .default) { action in
             self.renameVideoFlow()
         }
-
         
-        let shareAction = UIAlertAction(title: "Share", style: .default) { action in
-            
+        let resultWithVideoAction = UIAlertAction(title: "Result with video", style: .default) { action in
+            self.shareVideoWithVideoFlow(videoWithResult: true)
+        }
+        
+        let shareAction = UIAlertAction(title: "Result only", style: .default) { action in
+            self.shareVideoWithVideoFlow(videoWithResult: false)
         }
         
         let deleteAction = UIAlertAction(title: "Delete", style: .default) { action in
@@ -266,11 +268,19 @@ extension EPICAIVideoDetailsVC: VideoNameCellDelegate {
         
         controller.addAction(cancelAction)
         controller.addAction(renameAction)
-        controller.addAction(shareAction)
-        controller.addAction(deleteAction)
         
+        if let video = self.videoItem?.video {
+            print("Videoshare:\(video.videoShare) share:\(video.share)")
+            if video.share == 1 && video.videoShare == 0 {
+                controller.addAction(resultWithVideoAction)
+            }
+            else if video.share == 0 && video.videoShare == 0 {
+                controller.addAction(resultWithVideoAction)
+                controller.addAction(shareAction)
+            }
+        }
+        controller.addAction(deleteAction)
         self.present(controller, animated: true) {
-            
         }
     }
     
@@ -286,49 +296,7 @@ extension EPICAIVideoDetailsVC: VideoNameCellDelegate {
         alert.setValue(messageString, forKey: "attributedMessage")
         
         let okAction = UIAlertAction(title: "Delete", style: .default) { _ in
-            AuthService.shared().getCurrentUserUUID { uid in
-                if let uid = uid,
-                   let videoItem = self.videoItem,
-                   
-                    uid == videoItem.user.uuid {
-                    
-                    DispatchQueue.main.async {
-                        self.ai.textLabel.text = "Deleting video..."
-                        self.ai.show(in: self.view, animated: true)
-                    }
-                    
-                    /// Deleting video on the API
-                   /* APIHandler.shared().deleteVideo(video: videoItem.video) { error in
-                        if let error = error {
-                            print("Error deleting video via API: \(error)")
-                            DispatchQueue.main.async {
-                                self.ai.dismiss()
-                                GenericAlertView().show(title: "Error", message: "\(error.localizedDescription)", onViewController: self, isShort: false) {}
-                            }
-                        } else {
-                            /// Deleting from S3
-                            AWSManager.shared().removeVideo(key: videoName) { didRemoveVideo in
-                                print("Video deleted from S3: \(didRemoveVideo)")
-                                DispatchQueue.main.async {
-                                    NotificationCenter.default.post(name: .didRenamePrivateVideo, object: nil, userInfo: nil)
-                                    NotificationCenter.default.post(name: .didAddNewPublicVideo, object: nil, userInfo: nil)
-                                    self.ai.dismiss()
-                                    GenericAlertView().show(title: "Success", message: "Successfully deleted the video.", onViewController: self, isShort: true) {
-                                        _ = self.navigationController?.popViewController(animated: true)
-                                    }
-                                }
-                            }
-                            AWSManager.shared().removeLogForVideoWith(key: videoName)
-                        }
-                    }*/
-                    
-                    
-                } else {
-                    DispatchQueue.main.async {
-                        EPICAIGenericAlertView().show(title: "Error", message: "You are not allowed to delete this video.", onViewController: self) {}
-                    }
-                }
-            }
+            self.performDeleteVideo()
         }
         
         let cancelAction = UIAlertAction(title: "Cancel", style: .cancel) { _ in }
@@ -341,104 +309,68 @@ extension EPICAIVideoDetailsVC: VideoNameCellDelegate {
         present(alert, animated: true)
     }
     
+    func showLoader(withTitle:String) {
+        DispatchQueue.main.async {
+            self.ai.textLabel.text = "\(withTitle)..."
+            self.ai.show(in: self.view, animated: true)
+        }
+    }
+    
+    func hideLoader() {
+        DispatchQueue.main.async {
+            self.ai.dismiss()
+        }
+    }
+    
+    func performDeleteVideo() {
+        if let video = self.videoItem?.video {
+            self.showLoader(withTitle: "Deleting video")
+            let updateVideoInput =  UpdateVideoInput(videoUuid: video.videoUUID, active: 0)
+            appSyncClient?.perform(mutation: UpdateVideoMutation(updateVideoInput: updateVideoInput), resultHandler: { result, error in
+                if let error = error {
+                    print("Error in deleting video : \(error.localizedDescription)")
+                }
+                else if let errors = result?.errors {
+                    print("Error in deleting video : \(errors[0].localizedDescription)")
+                }
+                else {
+                    print("Result : \(String(describing: result))")
+                    DispatchQueue.main.async {
+                        EPICAIGenericAlertView().show(title: "Success", message: "Video deleted successfully.", onViewController: self) {
+                            NotificationCenter.default.post(name: .didAddNewPublicVideo, object: nil, userInfo: nil)
+                            self.backButtonTapped(self.backButton)
+                        }
+                    }
+                }
+                self.hideLoader()
+            })
+        }
+    }
+    
     func renameVideoFlow() {
-        if let video = self.videoItem,
-           let localURL = video.videoLocalURL {
-            
+        if let video = self.videoItem {
             /// Set video name
             let actionSheet = UIAlertController(title: "", message: nil, preferredStyle: .alert)
             actionSheet.view.tintColor = Palette.V2.V2_VCTitle
             let titleAttributes = [NSAttributedString.Key.font: LatoFont.regular.withSize(20.0), NSAttributedString.Key.foregroundColor: Palette.V2.V2_VCTitle]
-            let titleString = NSAttributedString(string: "Rename video", attributes: titleAttributes)
+            let titleString = NSAttributedString(string: "Update title", attributes: titleAttributes)
             actionSheet.setValue(titleString, forKey: "attributedTitle")
             
             actionSheet.addTextField { (textfield) in
-                textfield.placeholder = "Leave blank for automatic naming"
+                textfield.placeholder = "Update title"
                 textfield.textColor = Palette.V2.V2_VCTitle
                 textfield.font = LatoFont.regular.withSize(13.0)
                 textfield.delegate = self
             }
             
             let applyAction = UIAlertAction(title: "Apply", style: .default) { (action) in
-                DispatchQueue.main.async {
-                    self.ai.textLabel.text = "Renaming video..."
-                    self.ai.show(in: self.view, animated: true)
-                }
                 if let currentText = actionSheet.textFields?.first?.text {
-                    var newName: String = ""
-                    if currentText == "" {
-                        /// Automatic naming
-                        newName = UUID().uuidString + ".mov"
-                    } else {
-                        /// Manual naming
-                        newName = currentText + ".mov"
-                    }
-                    
-                    AWSManager.shared().nameExistsOnS3(key: newName) { result in
-                        switch result {
-                        case .success(let exists):
-                            if exists {
-                                DispatchQueue.main.async {
-                                    EPICAIGenericAlertView().show(title: "Error", message: "A video with this name already exists on database. Plase choose a different name and try again.", onViewController: self) {}
-                                    self.ai.dismiss()
-                                }
-                            } else {
-                                /// Rename on API
-                                var newVideo = video.video
-                                newVideo.videoName = video.video.videoName
-                                
-                             /*   APIHandler.shared().updateVideo(video: newVideo) { error in
-                                    if let error = error {
-                                        print("Error updating video via API: \(error)")
-                                        DispatchQueue.main.async {
-                                            GenericAlertView().show(title: "Error", message: "\(error.localizedDescription)", onViewController: self) {}
-                                        }
-                                        self.ai.dismiss()
-                                        return
-                                    } else {
-                                        /// Rename on S3
-                                        AWSManager.shared().renameVideo(key: currentName, localURL: localURL, newKey: newName) { (succeeded) in
-                                            if succeeded {
-                                                AWSManager.shared().renameLogForVideoWith(key: currentName, newKey: newName)
-                                                self.videoItem?.video = newVideo
-                                                DispatchQueue.main.async {
-                                                    if video.video.share == "1" {
-                                                        NotificationCenter.default.post(name: .didRenamePrivateVideo, object: nil, userInfo: nil)
-                                                        NotificationCenter.default.post(name: .didAddNewPublicVideo, object: nil, userInfo: nil)
-                                                    } else {
-                                                        NotificationCenter.default.post(name: .didRenamePrivateVideo, object: nil, userInfo: nil)
-                                                    }
-                                                    self.videoDetailTableView.reloadData()
-                                                    GenericAlertView().show(title: "Success", message: "Successfully renamed video.", onViewController: self, isShort: true) {}
-                                                    self.ai.dismiss()
-                                                }
-                                            } else {
-                                                DispatchQueue.main.async {
-                                                    GenericAlertView().show(title: "Error", message: "Unable to rename the video.", onViewController: self) {}
-                                                    self.ai.dismiss()
-                                                }
-                                                /// Revert name to original name
-                                                APIHandler.shared().updateVideo(video: video.video) { error in
-                                                    print("Unable to revert name to original name: \(String(describing: error))")
-                                                }
-                                            }
-                                        }
-                                    }
-                                }*/
-                            }
-                        default:
-                            DispatchQueue.main.async {
-                                self.ai.dismiss()
-                            }
-                            break
-                        }
-                    }
-                } else {
-                    DispatchQueue.main.async {
-                        self.ai.dismiss()
+                    if !currentText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                        self.updateTitle(currentText, video: video.video)
                     }
                 }
             }
+            
             let cancelAction = UIAlertAction(title: "Cancel", style: .cancel) { (_) in }
             actionSheet.addAction(applyAction)
             actionSheet.addAction(cancelAction)
@@ -448,11 +380,64 @@ extension EPICAIVideoDetailsVC: VideoNameCellDelegate {
             DispatchQueue.main.async {
                 self.present(actionSheet, animated: true)
             }
-        } else {
-            DispatchQueue.main.async {
-                EPICAIGenericAlertView().show(title: "Error", message: "You are not allowed to rename this video.", onViewController: self) {}
+        }
+    }
+    
+    func shareVideoWithVideoFlow(videoWithResult:Bool) {
+        
+        if let videoDetails = self.videoItem?.video {
+            self.showLoader(withTitle: "Sharing video")
+            
+            let videoUpdateMutaionInput = (videoWithResult) ? UpdateVideoInput(videoUuid: videoDetails.videoUUID, share: 1 ,shareVideo: 1) : UpdateVideoInput(videoUuid: videoDetails.videoUUID, share: 1)
+            
+            self.updateVideoDetails(videoMutationInput: videoUpdateMutaionInput) { error in
+                if let error = error {
+                    print("Error while updating video title:\(error.localizedDescription)")
+                }
+                else {
+                    DispatchQueue.main.async {
+                        EPICAIGenericAlertView().show(title: "Success", message: "Video details updated successfully.", onViewController: self) {}
+                    }
+                }
+                self.hideLoader()
             }
         }
+    }
+    
+    func updateTitle(_ title:String, video:EPICAIVideo) {
+        self.showLoader(withTitle: "Update title")
+        let videoUpdateMutaionInput = UpdateVideoInput(videoUuid: video.videoUUID, title: title)
+        self.updateVideoDetails(videoMutationInput: videoUpdateMutaionInput) { error in
+            if let error = error {
+                print("Error while updating video title:\(error.localizedDescription)")
+            }
+            else {
+                DispatchQueue.main.async {
+                    EPICAIGenericAlertView().show(title: "Success", message: "Video details updated successfully.", onViewController: self) {}
+//                    self.progressDiscard(videoUUID: video.videoUUID) { state in
+//                        print("Delete video from s3 bucked : \(state)")
+//                    }
+                }
+            }
+            self.hideLoader()
+        }
+    }
+    
+    
+    func updateVideoDetails(videoMutationInput:UpdateVideoInput, completion:@escaping (Error?) -> Void) {
+        appSyncClient?.perform(mutation: UpdateVideoMutation(updateVideoInput: videoMutationInput), resultHandler: { result, error in
+            if let error = error {
+                completion(error)
+                print("Title update error : \(error.localizedDescription)")
+            }
+            else if let errors = result?.errors {
+                completion(errors[0])
+                print("Title update error : \(errors[0].localizedDescription)")
+            }
+            else {
+                completion(nil)
+            }
+        })
     }
 }
 
@@ -460,5 +445,56 @@ extension EPICAIVideoDetailsVC: UITextFieldDelegate {
     func textFieldShouldReturn(_ textField: UITextField) -> Bool {
         textField.resignFirstResponder()
         return true
+    }
+    
+    
+    func progressDiscard(videoUUID:String, completion:@escaping (Bool) -> Void) {
+        self.removeVideoIfUserDiscard(videoUUID: videoUUID) { state , error in
+            if let error = error {
+                print("Video delete error:\(error.localizedDescription)")
+            }
+            print("Video delete state \(state)")
+        }
+        
+        self.removeBodyPointsCSVIfUserDiscard(videoUUID: videoUUID) { state, error  in
+            if let error = error {
+                print("Body points csv delete error:\(error.localizedDescription)")
+            }
+            print("Body point scv delete state \(state)")
+        }
+        
+        self.removeAudioCSVIfUserDiscard(videoUUID: videoUUID) { state, error in
+            if let error = error {
+                print("Audio points csv delete error:\(error.localizedDescription)")
+            }
+            print("Audio csv delete state \(state)")
+        }
+    }
+    
+    func removeVideoIfUserDiscard(videoUUID:String, completion:@escaping (Bool, Error?) -> Void) {
+        _ = Amplify.Storage.remove(key: videoBucketkey + videoUUID + videoExtension , resultListener: { result in
+            switch(result) {
+            case .success( _): completion(true, nil)
+            case .failure(let error): completion(false, error)
+            }
+        })
+    }
+    
+    func removeBodyPointsCSVIfUserDiscard(videoUUID:String, completion:@escaping (Bool, Error?) -> Void) {
+        _ = Amplify.Storage.remove(key: bodyPointBucketkey + videoUUID + ".csv", resultListener: { result in
+            switch(result) {
+            case .success( _): completion(true, nil)
+            case .failure(let error): completion(false, error)
+            }
+        })
+    }
+    
+    func removeAudioCSVIfUserDiscard(videoUUID:String, completion:@escaping (Bool, Error?) -> Void) {
+        _ = Amplify.Storage.remove(key: audioPointBucketkey + videoUUID + ".csv" , resultListener: { result in
+            switch(result) {
+            case .success( _): completion(true, nil)
+            case .failure(let error): completion(false, error)
+            }
+        })
     }
 }

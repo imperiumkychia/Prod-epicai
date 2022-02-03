@@ -61,7 +61,7 @@ class FeedsVideoPageCell: FSPagerViewCell {
         
         snapshotImageView = UIImageView(frame: .zero)
         snapshotImageView.translatesAutoresizingMaskIntoConstraints = false
-        snapshotImageView.image = #imageLiteral(resourceName: "noVideo")
+        // snapshotImageView.image = #imageLiteral(resourceName: "noVideo")
         snapshotImageView.contentMode = .scaleAspectFill
         contentView.addSubview(snapshotImageView)
 
@@ -80,7 +80,6 @@ class FeedsVideoPageCell: FSPagerViewCell {
         playButton.addTarget(self, action: #selector(didTapOnPlay(_:)), for: .touchUpInside)
         playButtonContainer.addSubview(playButton)
         
-        
         snapshotImageView.snp.makeConstraints { (make) in
             make.edges.equalTo(contentView)
         }
@@ -94,8 +93,6 @@ class FeedsVideoPageCell: FSPagerViewCell {
         playButton.snp.makeConstraints { (make) in
             make.edges.equalTo(playButtonContainer)
         }
-        
-        
     }
     
     @objc private func didTapOnPlay(_ sender: UIButton) {
@@ -111,7 +108,6 @@ class FeedsVideoPageCell: FSPagerViewCell {
 
 extension FeedsVideoPageCell: PlayerDelegate, PlayerPlaybackDelegate {
     func playerReady(_ player: Player) {
-        
     }
     
     func playerPlaybackStateDidChange(_ player: Player) {

@@ -10,8 +10,7 @@ import UIKit
 import AVFoundation
 import Vision
 import AVKit
-import MagicTimer
-
+import CDAlertView
 
 class EPICAICaptureVideoVC: UIViewController {
     
@@ -22,7 +21,7 @@ class EPICAICaptureVideoVC: UIViewController {
     @IBOutlet weak var imageView: UIImageView!
     
     private var currentFrame: CGImage?
-    private let videoCapture = EPICAIVideoCapture()
+    private var videoCapture = EPICAIVideoCapture()
     
     let mainQueue = DispatchQueue.main
     
@@ -33,7 +32,6 @@ class EPICAICaptureVideoVC: UIViewController {
     
     var isRecording: Bool = false
     var videoDuration: Double?
-    
     var bottomBar: CameraVCBottomBarView!
     var cameraButton: UIButton!
     var closeButton: UIButton!
@@ -41,42 +39,108 @@ class EPICAICaptureVideoVC: UIViewController {
     var analyseButton: UIButton!
     var chooseFromGalleryButton: UIButton!
     var capturePermissionFlag:Bool = false
-    var magicTimeView: MagicTimerView!
+    var timeValueLabel:UILabel!
+    var bottomBarPadding = 100
     
-    //let cameraManager = CameraManager()
+    weak var timer: Timer?
+    var startTime: Double = 0
+    var time: Double = 0
+    var timeStampString = ""
+    
+    var previewView : UIView!
+    private var previewLayer: AVCaptureVideoPreviewLayer?
+    
     private func setupAndBeginCapturingVideoFrames() {
+        self.videoCapture = EPICAIVideoCapture()
         videoCapture.setUpAVCapture { error in
             if let error = error {
                 print("Failed to setup camera with error \(error)")
                 return
             }
+            self.removeExistingFiles(fileName: self.videoCapture.videoFileName)
+            //self.createNewRecordFiles(fileName: self.videoCapture.videoFileName)
             self.videoCapture.delegate = self
+            DispatchQueue.main.async {
+                self.previewLayer = AVCaptureVideoPreviewLayer.init(session: self.videoCapture.captureSession)
+                self.previewLayer?.videoGravity = .resizeAspectFill
+                let rootLayer :CALayer = self.previewView.layer
+                rootLayer.masksToBounds=true
+                self.previewLayer?.frame = rootLayer.bounds
+                if let previewLayer = self.previewLayer {
+                    rootLayer.addSublayer(previewLayer)
+                }
+            }
         }
     }
     
-    func removeExistingFiles() {
-        let _ = EPICAIFileManager.shared().removeBodyPointsCSV("EPICBodyPoints")
-        let _ = EPICAIFileManager.shared().removeAudioPointsCSV("EPICAudioPoints")
+    func resetTimerTime() {
+        self.timeValueLabel.text = "05.00"
+        self.timer?.invalidate()
+        timer = nil
+        self.startTime = 0
+        self.time = 0
     }
     
-    func createNewRecordFiles() {
-        EPICAIFileManager.shared().bodyPoseFileName = "EPICBodyPoints"
-        EPICAIFileManager.shared().audioPointFileName = "EPICAudioPoints"
+    func manageUIState(state:Bool) {
+        if state {
+            self.closeButton.isEnabled = true
+            self.recordButton.isEnabled = true
+        }
+        else {
+            self.closeButton.isEnabled = false
+            self.recordButton.isEnabled = false
+        }
+    }
+    
+    func removeExistingFiles(fileName:String) {
+        let _ = EPICAIFileManager.shared().removeBodyPointsCSV(fileName)
+        let _ = EPICAIFileManager.shared().removeAudioPointsCSV(fileName)
+    }
+    
+    func createNewRecordFiles(fileName:String) {
+        EPICAIFileManager.shared().bodyPoseFileName = fileName
+        EPICAIFileManager.shared().audioPointFileName = fileName
     }
     
     override func viewWillTransition(to size: CGSize,
                                      with coordinator: UIViewControllerTransitionCoordinator) {
+        if UIDevice.current.orientation.isLandscape {
+            print("landscape")
+            if bottomBar != nil {
+                bottomBar.snp.makeConstraints { (make) in
+                    make.width.equalTo(bottomBar.frame.width)
+                    make.height.equalTo(bottomBar.frame.height)
+                    make.centerX.equalTo(view)
+                    make.bottom.equalTo(-60)
+                }
+            }
+        } else {
+            if bottomBar != nil {
+                bottomBar.snp.makeConstraints { (make) in
+                    make.width.equalTo(bottomBar.frame.width)
+                    make.height.equalTo(bottomBar.frame.height)
+                    make.centerX.equalTo(view)
+                    make.bottom.equalTo(-100)
+                }
+            }
+        }
         // Reinitilize the camera to update its output stream with the new orientation.
-        
     }
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        previewView = UIView(frame: CGRect(x: 0,
+                                           y: 0,
+                                           width: UIScreen.main.bounds.size.width,
+                                           height: UIScreen.main.bounds.size.height))
+        previewView.contentMode = UIView.ContentMode.scaleToFill
+        view.addSubview(previewView)
+        
         if let tb = tabBarController as? GenericTabBarController {
             tb.hideFloatingTabBar(true)
         }
         if let navBar = self.navigationController?.navigationBar {
-            print("Comes in navcontroller")
             navBar.isHidden = true
         }
         view.backgroundColor = Palette.V2.V2_VCBackground
@@ -101,43 +165,26 @@ class EPICAICaptureVideoVC: UIViewController {
             make.bottom.equalTo(-100)
         }
         
-        /// Stopwatch counter
-        magicTimeView = MagicTimerView(frame: .zero)
-        magicTimeView.translatesAutoresizingMaskIntoConstraints = false
-        magicTimeView.backgroundColor = Palette.V2.V2_cameraBottomSideBackground.withAlphaComponent(0.6)
-        magicTimeView.layer.cornerCurve = .continuous
-        magicTimeView.cornerRadius = 20.0
-        magicTimeView.textColor = Palette.V2.V2_cameraTimerLabel
-        magicTimeView.font = LatoFont.regular.withSize(22.0)
-        magicTimeView.delegate = self
+        self.timeValueLabel = UILabel(frame: .zero)
+        self.timeValueLabel.textAlignment = .center
+        self.timeValueLabel.clipsToBounds = true
+        self.timeValueLabel.translatesAutoresizingMaskIntoConstraints = false
+        self.timeValueLabel.backgroundColor = Palette.V2.V2_cameraBottomSideBackground.withAlphaComponent(0.6)
+        self.timeValueLabel.layer.cornerCurve = .continuous
+        self.timeValueLabel.layer.cornerRadius = 20
+        self.timeValueLabel.textColor = Palette.V2.V2_cameraTimerLabel
+        self.timeValueLabel.font = LatoFont.regular.withSize(20)
+        self.timeValueLabel.text = "05:00"
         
-        view.addSubview(magicTimeView)
-        magicTimeView.snp.makeConstraints { (make) in
+        view.addSubview(self.timeValueLabel)
+        timeValueLabel.snp.makeConstraints { (make) in
             make.centerX.equalTo(view)
             make.width.equalTo(100.0)
-            make.height.equalTo(magicTimeView.cornerRadius * 2.0)
+            make.height.equalTo(timeValueLabel.layer.cornerRadius * 2.0)
             make.bottom.equalTo(bottomBar.snp.top).offset(-20.0)
         }
         
-        
-        /// Full/Half body switch
         let buttonCornerRadius: CGFloat = 20.0
-        /// Change camera button
-        //        cameraButton = UIButton(frame: .zero)
-        //        cameraButton.translatesAutoresizingMaskIntoConstraints = false
-        //        cameraButton.setImage(#imageLiteral(resourceName: "revCamera"), for: UIControl.State.normal)
-        //        cameraButton.setImage(#imageLiteral(resourceName: "revCamera_disabled"), for: UIControl.State.disabled)
-        //        cameraButton.imageEdgeInsets = UIEdgeInsets(top: 5.0, left: 5.0, bottom: 5.0, right: 5.0)
-        //        cameraButton.backgroundColor = Palette.V2.V2_cameraVCSwitchUnselectedBackground
-        //        cameraButton.addTarget(self, action: #selector(changeCamera(_:)), for: .touchUpInside)
-        //        cameraButton.layer.cornerRadius = buttonCornerRadius
-        //        view.addSubview(cameraButton)
-        //        cameraButton.snp.makeConstraints { (make) in
-        //            make.height.equalTo(buttonCornerRadius * 2.0)
-        //            make.width.equalTo(buttonCornerRadius * 2.0)
-        //            make.centerY.equalTo(100)
-        //            make.leading.equalTo(50)
-        //        }
         
         let closeButtonCornerRadius: CGFloat = buttonCornerRadius + 5.0
         closeButton = UIButton(frame: .zero)
@@ -162,10 +209,13 @@ class EPICAICaptureVideoVC: UIViewController {
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
+        UIApplication.shared.isIdleTimerDisabled = true
         self.hideNavBar()
-        self.removeExistingFiles()
-        self.createNewRecordFiles()
         self.isRecording = false
+        self.imageView.image = nil
+        self.previewLayer?.removeFromSuperlayer()
+        self.previewLayer = nil
+        self.setupAndBeginCapturingVideoFrames()
         if let tb = tabBarController as? GenericTabBarController {
             tb.hideFloatingTabBar(true)
         }
@@ -174,7 +224,6 @@ class EPICAICaptureVideoVC: UIViewController {
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         self.requestPermission()
-        self.setupAndBeginCapturingVideoFrames()
     }
     
     func requestPermission() {
@@ -198,18 +247,74 @@ class EPICAICaptureVideoVC: UIViewController {
     
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
+        UIApplication.shared.isIdleTimerDisabled = false
         showNavBar()
         videoCapture.stopCapturing()
+        self.resetTimerTime()
     }
     
     @objc func closeButtonTapped(_ sender: UIButton) {
-        if let tb = tabBarController as? GenericTabBarController {
-            tb.floatingTabbarView.changeTab(toIndex: 0)
+        self.showAlertWithOption()
+//        self.stopCapturing()
+//        if let tb = tabBarController as? GenericTabBarController {
+//            if let videoURL = self.videoCapture.videoURL {
+//                EPICAIFileManager.shared().manageDeleteVideoAndAssets(videoURL: videoURL)
+//            }
+//            tb.floatingTabbarView.changeTab(toIndex: 0)
+//            self.navigationController?.popToRootViewController(animated: true)
+//        }
+    }
+    
+    func showAlertWithOption() {
+        let alert = CDAlertView(title: "EPICAI Alert!", message: "Are you confirm to stop the recording? Press yes, to exit the recording", type: .alarm)
+        let doneAction = CDAlertViewAction(title: "Yes", font: nil, textColor: nil, backgroundColor: nil) { (_) -> Bool in
+            //self.dismiss(animated: true, completion: nil)
+            self.stopCapturing()
+            if let videoURL = self.videoCapture.videoURL {
+                EPICAIFileManager.shared().manageDeleteVideoAndAssets(videoURL: videoURL)
+            }
+            if let tabCont = self.tabBarController as? GenericTabBarController {
+                tabCont.floatingTabbarView.changeTab(toIndex: 0)
+            }
+            self.navigationController?.popToRootViewController(animated: true)
+            return true
         }
+        let cancelAction = CDAlertViewAction(title: "No", font: nil, textColor: nil, backgroundColor: nil) { (_) -> Bool in
+            return true
+        }
+        
+        alert.circleFillColor = Palette.darkPurple
+        doneAction.buttonTextColor = Palette.darkPurple
+        cancelAction.buttonTextColor = Palette.darkPurple
+        
+        alert.add(action: doneAction)
+        alert.add(action: cancelAction)
+        alert.show()
+    }
+    
+    func showAlertWhenChoseFromGallary() {
+        let alert = CDAlertView(title: "EPICAI Alert!", message: "Are you confirm to stop the recording? Press yes, to exit the recording", type: .alarm)
+        let doneAction = CDAlertViewAction(title: "Yes", font: nil, textColor: nil, backgroundColor: nil) { (_) -> Bool in
+            //self.dismiss(animated: true, completion: nil)
+            self.openVideoGallary()
+            return true
+        }
+        let cancelAction = CDAlertViewAction(title: "No", font: nil, textColor: nil, backgroundColor: nil) { (_) -> Bool in
+            return true
+        }
+        
+        alert.circleFillColor = Palette.darkPurple
+        doneAction.buttonTextColor = Palette.darkPurple
+        cancelAction.buttonTextColor = Palette.darkPurple
+        
+        alert.add(action: doneAction)
+        alert.add(action: cancelAction)
+        alert.show()
     }
     
     // MARK: - Import from Library
-    @objc func chooseFromGalleryButtonTapped(_ sender: Any) {
+    
+    private func openVideoGallary() {
         let videoPicker = UIImagePickerController()
         videoPicker.delegate = self
         videoPicker.sourceType = .photoLibrary
@@ -218,34 +323,13 @@ class EPICAICaptureVideoVC: UIViewController {
         self.present(videoPicker, animated: true, completion: nil)
     }
     
-    // MARK: - Convert video
-    func analyseButtonTapped() {
-        print("moveToAnalyseView: url")
-        //        DispatchQueue.main.asyncAfter(deadline: .now() + 10) {
-        //            //guard let url = self.videoCapture.videoURL else { return }
-        //            //            let player = AVPlayer(url: url)
-        //            //            let playerController = AVPlayerViewController()
-        //            //
-        //            //            playerController.player = player
-        //            //            self.addChild(playerController)
-        //            //            self.view.addSubview(playerController.view)
-        //            //            playerController.view.frame = self.view.frame
-        //            //            player.play()
-        //
-        let url = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!.appendingPathComponent("TestVideo.mp4")
-        
-        print("moveToAnalyseView: url \(url)")
-        
-        let player = AVPlayer(url: URL.init(fileURLWithPath: url.path))  // video path coming from above function
-        let playerViewController = AVPlayerViewController()
-        playerViewController.player = player
-        self.present(playerViewController, animated: true) {
-            playerViewController.player!.play()
+    @objc func chooseFromGalleryButtonTapped(_ sender: Any) {
+        if self.isRecording {
+            self.showAlertWhenChoseFromGallary()
         }
-        //        }
-        
-        
-        
+        else {
+            self.openVideoGallary()
+        }
     }
     
     private func deviceOrientation() -> UIDeviceOrientation {
@@ -260,49 +344,77 @@ class EPICAICaptureVideoVC: UIViewController {
     
     // MARK: - ChangeCamera
     @objc private func changeCamera(_ cameraButton: UIButton) {
-#if targetEnvironment(simulator)
-        self.moveToPostView()
-        return
-#else
         print("changeCamera")
-        videoCapture.flipCamera { error in
-            if let error = error {
-                print("Failed to flip camera with error \(error)")
-            }
-        }
-#endif
-    }
-    
-    func getDurationForVideo(at url: URL) -> Double? {
-        let asset = AVURLAsset(url: url)
-        guard let _ = asset.tracks(withMediaType: .video).first else { return nil }
-        return Double(round(10 * (asset.duration.seconds) / 10))
-    }
-    
-    @objc private func toggleMovieRecording(_ recordButton: UIButton) {
-        if self.isRecording {
-            self.stopCapturing()
-        } else {
-            self.isRecording = true
-            self.recordButton.setImage(#imageLiteral(resourceName: "startRecord"), for: .normal)
-            let videoURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!.appendingPathComponent("TestVideo.mp4")
-            EPICAIFileManager.removeVideoFile(atURL: videoURL) { status in
-                //self.videoCapture.startCapturing()
-                self.videoCapture.prepareCapturing()
-                self.videoCapture.videoCuptureSessionStarted = { state in
-                    if state {
-                        self.magicTimeView.startCounting()
+        if self.videoCapture.captureSession.isRunning {
+            videoCapture.flipCamera { error in
+                if let error = error {
+                    print("Failed to flip camera with error \(error)")
+                }
+                else {
+                    if self.videoCapture.cameraPostion == .front {
+                        self.analyseButton.tintColor = Palette.darkPurple
+                    }
+                    else {
+                        self.analyseButton.tintColor = .white
                     }
                 }
             }
         }
     }
     
+    @objc private func toggleMovieRecording(_ recordButton: UIButton) {
+        if self.isRecording {
+            if let  video = self.videoCapture.videoURL, video.getResourceSizeInInt() > 20 {
+                self.stopCapturing()
+            }
+            else {
+                return
+            }
+        } else {
+            self.isRecording = true
+            //self.videoCapture.startCapturing()
+            self.videoCapture.prepareCapturing()
+            
+            self.videoCapture.updateCountDown = { value in
+                self.timeValueLabel.text = String(format: "%d:00", value)
+            }
+            
+            self.videoCapture.videoCuptureSessionStarted = { state in
+                if state {
+                    self.createNewRecordFiles(fileName: self.videoCapture.videoFileName)
+                    self.resetTimerTime()
+                    self.startTime = Date().timeIntervalSinceReferenceDate
+                    
+                    self.recordButton.setImage(#imageLiteral(resourceName: "stopRecord"), for: .normal)
+                    self.timer = Timer.scheduledTimer(timeInterval: 0.05,
+                                                 target: self,
+                                                      selector: #selector(self.advanceTimer(timer:)),
+                                                 userInfo: nil,
+                                                 repeats: true)
+                }
+            }
+        }
+    }
+    
+    @objc func advanceTimer(timer: Timer) {
+        time = Date().timeIntervalSinceReferenceDate - startTime
+        self.timeStampString = time.stringFromTimeInterval()
+        timeValueLabel.text = self.timeStampString
+        self.videoCapture.udpateTimerValue(timeLapse:self.timeStampString)
+        if time >= Double(maximumVideoLength) * 60.0 {
+            self.mainQueue.async {
+                self.resetTimerTime()
+                self.stopCapturing()
+            }
+        }
+    }
+    
     func stopCapturing() {
-        self.magicTimeView.reset()
-        self.isRecording = false
+        self.resetTimerTime()
+        self.videoCapture.stopTimer()
         self.videoCapture.stopCapturing()
-        self.recordButton.setImage(#imageLiteral(resourceName: "stopRecord"), for: .normal)
+        self.recordButton.setImage(#imageLiteral(resourceName: "startRecord"), for: .normal)
+        self.isRecording = false
         self.videoCapture.videoCuptureDone = { url in
             DispatchQueue.main.async {
                 self.moveToVideoTrimimg(videoURL: url)
@@ -313,20 +425,8 @@ class EPICAICaptureVideoVC: UIViewController {
     func moveToVideoTrimimg(videoURL:URL) {
         if let navController = self.navigationController {
             let controller = EPICAIVideoTrimVC()
-            print("Video URL: \(videoURL)")
             controller.videoURL = videoURL
             navController.pushViewController(controller, animated: true)
-        }
-    }
-}
-
-extension EPICAICaptureVideoVC: MagicTimerViewDelegate {
-    func timerElapsedTimeDidChange(timer: MagicTimerView, elapsedTime: TimeInterval) {
-        if elapsedTime >= Double(maximumVideoLength) * 60.0 {
-            self.mainQueue.async {
-                self.magicTimeView.reset()
-                self.videoCapture.stopCapturing()
-            }
         }
     }
 }
@@ -334,6 +434,9 @@ extension EPICAICaptureVideoVC: MagicTimerViewDelegate {
 extension EPICAICaptureVideoVC: UIImagePickerControllerDelegate, UINavigationControllerDelegate {
     
     func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
+        let videoExaminationVC = EPICAIVideoExaminationVC.instantiateFromAppStoryBoard(appStoryBoard: .VPStoryboard)
+        videoExaminationVC.videoURL = info[UIImagePickerController.InfoKey.mediaURL] as? URL
+        self.navigationController?.pushViewController(videoExaminationVC, animated: true)
         picker.dismiss(animated: true, completion: nil)
     }
 }
@@ -352,7 +455,7 @@ extension EPICAICaptureVideoVC: VideoCaptureDelegate {
     
     func estimation(_ cgImage:CGImage) {
         imageSize = CGSize(width: cgImage.width, height: cgImage.height)
-        
+        print("Image size:height :\(imageSize.height), width :\(imageSize.width)")
         let requestHandler = VNImageRequestHandler(cgImage: cgImage)
         
         // Create a new request to recognize a human body pose.
@@ -400,7 +503,11 @@ extension EPICAICaptureVideoVC: VideoCaptureDelegate {
         
         let imagePoints: [CGPoint] = recognizedPoints.values.compactMap {
             guard $0.confidence > 0 else { return nil }
-            EPICAIFileManager.shared().writeBodyPointsInToCSV(pointDict: recognizedPoints, height: Int(imageSize.height), width: Int(imageSize.width),closeFlasg: self.videoCapture.captureState == .end)
+            DispatchQueue.main.async {
+                if self.timeStampString != "" {
+                    EPICAIFileManager.shared().writeBodyPointsInToCSV(pointDict: recognizedPoints, height: Int(self.imageSize.height), width: Int(self.imageSize.width),closeFlasg: self.videoCapture.captureState == .end, timeLapse: self.timeStampString)
+                }
+            }
             return VNImagePointForNormalizedPoint($0.location,
                                                   Int(imageSize.width),
                                                   Int(imageSize.height))

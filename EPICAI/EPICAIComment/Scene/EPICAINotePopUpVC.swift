@@ -54,10 +54,10 @@ class EPICAINotePopUpVC: UIViewController , UITextViewDelegate{
             if contentSize.height > notesdata.frame.size.height {
                 detectscroll = true
                 linechange = true
-                topSize.constant = topSize.constant - 14
-                if topSize.constant <= 40 {
-                    topSize.constant = 40
-                }
+//                topSize.constant = topSize.constant - 14
+//                if topSize.constant <= 40 {
+//                    topSize.constant = 40
+//                }
             }
             if !detectscroll {
                 detectlinenumber = detectlinenumber + 1
@@ -78,19 +78,18 @@ class EPICAINotePopUpVC: UIViewController , UITextViewDelegate{
                         if noofline < totalnumberoflines {
                             totalnumberoflines = noofline
                             
-                            topSize.constant = topSize.constant + 15
-                            if topSize.constant >= 100 {
-                                topSize.constant = 100
-                            }
+//                            topSize.constant = topSize.constant + 15
+//                            if topSize.constant >= 100 {
+//                                topSize.constant = 100
+//                            }
                         }
                     }
                 }
             }
         }
-        
         previousRect = currentRect
-        
     }
+    
     func textView(_ textView: UITextView, shouldChangeTextIn range: NSRange, replacementText text: String) -> Bool {
         if(textView.text.count >= 1000)
         {
@@ -129,7 +128,6 @@ class EPICAINotePopUpVC: UIViewController , UITextViewDelegate{
             let index = newText.index(newText.startIndex, offsetBy: 1000)
             newText = String(newText[..<index])
             textView.text = newText
-            
             maxLimit.text = "1000/1000 (Max. 1000 characters)"
             maxLimit.textColor = UIColor.init(hex: "FF3F39")
         }
@@ -150,7 +148,7 @@ class EPICAINotePopUpVC: UIViewController , UITextViewDelegate{
     func textViewDidBeginEditing(_ textView: UITextView) {
         if textView.textColor == UIColor.lightGray || textView.text == "Reply..." {
             textView.text = nil
-            textView.textColor = UIColor.black
+            textView.textColor = Palette.V2.V2_VCTitle
         }
     }
     
@@ -201,7 +199,7 @@ class EPICAINotePopUpVC: UIViewController , UITextViewDelegate{
     
     @IBOutlet weak var addNotesBtn: UIButton!
     @IBOutlet var cancel: UIButton!
-    @IBOutlet var topSize: NSLayoutConstraint!
+    //@IBOutlet var topSize: NSLayoutConstraint!
     @IBOutlet var notesdata: UITextView!
     @IBOutlet var headingTitle: UILabel!
     @IBOutlet weak var maxLimit: UILabel!

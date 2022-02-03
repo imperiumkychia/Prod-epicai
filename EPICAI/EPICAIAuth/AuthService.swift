@@ -212,8 +212,8 @@ class AuthService: NSObject {
                     completion(nil)}
             }
         }
-        
     }
+    
     func getCurrentUserFullName(completion: @escaping (String?) -> Void) {
         Amplify.Auth.fetchUserAttributes() { result in
             switch result {
@@ -267,7 +267,6 @@ class AuthService: NSObject {
                 }
             }
         }
-        
     }
     
     func performSignIn(provider: AuthProvider, in window: UIWindow, completion: @escaping (Result<AuthSignInResult, Error>) -> Void) {

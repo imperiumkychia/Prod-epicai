@@ -16,7 +16,7 @@ struct EPICAICommentItem {
     var comment:EPICAIComment
     var user:EPICAIUser
     var userImage:UIImage? = nil
-    var replies:[EPICAIComment] = []
+    var replies:[EPICAICommentItem] = []
     var videoUUID:String = defaultText
     
     var commentDate: Date? {

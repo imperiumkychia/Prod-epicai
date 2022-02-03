@@ -18,7 +18,6 @@ class CameraVCBottomBarView: UIView {
     
     override init(frame: CGRect) {
         super.init(frame: frame)
-        
         configure()
     }
     
@@ -72,7 +71,7 @@ class CameraVCBottomBarView: UIView {
         centerButton.translatesAutoresizingMaskIntoConstraints = false
         centerButton.layer.cornerRadius = hh
         centerButton.backgroundColor = Palette.V2.V2_cameraBottomCenterButtonBackground
-        centerButton.setImage(#imageLiteral(resourceName: "stopRecord"), for: .normal)
+        centerButton.setImage(#imageLiteral(resourceName: "startRecord"), for: .normal)
         centerButton.imageEdgeInsets = UIEdgeInsets(top: 10.0, left: 10.0, bottom: 10.0, right: 10.0)
         addSubview(centerButton)
         centerButton.snp.makeConstraints { (make) in
@@ -101,9 +100,10 @@ class CameraVCBottomBarView: UIView {
         
         rightButton = UIButton(frame: .zero)
         rightButton.translatesAutoresizingMaskIntoConstraints = false
-        rightButton.setImage(#imageLiteral(resourceName: "revCamera"), for: .normal)
+        rightButton.setImage(#imageLiteral(resourceName: "revCamera").withRenderingMode(.alwaysTemplate), for: .normal)
         rightButton.imageEdgeInsets = UIEdgeInsets(top: 5.0, left: 5.0, bottom: 5.0, right: 5.0)
         rightButton.backgroundColor = Palette.V2.V2_cameraVCSwitchUnselectedBackground
+        rightButton.tintColor = .white
         rightButton.layer.cornerRadius = 20
         addSubview(rightButton)
         rightButton.snp.makeConstraints { (make) in

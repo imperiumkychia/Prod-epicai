@@ -5,7 +5,6 @@
 //  Created by Abdul fattah on 09/12/21.
 //
 
-
 import UIKit
 import JGProgressHUD
 import Amplify
@@ -15,19 +14,8 @@ class EPICAIAccountVC: UIViewController {
     let itemsMargin: CGFloat = 20.0
     private let profileImageWidth: CGFloat = 70.0
 
-    
-    lazy var titleLabel: UILabel = {
-        let label = UILabel(frame: .zero)
-        label.translatesAutoresizingMaskIntoConstraints = false
-        label.text = "Account"
-        label.font = LatoFont.bold.withSize(27.0)
-        label.textColor = Palette.V2.V2_VCTitle
-        return label
-    }()
-    
     lazy var backButton: UIButton = {
-        let button = UIButton(frame: .zero)
-        button.translatesAutoresizingMaskIntoConstraints = false
+        let button = UIButton(frame: CGRect(x: 0, y: 5, width: 30, height: 30))
         let image = UIImage(systemName: "chevron.left", withConfiguration: UIImage.SymbolConfiguration(pointSize: 25.0, weight: .regular))
         button.setImage(image, for: .normal)
         button.addTarget(self, action: #selector(backButtonTapped(_:)), for: .touchUpInside)
@@ -147,13 +135,12 @@ class EPICAIAccountVC: UIViewController {
     }()
     
     lazy var saveButton: UIButton = {
-        let button = UIButton(frame: .zero)
-        button.translatesAutoresizingMaskIntoConstraints = false
+        let button =  UIButton(frame: CGRect(x: 0, y: 5, width: 70, height: 30))
         button.setTitle("Save", for: .normal)
         button.addTarget(self, action: #selector(saveButtonTapped(_:)), for: .touchUpInside)
         button.setTitleColor(Palette.V2.V2_VCTitle, for: .normal)
         button.backgroundColor = .clear
-        button.titleLabel?.font = LatoFont.regular.withSize(19.0)
+        button.titleLabel?.font = LatoFont.regular.withSize(14.0)
         return button
     }()
     
@@ -171,23 +158,39 @@ class EPICAIAccountVC: UIViewController {
     var imagePickerCamera = UIImagePickerController()
     var timer: Timer?
     
+    private func leftMenuItems() {
+        let leftOptionView = UIView(frame: CGRect(x: 100, y: 1, width: 50, height: 49))
+        leftOptionView.addSubview(self.backButton)
+        let leftBaritem = UIBarButtonItem(customView: leftOptionView)
+        self.navigationItem.leftBarButtonItem = leftBaritem
+    }
+    
+    private func rightMenuItems() {
+        let rightOptionView = UIView(frame: CGRect(x: 100, y: 1, width: 50, height: 49))
+        rightOptionView.addSubview(self.saveButton)
+        let rightBaritem = UIBarButtonItem(customView: rightOptionView)
+        self.navigationItem.rightBarButtonItem = rightBaritem
+    }
+    
+    
     private var viewModel: EPICAIAccountVM!
     
     override func viewDidLoad() {
         super.viewDidLoad()
         setupUIElements()
         initiateViewModel()
+        self.leftMenuItems()
+        self.rightMenuItems()
     }
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        navigationController?.isNavigationBarHidden = true
+        self.title = "Account"
+        
     }
 
     private func setupUIElements() {
         view.backgroundColor = Palette.V2.V2_VCBackground
-        view.addSubview(backButton)
-        view.addSubview(titleLabel)
         view.addSubview(profileImageViewContainer)
         profileImageViewContainer.addSubview(profileImageView)
         view.addSubview(nameLabel)
@@ -198,29 +201,15 @@ class EPICAIAccountVC: UIViewController {
         view.addSubview(lastNameTextField)
         view.addSubview(genderLabel)
         view.addSubview(genderControl)
-        view.addSubview(saveButton)
         view.addSubview(ai)
         
         firstNameTextField.delegate = self
         lastNameTextField.delegate = self
         
-        backButton.snp.makeConstraints { (make) in
-            make.height.equalTo(25)
-            make.width.equalTo(25)
-            make.leading.equalTo(view).offset(itemsMargin)
-            make.top.equalTo(view.snp.topMargin).offset(itemsMargin-15)
-        }
-        
-        titleLabel.snp.makeConstraints { (make) in
-            make.height.equalTo(44)
-            make.leading.equalTo(backButton.snp.trailing).offset(itemsMargin)
-            make.centerY.equalTo(backButton)
-        }
-        
         profileImageViewContainer.snp.makeConstraints { (make) in
             make.width.equalTo(profileImageWidth)
             make.height.equalTo(profileImageWidth)
-            make.top.equalTo(backButton.snp.bottom).offset(itemsMargin * 2.0)
+            make.top.equalTo(10).offset(itemsMargin * 5.0)
             make.leading.equalTo(view).offset(itemsMargin)
         }
         
@@ -275,11 +264,6 @@ class EPICAIAccountVC: UIViewController {
             make.width.equalTo(180.0)
         }
         
-        saveButton.snp.makeConstraints { (make) in
-            make.centerY.equalTo(titleLabel)
-            make.height.equalTo(44)
-            make.trailing.equalTo(view).offset(-itemsMargin)
-        }
         imageTapRecognizer = UITapGestureRecognizer(target: self, action: #selector(didTapOnProfileImage(_:)))
         imageTapRecognizer.numberOfTouchesRequired = 1
         imageTapRecognizer.numberOfTapsRequired = 1

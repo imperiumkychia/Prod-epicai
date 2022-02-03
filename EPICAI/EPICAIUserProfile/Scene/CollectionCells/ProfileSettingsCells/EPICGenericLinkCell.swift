@@ -1,5 +1,5 @@
 //
-//  AppDelegate.swift
+//  EPICGenericLinkCell.swift
 //  EPICAI
 //
 //  Created by Abdul fattah on 09/12/21.

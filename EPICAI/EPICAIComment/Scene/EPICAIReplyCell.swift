@@ -59,25 +59,18 @@ class EPICAIReplyCell: UICollectionViewCell {
     
     var commentItem:EPICAICommentItem? {
         didSet {
-            if let image = commentItem?.userImage {
-                self.profileImgView.image = image
-            }
+            self.profileImgView.image = commentItem?.userImage ?? #imageLiteral(resourceName: "noProfileImage")
             if let firstName = commentItem?.user.firstName, let lastName = commentItem?.user.lastName {
                 let attributedTxt = NSMutableAttributedString(string: firstName + " " + lastName, attributes: [NSAttributedString.Key.font:LatoFont.bold.withSize(14.0), NSAttributedString.Key.foregroundColor: Palette.V2.V2_VCTitle])
                 titleLbl.attributedText = attributedTxt
             }
-        }
-    }
-    
-    var comment:EPICAIComment? {
-        didSet {
-            if let commentText = comment?.comment {
+            if let commentText = commentItem?.comment.comment {
                 self.commentTxt.text  = commentText
             }
-            if let commentCreatedOnText = comment?.createdOn {
+            if let commentCreatedOnText = commentItem?.comment.createdOn {
                 self.timeAgoLbl.text  = commentCreatedOnText
             }
-            if let commentCreatedOnText = comment?.createdOn {
+            if let commentCreatedOnText = commentItem?.comment.createdOn {
                 self.timeAgoLbl.text  = commentCreatedOnText
             }
         }

@@ -45,21 +45,13 @@ class EPICAILocationManager: NSObject ,CLLocationManagerDelegate {
         
         self.locationManager.desiredAccuracy = kCLLocationAccuracyBest
         self.locationManager.distanceFilter = kCLLocationAccuracyHundredMeters
-        
-        
-        if CLLocationManager.locationServicesEnabled() {
-            self.locationManager.startUpdatingLocation()
-        }
-        else {
-            requestPermission()
-        }
-        
+        requestPermission()
     }
     
     func requestPermission() {
         switch self.locationManager.authorizationStatus {
-        case .authorizedAlways: break
-        case .authorizedWhenInUse: break
+        case .authorizedAlways: self.locationManager.startUpdatingLocation()
+        case .authorizedWhenInUse: self.locationManager.startUpdatingLocation()
         case .denied:
             self.locationManager.requestWhenInUseAuthorization()
         case .notDetermined:
@@ -72,19 +64,13 @@ class EPICAILocationManager: NSObject ,CLLocationManagerDelegate {
     
     func locationManager(_ manager: CLLocationManager, didChangeAuthorization status: CLAuthorizationStatus) {
         switch status {
-        case .notDetermined:
-            manager.startUpdatingLocation() // this will access location automatically if user granted access manually. and will not show apple's request alert twice. (Tested)
-            break
+        case .notDetermined:break
         case .denied:
-            manager.stopUpdatingLocation()
-            //loadingView.stopLoading()
-            break
+            self.locationManager.stopUpdatingLocation()
         case .authorizedWhenInUse:
-            manager.startUpdatingLocation() //Will update location immediately
-            break
+            self.locationManager.startUpdatingLocation() //Will update location immediately
         case .authorizedAlways:
-            manager.startUpdatingLocation() //Will update location immediately
-            break
+            self.locationManager.startUpdatingLocation() //Will update location immediately
         default:
             break
         }
@@ -101,6 +87,7 @@ class EPICAILocationManager: NSObject ,CLLocationManagerDelegate {
     
     func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
         let location:CLLocation = CLLocation()
+        print("location getting error \(error.localizedDescription)")
         delegate?.deviceCurrentLocDetails(errorWhilegettingGeoCode: true, location: location)
         EPICAILocationManager.dispose()
     }

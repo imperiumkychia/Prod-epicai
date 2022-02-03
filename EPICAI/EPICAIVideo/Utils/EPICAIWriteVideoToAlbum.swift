@@ -44,7 +44,7 @@ class VideoWriterToAlbum {
     }
     
     static func writeVideoInPhotoAlbum(url:URL) -> String? {
-        var errorString:String? = "Error in video saving"
+        let errorString:String? = "Error in video saving"
         DispatchQueue.main.async {
             PHPhotoLibrary.shared().performChanges({
                 PHAssetChangeRequest.creationRequestForAssetFromVideo(atFileURL: URL(fileURLWithPath: url.path))

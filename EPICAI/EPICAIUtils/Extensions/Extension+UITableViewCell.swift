@@ -10,8 +10,8 @@ import UIKit
 
 extension UITableViewCell {
     
-    var indexPath:IndexPath {
-        if #available(iOS 11, *) {return (self.superview as! UITableView).indexPath(for: self)! as IndexPath }
+    var indexPath:IndexPath? {
+        if #available(iOS 11, *) {return (self.superview as? UITableView)?.indexPath(for: self) }
         else { return (self.superview!.superview as! UITableView).indexPath(for: self)! as IndexPath }
     }
     

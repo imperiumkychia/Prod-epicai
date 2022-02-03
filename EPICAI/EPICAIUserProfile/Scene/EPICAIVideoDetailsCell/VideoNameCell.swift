@@ -15,9 +15,8 @@ protocol VideoNameCellDelegate: AnyObject {
 class VideoNameCell: UITableViewCell {
     
     weak var delegate: VideoNameCellDelegate?
-    
-    private var titleLabel: UILabel!
     private var moreButton: UIButton!
+    private var titleLabel: UILabel!
     private var dateLabel: UILabel!
     private var scoreLabel: UILabel!
     
@@ -60,12 +59,12 @@ class VideoNameCell: UITableViewCell {
         titleLabel = UILabel(frame: .zero)
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
         titleLabel.textColor = Palette.V2.V2_VCTitle
-        titleLabel.font = LatoFont.bold.withSize(19.0)
+        titleLabel.font = LatoFont.bold.withSize(20.0)
         titleLabel.textAlignment = .left
         contentView.addSubview(titleLabel)
         titleLabel.snp.makeConstraints { (make) in
             make.top.equalTo(contentView).offset(itemsMargin)
-            make.centerX.equalTo(contentView)
+            make.leading.equalTo(contentView).offset(itemsMargin)
         }
         
         moreButton = UIButton(frame: .zero)
@@ -98,8 +97,9 @@ class VideoNameCell: UITableViewCell {
         scoreLabel.textColor = Palette.V2.V2_pageControlIndicatorSelected
         contentView.addSubview(scoreLabel)
         scoreLabel.snp.makeConstraints { (make) in
-            make.top.equalTo(dateLabel.snp.bottom).offset(10.0)
-            make.leading.equalTo(dateLabel)
+            make.top.equalTo(moreButton.snp.bottom).offset(10.0)
+            make.centerY.equalTo(dateLabel)
+            make.trailing.equalTo(contentView).offset(-itemsMargin)
         }
     }
     

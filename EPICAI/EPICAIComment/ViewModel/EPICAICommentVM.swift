@@ -12,6 +12,8 @@ class EPICAICommentVM :NSObject {
     
     var onReciveComments:( ([EPICAICommentItem]?) -> Void) = { _ in }
     
+    var onUpdateCommentsCount:( (IndexPath) -> Void) = { _ in }
+    
     var items: [EPICAICommentItem]? {
         didSet {
             onReciveComments(items)
@@ -22,7 +24,7 @@ class EPICAICommentVM :NSObject {
         super.init()
     }
     
-    func updateFeedCommentCount(feedItem:EPICAIFeedItem) {
+    func updateFeedCommentCount(feedItem:EPICAIFeedItem, indexPath:IndexPath) {
         let videoMutaionInput = UpdateVideoInput(videoUuid: feedItem.video.videoUUID, commentsCount: feedItem.video.commentsCount+1)
         appSyncClient?.perform(mutation: UpdateVideoMutation(updateVideoInput: videoMutaionInput), resultHandler: { result, error in
             if error != nil{
@@ -33,23 +35,19 @@ class EPICAICommentVM :NSObject {
                 return
             }
             else {
+                self.onUpdateCommentsCount(indexPath)
                 print("Success updateFeedCommentCount : \(String(describing: result))")
             }
         })
     }
     
-    func addComment(feedItem:EPICAIFeedItem, text:String, completion:@escaping (EPICAICommentItem?) -> Void) {
-        let format = "yyyy-MM-dd HH:mm:ss"
-        let formatter = DateFormatter()
-        formatter.dateFormat = format
-        let now = Date()
-        let createdOn = formatter.string(from: now)
+    func addComment(feedItem:EPICAIFeedItem, text:String, indexPath:IndexPath, completion:@escaping (EPICAICommentItem?) -> Void) {
         
         let commentUuid = UUID().uuidString
         
         guard let userSession = EPICAISharedPreference.userSession else { return }
         
-        let mutationInput = CreateCommentInput(commentUuid: commentUuid, videoUuid: feedItem.video.videoUUID, userUuid: userSession.uuid, comment: text, createdOn: createdOn , repliedTo: "", modifiedOn: nil)
+        let mutationInput = CreateCommentInput(commentUuid: commentUuid, videoUuid: feedItem.video.videoUUID, userUuid: userSession.uuid, comment: text, createdOn: Date().getServerDate() , repliedTo: "", modifiedOn: nil)
         
         appSyncClient?.perform(mutation: CreateCommentMutation(createCommentInput: mutationInput), resultHandler: {
             (result, error) in
@@ -63,26 +61,22 @@ class EPICAICommentVM :NSObject {
                     return
                 }
                 else {
-                    let comment = EPICAIComment(uuid: commentUuid, videoUUID: feedItem.video.videoUUID, userUUID: userSession.uuid, comment: text, createdOn: createdOn, repliedTo: "", modifiedOn: "")
+                    let comment = EPICAIComment(uuid: commentUuid, videoUUID: feedItem.video.videoUUID, userUUID: userSession.uuid, comment: text, createdOn: Date().getServerDate(), repliedTo: "", modifiedOn: "")
                     var epicCommentItem = EPICAICommentItem(comment: comment, user: userSession)
                     epicCommentItem.userImage = EPICAIFileManager.shared().getEPICAIUserSessionImage()
                     completion(epicCommentItem)
-                    self.updateFeedCommentCount(feedItem: feedItem)
+                    self.updateFeedCommentCount(feedItem: feedItem, indexPath: indexPath)
                 }
         })
     }
     
-    func addReplyOnComment(item:EPICAIComment, feedItem:EPICAIFeedItem, text:String, completion:@escaping (EPICAIComment?) -> Void) {
-        let format = "yyyy-MM-dd HH:mm:ss"
-        let formatter = DateFormatter()
-        formatter.dateFormat = format
-        let now = Date()
-        let createdOn = formatter.string(from: now)
+    func addReplyOnComment(item:EPICAIComment, feedItem:EPICAIFeedItem, text:String, completion:@escaping (EPICAICommentItem?) -> Void) {
+
         let commentUuid = UUID().uuidString
         
         guard let userSession = EPICAISharedPreference.userSession else { return }
         
-        let mutationInput = CreateCommentInput(commentUuid: commentUuid, videoUuid: feedItem.video.videoUUID, userUuid: userSession.uuid, comment: text, createdOn: createdOn , repliedTo: item.uuid)
+        let mutationInput = CreateCommentInput(commentUuid: commentUuid, videoUuid: feedItem.video.videoUUID, userUuid: userSession.uuid, comment: text, createdOn: Date().getServerDate() , repliedTo: item.uuid)
         
         appSyncClient?.perform(mutation: CreateCommentMutation(createCommentInput: mutationInput), resultHandler: {
             (result, error) in
@@ -96,8 +90,10 @@ class EPICAICommentVM :NSObject {
                     return
                 }
                 else {
-                    let comment = EPICAIComment(uuid: commentUuid, videoUUID: feedItem.video.videoUUID, userUUID: userSession.uuid, comment: text, createdOn: createdOn, repliedTo: item.uuid, modifiedOn: "")
-                    completion(comment)
+                    let comment = EPICAIComment(uuid: commentUuid, videoUUID: feedItem.video.videoUUID, userUUID: userSession.uuid, comment: text, createdOn:  Date().getServerDate(), repliedTo: item.uuid, modifiedOn: "")
+                    var newCommentItem = EPICAICommentItem(comment: comment, user:userSession)
+                    newCommentItem.userImage = EPICAIFileManager.shared().getEPICAIUserSessionImage()
+                    completion(newCommentItem)
                     print("MUTATION - CREATE DATA : \(String(describing: result))")
                 }
         })
@@ -147,10 +143,14 @@ class EPICAICommentVM :NSObject {
                 }
             }
             group.notify(queue: .main) {
-                for (i, newItem) in result.enumerated() {
-                    result[i].replies =  (result.filter{ $0.comment.repliedTo == newItem.comment.uuid }).map{ $0.comment}
+                var comments = result.filter { $0.comment.repliedTo == "null" ||  $0.comment.repliedTo.isEmpty }.sorted(by: { $0.commentDate! > $1.commentDate! })
+                
+                for (i, commentItem) in comments.enumerated() {
+                    let replies = (result.filter{ $0.comment.repliedTo == commentItem.comment.uuid })
+                    comments[i].replies =  replies.sorted(by: { $0.comment.createdOn > $1.comment.createdOn })
                 }
-                self.items =  result.filter { $0.comment.repliedTo == "null" ||  $0.comment.repliedTo.isEmpty }
+                //self.items = result.filter { $0.comment.repliedTo == "null" ||  $0.comment.repliedTo.isEmpty }
+                self.items = comments
             }
         })
     }

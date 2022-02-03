@@ -8,7 +8,6 @@
 import Foundation
 import UIKit
 
-
 public class ImageGet {
     
     func download(from url: URL, completion: @escaping (UIImage?) -> Void) {
