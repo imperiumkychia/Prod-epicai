@@ -123,15 +123,11 @@ class EPICAICommentsVC: UICollectionViewController {
         textView.addSubview(placeHolderLbl)
         
         if let yPostion = self.textView.font?.pointSize {
-            print("Y:\(yPostion/2)")
             textView.addConstraintsWithFormat(format: "H:|-5-[v0]|", views: placeHolderLbl)
             textView.addConstraintsWithFormat(format: "V:|-\(yPostion/2)-[v0]|", views: placeHolderLbl)
         }
         writeMessageView.addSubview(textView)
         writeMessageView.addSubview(sendMessageBtn)
-        //writeMessageView.addSubview(replyTitleLbl)
-        //writeMessageView.addConstraintsWithFormat(format: "V:|-0-[v0(15)]-2-|", views: replyTitleLbl)
-        //writeMessageView.addConstraintsWithFormat(format: "H:|-10-[v0]-10-|", views: replyTitleLbl)
         writeMessageView.addConstraintsWithFormat(format: "V:|-7-[v0]-7-|", views: textView)
         writeMessageView.addConstraintsWithFormat(format: "V:[v0(40)]-10-|", views: sendMessageBtn)
         writeMessageView.addConstraintsWithFormat(format: "H:|-8-[v0]-10-[v1(40)]-8-|", views: textView, sendMessageBtn)
@@ -145,8 +141,6 @@ class EPICAICommentsVC: UICollectionViewController {
     }
     
     @objc func initiateVideoModel() {
-        print("Setting up feeds view model")
-        
         self.viewModel = EPICAICommentVM()
         self.collectionView.reloadData()
         self.viewModel.onReciveComments = { items in
@@ -204,6 +198,30 @@ class EPICAICommentsVC: UICollectionViewController {
         }
     }
     
+    private func displayProgresView() {
+        DispatchQueue.main.async {
+            self.ai.textLabel.text = "Please wait..."
+            self.ai.show(in: self.view, animated: true)
+        }
+    }
+    
+    private func hideProgressView() {
+        DispatchQueue.main.async {
+            self.ai.dismiss(animated: true)
+        }
+    }
+    
+    private func displaySuccessAlert() {
+        DispatchQueue.main.async {
+            let hud = JGProgressHUD(style: (self.traitCollection.userInterfaceStyle == .light) ? .light : .dark)
+            hud.show(in: self.view, animated: true)
+            hud.indicatorView = JGProgressHUDSuccessIndicatorView()
+            hud.textLabel.text = "Success"
+            hud.square = true
+            hud.dismiss(afterDelay: 3)
+        }
+    }
+    
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         if let tb = tabBarController as? GenericTabBarController {
@@ -252,9 +270,6 @@ class EPICAICommentsVC: UICollectionViewController {
                     let indexPath = IndexPath(row: lastRow - 1, section: lastSection)
                     self.collectionView.scrollToItem(at: indexPath, at: .right, animated: true)
                 }
-                //                if let indexPath = self.indexPath {
-                //                    self.collectionView.scrollToItem(at: indexPath, at: .bottom, animated: true)
-                //                }
                 if let keyFrame = notification.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? NSValue {
                     self.collectionView.contentInset.bottom = keyFrame.cgRectValue.height + self.view.safeAreaInsets.bottom+50
                 }
@@ -287,11 +302,10 @@ class EPICAICommentsVC: UICollectionViewController {
             let commentCell = collectionView.dequeueReusableCell(withReuseIdentifier: EPICAICommentCell.identifier, for: indexPath) as! EPICAICommentCell
             commentCell.commnet = self.viewModel.items?[indexPath.section]
             commentCell.performReply = { indexPath in
-                print("performReply index path : \(indexPath)")
-                let controller = EPICAINotePopUpVC.instantiateFromAppStoryBoard(appStoryBoard: .Comment)
-                controller.indexPath = indexPath
-                controller.delegate = self
-                self.present(controller, animated: true, completion: nil)
+                self.moveToCommentVC(indexPath: indexPath, isReport: false)
+            }
+            commentCell.performReportContent = { indexPath in
+                self.moveToCommentVC(indexPath: indexPath, isReport: true)
             }
             return commentCell
         }
@@ -299,7 +313,6 @@ class EPICAICommentsVC: UICollectionViewController {
             if let count = self.viewModel.items?[indexPath.section].replies.count, count > 0  {
                 let commentReplyCell = collectionView.dequeueReusableCell(withReuseIdentifier: EPICAIReplyCell.identifier, for: indexPath) as! EPICAIReplyCell
                 if indexPath.row > 0 {
-                    //commentReplyCell.commentItem = self.viewModel.items?[indexPath.section]
                     commentReplyCell.commentItem = self.viewModel.items?[indexPath.section].replies[indexPath.row-1]
                 }
                 return commentReplyCell
@@ -307,23 +320,48 @@ class EPICAICommentsVC: UICollectionViewController {
             else { return UICollectionViewCell() }
         }
     }
+    
+    private func moveToCommentVC(indexPath:IndexPath, isReport:Bool) {
+        let controller = EPICAINotePopUpVC.instantiateFromAppStoryBoard(appStoryBoard: .Comment)
+        controller.isReport = isReport
+        controller.indexPath = indexPath
+        controller.delegate = self
+        self.present(controller, animated: true, completion: nil)
+    }
 }
 
 extension EPICAICommentsVC : EPICAINotePopUpProtocol {
     
-    func addReplyOnCommnet(indexPath: IndexPath, message: String) {
-        if let feedItem = self.feedItem {
-            if let comment = self.viewModel.items?[indexPath.section].comment {
-                DispatchQueue.main.async {
-                    self.ai.textLabel.text = "Please wait..."
-                    self.ai.show(in: self.view, animated: true)
-                }
-                self.viewModel.addReplyOnComment(item: comment, feedItem: feedItem, text: message) { newCommentItem in
-                    if let newCommentItem = newCommentItem {
-                        self.viewModel.items?[indexPath.section].replies.insert(newCommentItem, at: 0)
-                        self.collectionView.reloadData()
-                        self.ai.dismiss(afterDelay: 0.0, animated: true)
+    func addReplyOnCommnet(indexPath: IndexPath, message: String, isReport:Bool) {
+        if !isReport {
+            if let feedItem = self.feedItem {
+                if let comment = self.viewModel.items?[indexPath.section].comment {
+                    DispatchQueue.main.async {
+                        self.ai.textLabel.text = "Please wait..."
+                        self.ai.show(in: self.view, animated: true)
                     }
+                    self.viewModel.addReplyOnComment(item: comment, feedItem: feedItem, text: message) { newCommentItem in
+                        if let newCommentItem = newCommentItem {
+                            self.viewModel.items?[indexPath.section].replies.insert(newCommentItem, at: 0)
+                            self.collectionView.reloadData()
+                            self.ai.dismiss(afterDelay: 0.0, animated: true)
+                        }
+                    }
+                }
+            }
+        }
+        else {
+            guard let comment = self.viewModel.items?[indexPath.section].comment else { return }
+            self.displayProgresView()
+            self.viewModel.reportComment(commentItem: comment, comment: message) { state in
+                if state {
+                    self.hideProgressView()
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
+                        self.displaySuccessAlert()
+                    }
+                }
+                else {
+                    self.hideProgressView()
                 }
             }
         }
@@ -338,7 +376,7 @@ extension EPICAICommentsVC : UICollectionViewDelegateFlowLayout {
         if indexPath.row == 0 {
             let message = self.viewModel.items?[indexPath.section].comment.comment ?? ""
             if message.sizeOfString(font: UIFont.systemFont(ofSize: 14), constrainedToWidth: Double(UIScreen.main.bounds.width-16)).height > 80  {
-            preDefineHeight = 80 + 10
+                preDefineHeight = 85 + message.sizeOfString(font: UIFont.systemFont(ofSize: 14), constrainedToWidth: Double(UIScreen.main.bounds.width-16)).height/12
             }
             return CGSize(width: UIScreen.main.bounds.width, height: message.sizeOfString(font: UIFont.systemFont(ofSize: 14), constrainedToWidth: Double(UIScreen.main.bounds.width-16)).height + preDefineHeight)
         }
@@ -349,7 +387,7 @@ extension EPICAICommentsVC : UICollectionViewDelegateFlowLayout {
             }
 
             if message.sizeOfString(font: UIFont.systemFont(ofSize: 14), constrainedToWidth: Double(UIScreen.main.bounds.width-16)).height > 80 {
-                preDefineHeight = 80 + 10
+                preDefineHeight = 85 + message.sizeOfString(font: UIFont.systemFont(ofSize: 14), constrainedToWidth: Double(UIScreen.main.bounds.width-16)).height/12
             }
             return CGSize(width: UIScreen.main.bounds.width-16, height: message.sizeOfString(font: UIFont.systemFont(ofSize: 14), constrainedToWidth: Double(UIScreen.main.bounds.width-16)).height + preDefineHeight)
         }

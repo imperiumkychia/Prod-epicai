@@ -14,11 +14,8 @@ let imageCache = NSCache<NSString, UIImage>()
 extension UIImageView {
     
     func loadImage(url:URL?) {
-        
-        print("Image load url:\(String(describing: url?.absoluteString))")
         guard let url = url
         else {
-            print("Failed in user recinving")
             self.image = #imageLiteral(resourceName: "profile_unselected")
             return
         }
@@ -27,12 +24,10 @@ extension UIImageView {
             return
         }
         guard let data = try? Data(contentsOf: url) else {
-            print("Failed in data reciving")
             self.image = #imageLiteral(resourceName: "profile_unselected")
             return
         }
         DispatchQueue.main.async {
-            print("data recived : \(data)")
             self.image = UIImage(data: data)
             imageCache.setObject(self.image!, forKey: url.absoluteString as NSString)
         }
@@ -70,7 +65,6 @@ class CustomImageView: UIImageView {
         
         URLSession.shared.dataTask(with: imageURL) { (imgData, urlResponse, error) in
             if error != nil {
-                print(error.debugDescription)
                 DispatchQueue.main.async {
                     if let placeHolder = placeHolderImg {
                         self.image = UIImage(named: placeHolder)

@@ -68,10 +68,7 @@ class EPICAIReplyCell: UICollectionViewCell {
                 self.commentTxt.text  = commentText
             }
             if let commentCreatedOnText = commentItem?.comment.createdOn {
-                self.timeAgoLbl.text  = commentCreatedOnText
-            }
-            if let commentCreatedOnText = commentItem?.comment.createdOn {
-                self.timeAgoLbl.text  = commentCreatedOnText
+                self.timeAgoLbl.text  = commentCreatedOnText.getDisplayDate()
             }
         }
     }

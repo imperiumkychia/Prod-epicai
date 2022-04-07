@@ -8,6 +8,7 @@
 
 import Foundation
 
+/// CSV log heading for body points
 struct Log {
     var timestamp         : String
 

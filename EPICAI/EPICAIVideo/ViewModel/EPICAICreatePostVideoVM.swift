@@ -27,18 +27,56 @@ enum EPICAIVideoPostError:Error {
 
 class EPICAICreatePostVideoVM : NSObject {
     
-    var showProgress :((Float?, EPICAIUploadType?, Error?) -> Void) = { _,_,_  in }
-    var progressState = false
     var progresType:EPICAIUploadType = .Start
     
+    func uploadVideo(fileName:String,videoExtension:String, completion:@escaping ((Bool) -> Void)) {
+        guard let videoLocalURl = EPICAIFileManager.shared().getVidioLocalURL(fileName: fileName + "." + videoExtension) else
+        { completion(false); return }
+        _ = Amplify.Storage.uploadFile(key: videoLocalURl.lastPathComponent, local: videoLocalURl, progressListener: { progress in
+            self.progresType = .Video
+        }, resultListener: { result in
+            switch (result) {
+            case .success(_):
+                completion(true)
+            case .failure(_):
+                completion(true)
+            }
+        })
+    }
+    
+    func uploadBodyPoint(fileName:String, completion:@escaping ((Bool) -> Void)) {
+        guard let bodyPointsLocalURl = EPICAIFileManager.shared().getBodyPartsLocalURL(fileName: fileName)
+        else { completion(false); return }
+        _ = Amplify.Storage.uploadFile(key: bodyPointBucketkey + bodyPointsLocalURl.lastPathComponent, local: bodyPointsLocalURl, progressListener: { progress in
+            self.progresType = .BodyPoint
+        }, resultListener: { result in
+            switch (result) {
+                case .success( _): completion(true)
+                case .failure(_): (completion(false))
+            }
+        })
+    }
+    
+    func uploadAudioPoints(fileName:String, completion:@escaping ((Bool) -> Void)) {
+        guard let audioLocalURl = EPICAIFileManager.shared().getAudioFileLocalURL(fileName: fileName)
+        else { completion(false); return }
+        _ = Amplify.Storage.uploadFile(key: audioPointBucketkey + audioLocalURl.lastPathComponent, local: audioLocalURl, progressListener: { progress in
+            self.progresType = .AudioPoint
+        }, resultListener: { result in
+            switch (result) {
+            case .success( _):
+                self.progresType = .Finish
+                completion(true)
+            case .failure(_):
+                completion(false)
+            }
+        })
+    }
+    
     func uploadVideoAndCSVFiles( fileName:String,videoExtension:String, completion:@escaping (Float?, EPICAIUploadType?, Error?) -> Void) {
-        
-        print("File name :\(fileName)")
         guard let videoLocalURl = EPICAIFileManager.shared().getVidioLocalURL(fileName: fileName + "." + videoExtension) else
         { completion(nil,nil,nil); return }
         
-        progressState = true
-        print("Video URL : \(videoLocalURl)")
         _ = Amplify.Storage.uploadFile(key: videoLocalURl.lastPathComponent, local: videoLocalURl, progressListener: { progress in
             self.progresType = .Video
             completion(Float(progress.fractionCompleted),EPICAIUploadType.Video, nil)
@@ -48,7 +86,6 @@ class EPICAICreatePostVideoVM : NSObject {
                 guard let bodyPointsLocalURl = EPICAIFileManager.shared().getBodyPartsLocalURL(fileName: fileName)
                 else { completion(Float(100),EPICAIUploadType.Video,nil); return }
                 
-                print("Body points URL : \(bodyPointsLocalURl)")
                 _ = Amplify.Storage.uploadFile(key: bodyPointBucketkey + bodyPointsLocalURl.lastPathComponent, local: bodyPointsLocalURl, progressListener: { progress in
                     self.progresType = .BodyPoint
                     completion(Float(progress.fractionCompleted), EPICAIUploadType.BodyPoint, nil)
@@ -57,8 +94,6 @@ class EPICAICreatePostVideoVM : NSObject {
                     case .success( _):
                         guard let audioLocalURl = EPICAIFileManager.shared().getAudioFileLocalURL(fileName: fileName)
                         else { completion(Float(100),EPICAIUploadType.AudioPoint,nil); return }
-                        
-                        print("Audio points URL : \(audioLocalURl)")
                         
                         _ = Amplify.Storage.uploadFile(key: audioPointBucketkey + audioLocalURl.lastPathComponent, local: audioLocalURl, progressListener: { progress in
                             self.progresType = .AudioPoint
@@ -69,24 +104,20 @@ class EPICAICreatePostVideoVM : NSObject {
                                 self.progresType = .Finish
                                 completion(Float(100), EPICAIUploadType.Finish, nil)
                             case .failure(let error):
-                                self.progressState = false
                                 self.removeVideoIfUserDiscard(videoURL: videoLocalURl) { state, error in
                                     if let error = error {
                                         print("Video delete Error:\(error.localizedDescription)")
                                     }
-                                    print("Video delete state in uploadVideoAndCSVFiles : \(state)")
                                 }
                                 self.removeBodyPointsCSVIfUserDiscard(bodyURL: bodyPointsLocalURl) { state, error in
                                     if let error = error {
                                         print("Body points delete Error:\(error.localizedDescription)")
                                     }
-                                    print("Body points delete state in uploadVideoAndCSVFiles : \(state)")
                                 }
                                 completion(nil, nil, error)
                             }
                         })
                     case .failure(let error):
-                        self.progressState = false
                         self.removeVideoIfUserDiscard(videoURL: videoLocalURl) { state, error in
                             if let error = error {
                                 print("Video delete Error:\(error.localizedDescription)")
@@ -96,7 +127,6 @@ class EPICAICreatePostVideoVM : NSObject {
                     }
                 })
             case .failure(let error):
-                self.progressState = false
                 completion(nil, nil, error)
             }
         })
@@ -104,8 +134,6 @@ class EPICAICreatePostVideoVM : NSObject {
     
     func startFilesUpload(videoURL:URL, completion:@escaping ((Bool) -> Void)) {
         self.uploadVideoAndCSVFiles(fileName: videoURL.lastPathComponent.replacingOccurrences(of: "."+videoURL.pathExtension, with: ""), videoExtension: videoURL.pathExtension) {(progress, uploadType, error) in
-            print("startFilesUpload Progress:\(String(describing: progress)),startFilesUpload uploadState\(String(describing: uploadType)), startFilesUpload error:\(String(describing: error?.localizedDescription))")
-            self.showProgress(progress, uploadType,error)
             if uploadType == .Finish {
                 completion(true)
             }
@@ -115,24 +143,93 @@ class EPICAICreatePostVideoVM : NSObject {
         }
     }
     
-    func createVideoRecord(videoTitle:String,videoURL:URL,location:CLLocation?, completion:@escaping (CreateVideoMutation.Data.CreateVideo?, Error?) -> Void) {
-        if self.progressState {
-            return
+    func getSWSS3VideoURL(videoURL:URL, completion:@escaping (URL?) -> Void) {
+        self.getVideoS3URL(fileName: videoBucketkey + videoURL.lastPathComponent) { s3URL in
+            completion(s3URL)
         }
+    }
+    
+    func createVideoRecordWith(_ videoTitle:String, videoURL:URL, location:CLLocation?, completion:@escaping (Bool) -> Void) {
+        let fileName = videoURL.lastPathComponent.replacingOccurrences(of: "."+videoURL.pathExtension, with: "")
+        self.uploadVideo(fileName: videoURL.lastPathComponent.replacingOccurrences(of: "."+videoURL.pathExtension, with: ""), videoExtension: videoURL.pathExtension) { videoUploadState in
+            if videoUploadState {
+                self.uploadBodyPoint(fileName: fileName) { bodyPointsUploadState in
+                    if bodyPointsUploadState {
+                        self.uploadAudioPoints(fileName: fileName) { uploadAudioPointsState in
+                            if uploadAudioPointsState {
+                                self.getVideoS3URL(fileName: videoURL.lastPathComponent) { videoS3URL in
+                                    if let videoS3URL = videoS3URL {
+                                        if let userUUID = EPICAISharedPreference.userSession?.uuid {
+                                            self.createAWSVideoRecord(userUUID: userUUID, s3URL: videoS3URL, videoURL: videoURL, videoTitle: videoTitle, location: location) { state in
+                                                if (state) {
+                                                    completion(true)
+                                                }
+                                                else {
+                                                    completion(false)
+                                                }
+                                            }
+                                        }
+                                        else {completion(false)}
+                                    }
+                                    else {
+                                        completion(false)
+                                    }
+                                }
+                            }
+                            else {
+                                self.removeVideoIfUserDiscard(videoURL: videoURL) { (_,_) in }
+                                self.removeBodyPointsCSVIfUserDiscard(bodyURL: videoURL) { (_,_) in }
+                                completion(false)
+                            }
+                        }
+                    }
+                    else {
+                        self.removeVideoIfUserDiscard(videoURL: videoURL) { (_,_) in }
+                        completion(false)
+                    }
+                }
+            }
+            else {
+                completion(false)
+            }
+        }
+    }
+    
+    func createAWSVideoRecord(userUUID:String, s3URL:URL,videoURL:URL,videoTitle:String, location:CLLocation?, completion:@escaping (Bool) -> Void) {
+        let s3location = (s3URL.host ?? "") + s3URL.path
+        let createVideoInput = CreateVideoInput(videoUuid:videoURL.lastPathComponent.replacingOccurrences(of: "."+videoURL.pathExtension, with: "") ,
+                                                userUuid: userUUID,
+                                                datetime: Date().getServerDate(),
+                                                videoName: videoURL.lastPathComponent,
+                                                videoSize: videoURL.getResourceSize(),
+                                                videoInfo: videoURL.pathExtension,
+                                                path: s3location,
+                                                share: 0,
+                                                videoDuration: videoURL.getDuration(),
+                                                active: 1,
+                                                uploadStatus: String(true),
+                                                longitude:(location == nil) ? "" : String(location!.coordinate.latitude),
+                                                latitude:(location == nil) ? "" : String(location!.coordinate.longitude),
+                                                title: videoTitle)
+        
+        appSyncClient?.perform(mutation: CreateVideoMutation(createVideoInput: createVideoInput), resultHandler:  { result, error  in
+            if let _ = error  { completion(false) ; self.progressDiscard(videoURL: videoURL) { _ in }
+            } else if let _ = result?.errors { completion(false) ; self.progressDiscard(videoURL: videoURL) { _ in }
+            } else { completion(true) }
+        })
+    }
+    
+    func createVideoRecord(videoTitle:String,videoURL:URL,location:CLLocation?, completion:@escaping (CreateVideoMutation.Data.CreateVideo?, Error?) -> Void) {
         self.startFilesUpload(videoURL: videoURL) { state in
             if (state) {
                 let group = DispatchGroup()
                 
                 if let userUUID = EPICAISharedPreference.userSession?.uuid {
                     group.enter()
-                    //let videoUUID = UUID().uuidString
-                    //let videoURL = EPICAIFileManager.shared().getVidioLocalURL(fileName: videoURL.lastPathComponent)
                     
                     self.getVideoS3URL(fileName: videoBucketkey + videoURL.lastPathComponent) { s3URL in
                         if let s3URL = s3URL {
-                            print("Video url upload before create record : \(s3URL.absoluteString)")
                             let s3location = (s3URL.host ?? "") + s3URL.path
-                            
                             
                             let createVideoInput = CreateVideoInput(videoUuid:videoURL.lastPathComponent.replacingOccurrences(of: "."+videoURL.pathExtension, with: "") ,
                                                                     userUuid: userUUID,
@@ -149,48 +246,36 @@ class EPICAICreatePostVideoVM : NSObject {
                                                                     latitude:(location == nil) ? "" : String(location!.coordinate.longitude),
                                                                     title: videoTitle)
                             
-                            print("Create video input \(createVideoInput)")
-                            
                             appSyncClient?.perform(mutation: CreateVideoMutation(createVideoInput: createVideoInput), resultHandler:  { result, error  in
                                 if let error = error  {
                                     completion(nil, error)
                                     group.leave()
-                                    self.progressDiscard(videoURL: videoURL) { state in
-                                        print("File delete status in createVideoRecord:\(state)")
-                                    }
+                                    self.progressDiscard(videoURL: videoURL) { _  in }
                                 } else if let resultError = result?.errors {
                                     completion(nil, resultError[0])
                                     group.leave()
-                                    self.progressDiscard(videoURL: videoURL) { state in
-                                        print("File delete status in createVideoRecord:\(state)")
-                                    }
+                                    self.progressDiscard(videoURL: videoURL) { _ in }
                                 }
                                 else {
-                                    print("Create video record : \(String(describing: result))")
-                                    self.progressState = false
                                     completion(result?.data?.createVideo, nil)
                                     group.leave()
                                 }
                             })
                         }
                         else {
-                            self.progressState = false
                             completion(nil, EPICAIVideoPostError.VIDEOURLNOTFOUND)
                             group.leave()
                         }
                     }
                     group.notify(queue: .main) {
-                        self.progressState = false
                         completion(nil, EPICAIVideoPostError.UploadFailed)
                     }
                 }
                 else {
-                    self.progressState = false
                     completion(nil, EPICAIVideoPostError.USERUUIDNOTFOUND)
                 }
             }
             else {
-                self.progressState = false
                 completion(nil, EPICAIVideoPostError.UploadFailed)
             }
         }
@@ -210,7 +295,6 @@ class EPICAICreatePostVideoVM : NSObject {
             if let error = error {
                 print("Video delete error:\(error.localizedDescription)")
             }
-            print("Video delete state \(state)")
         }
         
         guard let bodyPointsLocalURl = EPICAIFileManager.shared().getBodyPartsLocalURL(fileName: videoURL.lastPathComponent.replacingOccurrences(of: "."+videoURL.pathExtension, with: "")) else { return }
@@ -219,7 +303,6 @@ class EPICAICreatePostVideoVM : NSObject {
             if let error = error {
                 print("Body points csv delete error:\(error.localizedDescription)")
             }
-            print("Body point scv delete state \(state)")
         }
         
         guard let audioLocalURl = EPICAIFileManager.shared().getAudioFileLocalURL(fileName: videoURL.lastPathComponent.replacingOccurrences(of: "."+videoURL.pathExtension, with: ""))
@@ -230,7 +313,6 @@ class EPICAICreatePostVideoVM : NSObject {
             if let error = error {
                 print("Audio points csv delete error:\(error.localizedDescription)")
             }
-            print("Audio csv delete state \(state)")
         }
     }
     
@@ -339,7 +421,6 @@ class EPICAIVideoRecordVM {
             }
             if fileUploader.uploadRecord.operationName == .Finish {
                 self.progressState = false
-                print("All operation done")
             }
             if fileUploader.uploadRecord.error != nil {
                 self.progressState = false
@@ -347,8 +428,6 @@ class EPICAIVideoRecordVM {
                 self.operationProgressReport(fileUploader.uploadRecord, fileUploader.uploadRecord.operationName, fileUploader.uploadRecord.error)
                 
                 self.startRemoveOperation(removeRecord: EPICAIRemoveRecord(fileName: fileUploader.uploadRecord.fileName, bucketKey: fileUploader.uploadRecord.bucketKey, operationName: fileUploader.uploadRecord.operationName))
-                
-                print("Error during operation \(fileUploader.uploadRecord.operationName) error details: \(String(describing: fileUploader.uploadRecord.error?.localizedDescription))")
             }
             DispatchQueue.main.async {
                 self.pendingOperations.uploadInProgress.removeValue(forKey: operationIndex)
@@ -497,23 +576,17 @@ class EPICAIUploadOperation : Operation {
     
     override func main() {
         _ = Amplify.Storage.uploadFile(key: self.uploadRecord.bucketKey + self.uploadRecord.fileName, local: self.uploadRecord.localURL!, progressListener: { progress in
-            
-            print("File upload progress type:\(self.uploadRecord.operationName), fraction uploaded: \(Float(progress.fractionCompleted))")
-            
             self.uploadRecord.fractionUploaded = Float(progress.fractionCompleted)
-            
             
         }, resultListener: { result in
             switch (result) {
             case .success(_ ) :
                 self.uploadRecord.fractionUploaded = 100.0
                 self.uploadRecord.state = .uploaded
-                print("File upload success type:\(self.uploadRecord.operationName)")
             case .failure(let error):
                 self.uploadRecord.fractionUploaded = 0.0
                 self.uploadRecord.error = error
                 self.uploadRecord.state = .failed
-                print("File upload failure type:\(self.uploadRecord.operationName)")
             }
         })
     }

@@ -19,7 +19,9 @@ class ProfileOverviewCell: UITableViewCell {
     
     var data: [Double] = [] {
         didSet {
-            if !data.isEmpty { configureUI() }
+            if !data.isEmpty {
+                configureUI()
+            }
         }
     }
     
@@ -67,15 +69,17 @@ class ProfileOverviewCell: UITableViewCell {
             make.centerX.equalTo(contentView)
         }
         
-        scoreLabel = UILabel(frame: .zero)
-        scoreLabel.translatesAutoresizingMaskIntoConstraints = false
-        scoreLabel.textColor = Palette.V2.V2_VCTitle
-        scoreLabel.font = LatoFont.regular.withSize(12.0)
-        scoreLabel.textAlignment = .center
-        contentView.addSubview(scoreLabel)
-        scoreLabel.snp.makeConstraints { (make) in
-            make.bottom.equalTo(dividerView.snp.top).offset(-20.0)
-            make.centerX.equalTo(contentView)
+        if scoreLabel == nil {
+            scoreLabel = UILabel(frame: .zero)
+            scoreLabel.translatesAutoresizingMaskIntoConstraints = false
+            scoreLabel.textColor = Palette.V2.V2_VCTitle
+            scoreLabel.font = LatoFont.regular.withSize(12.0)
+            scoreLabel.textAlignment = .center
+            contentView.addSubview(scoreLabel)
+            scoreLabel.snp.makeConstraints { (make) in
+                make.bottom.equalTo(dividerView.snp.top).offset(-20.0)
+                make.centerX.equalTo(contentView)
+            }
         }
         
         barChartView = BarChartView(frame: .zero)

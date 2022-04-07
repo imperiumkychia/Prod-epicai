@@ -31,7 +31,6 @@ class EPICAIComposePostPCell: UITableViewCell  {
             self.profileImageView.clipsToBounds = true
             nameLbl.text = "\(EPICAISharedPreference.userSession?.firstName ?? "") \(EPICAISharedPreference.userSession?.lastName ?? "")"
             
-            print("User Name: \(EPICAISharedPreference.userSession?.firstName ?? "")")
             if let image = EPICAIFileManager.shared().getEPICAIUserSessionImage(){
                 self.profileImageView.image = image
             }

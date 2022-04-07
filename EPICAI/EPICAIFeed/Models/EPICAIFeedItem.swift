@@ -32,10 +32,13 @@ struct EPICAIFeedItem {
         }
     }
     
+    var bodyLaguageResult:[BodyLanguage]?
+    var speedOfSpeech:SpeedOfSpeech?
+    var tonalityResult:TonalityResult?
+    var fillerWords:[FillerWord]?
+    
     init(video: EPICAIVideo, user: EPICAIUser) {
         self.video = video
         self.user = user
     }
 }
-
-

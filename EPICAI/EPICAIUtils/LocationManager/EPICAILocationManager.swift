@@ -38,7 +38,6 @@ class EPICAILocationManager: NSObject ,CLLocationManagerDelegate {
     
     override init(){
         super.init()
-        print("Location init \(CLLocationManager.locationServicesEnabled())")
         self.locationManager = CLLocationManager()
         
         self.locationManager.delegate = self
@@ -78,7 +77,6 @@ class EPICAILocationManager: NSObject ,CLLocationManagerDelegate {
     
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
         if let location = locations.first {
-            print("Location \(location)")
             self.locationManager.stopUpdatingLocation()
             delegate?.deviceCurrentLocDetails(errorWhilegettingGeoCode: false, location: location)
             EPICAILocationManager.dispose()
@@ -87,7 +85,6 @@ class EPICAILocationManager: NSObject ,CLLocationManagerDelegate {
     
     func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
         let location:CLLocation = CLLocation()
-        print("location getting error \(error.localizedDescription)")
         delegate?.deviceCurrentLocDetails(errorWhilegettingGeoCode: true, location: location)
         EPICAILocationManager.dispose()
     }

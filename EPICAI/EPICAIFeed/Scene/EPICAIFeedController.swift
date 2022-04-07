@@ -37,17 +37,26 @@ class EPICAIFeedController: UIViewController {
         return titlelbl1
     }()
     
-    let searchButton:UIButton = {
-        let button = UIButton(frame: .zero)
+//    lazy var backButton: UIButton = {
+//        let button = UIButton(frame: CGRect(x: 0, y: 5, width: 30, height: 30))
+//        let image = UIImage(systemName: "chevron.left", withConfiguration: UIImage.SymbolConfiguration(pointSize: 25.0, weight: .regular))
+//        button.setImage(image, for: .normal)
+//        button.addTarget(self, action: #selector(backButtonTapped(_:)), for: .touchUpInside)
+//        button.tintColor = Palette.V2.V2_VCTitle
+//        return button
+//    }()
+    
+    lazy var searchButton:UIButton = {
+        let button = UIButton(frame: CGRect(x: 60, y: 10, width: 30, height: 30))
         let img = UIImage(systemName: "magnifyingglass", withConfiguration: UIImage.SymbolConfiguration(pointSize: 25.0, weight: .semibold))
-        button.tintColor = Palette.V2.V2_VCTitle
         button.setImage(img, for: .normal)
         button.addTarget(self, action: #selector(moveToSeachUsers(_:)), for: .touchUpInside)
+        button.tintColor = Palette.V2.V2_VCTitle
         return button
     }()
     
-    let notificationButton:UIButton = {
-        let button = UIButton(frame: .zero)
+    lazy var notificationButton:UIButton = {
+        let button = UIButton(frame: CGRect(x: 100, y: 10, width: 30, height: 30))
         let img = UIImage(systemName: "bell.circle", withConfiguration: UIImage.SymbolConfiguration(pointSize: 25.0, weight: .semibold))
         button.setImage(img, for: .normal)
         button.tintColor = Palette.V2.V2_VCTitle
@@ -61,6 +70,19 @@ class EPICAIFeedController: UIViewController {
         indicator.cornerRadius = 20.0
         indicator.interactionType = .blockAllTouches
         return indicator
+    }()
+    
+    lazy var badgelbl:UILabel = {
+        let badgelbl = UILabel(frame: CGRect(x: 115, y: -1, width: 25, height: 25))
+        badgelbl.clipsToBounds = true
+        badgelbl.layer.cornerCurve = .continuous
+        badgelbl.layer.cornerRadius = 15
+        badgelbl.textColor = .white
+        badgelbl.backgroundColor = .red
+        badgelbl.text = "0"
+        badgelbl.textAlignment = .center
+        badgelbl.font = LatoFont.bold.withSize(9)
+        return badgelbl
     }()
     
     lazy var feedsTableView: UITableView = {
@@ -77,9 +99,9 @@ class EPICAIFeedController: UIViewController {
         return table
     }()
     
-    let randomGaugeData = RandomDataGenerator.generateRandomGaugeData()
-    let randomPieChartData = RandomDataGenerator.generateRandomPieChartData(numberOfCategories: 4)
-    let randomTonalityData = RandomDataGenerator.generateRandomTonalityData()
+    //let randomGaugeData = RandomDataGenerator.generateRandomGaugeData()
+    //let randomPieChartData = RandomDataGenerator.generateRandomPieChartData(numberOfCategories: 4)
+    //let randomTonalityData = RandomDataGenerator.generateRandomTonalityData()
     
     var refreshControl: UIRefreshControl = {
         let controll = UIRefreshControl()
@@ -87,33 +109,40 @@ class EPICAIFeedController: UIViewController {
         return controll
     }()
     
-    @objc func moveToSeachUsers(_ sender:UIButton) {
-        
+    @objc func moveToSeachUsers(_ sender:UIBarButtonItem) {
+        let viewController = EPICAISearchUserVC.instantiateFromAppStoryBoard(appStoryBoard: .UsersStoryboard)
+        self.navigationController?.pushViewController(viewController, animated: true)
     }
     
     @objc func moveToNotification(_ sender:UIButton) {
-        
+        let controller = EPICAINotificationListVC.instantiateFromAppStoryBoard(appStoryBoard: .NotificationSB)
+        self.navigationController?.pushViewController(controller, animated: true)
     }
-    
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        print("User details = \(String(describing: EPICAISharedPreference.userSession))")
-        
         self.title = "Feeds"
         self.applyCustomAppearance()
         self.rightMenuItems()
         self.leftMenuItems()
         setupUIElements()
         initiateVideoModel()
+        
+        NotificationCenter.default.addObserver(self,
+                                               selector: #selector(shouldMoveToRoot(_:)),
+                                               name: .didChageTabCalled,
+                                               object: nil)
+    }
+    
+    @objc func shouldMoveToRoot(_ notification: Notification) {
+        _ = self.navigationController?.popViewController(animated: true)
     }
     
     private func rightMenuItems() {
         let rightOptionView = UIView(frame: CGRect(x: 50, y: 1, width: 130, height: 49))
-        self.searchButton.frame = CGRect(x: 60, y: 10, width: 30, height: 30)
-        self.notificationButton.frame = CGRect(x: 100, y: 10, width: 30, height: 30)
         rightOptionView.addSubview(searchButton)
         rightOptionView.addSubview(notificationButton)
+        rightOptionView.addSubview(badgelbl)
         let rightBaritem = UIBarButtonItem(customView: rightOptionView)
         self.navigationItem.rightBarButtonItem = rightBaritem
     }
@@ -146,7 +175,6 @@ class EPICAIFeedController: UIViewController {
         }
         else {
         }
-        print("Switch on off")
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -201,7 +229,6 @@ class EPICAIFeedController: UIViewController {
             if let itemsWithURL = itemsWithURL {
                 DispatchQueue.main.async {
                     self.items = itemsWithURL.sorted(by: { $0.videoDate! > $1.videoDate! })
-                    print("Feed items:\(self.items)")
                     self.feedsTableView.reloadData()
                     self.refreshControl.endRefreshing()
                     self.ai.dismiss(afterDelay: 0.0, animated: true)
@@ -249,6 +276,7 @@ class EPICAIFeedController: UIViewController {
 
 extension EPICAIFeedController: UpdateCommentCountDelegate {
     func updateFeedCommentCount(indexPath: IndexPath?) {
+        
         if let indexPath = indexPath {
             var item = self.items[indexPath.row]
             let cell = self.feedsTableView.cellForRow(at: indexPath) as? FeedsCell
@@ -273,7 +301,7 @@ extension EPICAIFeedController: UITableViewDelegate, UITableViewDataSource {
         case 1:
             return 225.0
         default:
-            return 400.0
+            return 420.0
         }
     }
     
@@ -301,10 +329,7 @@ extension EPICAIFeedController: UITableViewDelegate, UITableViewDataSource {
             }
             
             cell.likePost = { item, cellIndexPath  in
-                
                 self.showLoader()
-                //if self.viewModel.requestOnProgress { return }
-                
                 if item.video.likeStatus == 1 {
                     if let indexPathRecived = cellIndexPath {
                         self.viewModel.updateLikeCount(videoItem: item,indexPath: indexPathRecived, likeState: true) { rrIndexPath in
@@ -349,14 +374,25 @@ extension EPICAIFeedController: UITableViewDelegate, UITableViewDataSource {
                 controller.delegate = self
                 self.navigationController?.pushViewController(controller, animated: true)
             }
-            cell.reportInappropriateContent = { item in print("cell.reportInappropriateContent action \(String(describing: item.user.firstName))") }
+            cell.reportInappropriateContent = { item, indexPath in
+                self.reportContent(item: item, indexPath: indexPath)
+            }
         }
     }
     
-    func moveToUserDetails(user:EPICAIUser) {
+    private func reportContent(item:EPICAIFeedItem, indexPath:IndexPath?) {
+        guard let indexPath = indexPath else { return }
+        let controller = EPICAINotePopUpVC.instantiateFromAppStoryBoard(appStoryBoard: .Comment)
+        controller.indexPath = indexPath
+        controller.isReport = true
+        controller.delegate = self
+        self.present(controller, animated: true, completion: nil)
+    }
+    
+    private func moveToUserDetails(user:EPICAIUser) {
         if user.uuid != EPICAISharedPreference.userSession?.uuid {
             let profileVC = EPICAIProfileVC.instantiateFromAppStoryBoard(appStoryBoard: .Main)
-            profileVC.userDetails = user
+            profileVC.otherUserDetails = user
             self.navigationController?.pushViewController(profileVC, animated: true)
         }
         else {
@@ -375,22 +411,96 @@ extension EPICAIFeedController: UITableViewDelegate, UITableViewDataSource {
             guard let cell = tableView.dequeueReusableCell(withIdentifier: "feedsCell", for: indexPath) as? FeedsCell else { return UITableViewCell() }
             cell.delegate = self
             cell.item = items[indexPath.row]
-            cell.gaugeData = randomGaugeData
-            cell.pieChartData = randomPieChartData
-            cell.tonalityData = randomTonalityData
+            //print("[DEBUG] EPICAIFeedController : \(cell.item?.fillerWords)")
+            //print("[DEBUG] EPICAIFeedController : \(RandomDataGenerator.generateRandomTonalityData())")
+            
+            // OLD CODE - RANDOMIZED DATA FOR CHARTS
+            //cell.gaugeData = randomGaugeData
+            //cell.pieChartData = randomPieChartData
+            //cell.tonalityData = randomTonalityData
+            
+            //CREATED BY CHIA KANG YEE: 5th APRIL 2022
+            //Display feed result with real data
+            //Speed of speech
+            cell.gaugeData = cell.item?.speedOfSpeech?.score ?? 0//RandomDataGenerator.generateRandomGaugeData()
+            //Body Language
+            var loopCount = 0;
+            var barCategoryList = [LegendCategory]()
+            for blResult in cell.item?.bodyLaguageResult ?? []{
+                let blResultAssign:LegendCategory =
+                    (title: blResult.type,
+                    color: Palette.barColor[loopCount],
+                    percentage: blResult.score)
+                barCategoryList.append(blResultAssign)
+                loopCount+=1
+            }
+            cell.pieChartData = barCategoryList
+            //Tonality
+            //Assign array
+            cell.tonalityData = cell.item?.tonalityResult?.results ?? []
+            //Pass parameter for min, max and average decibel
+            cell.minDcbl = cell.item?.tonalityResult?.minDecibel ?? 0
+            cell.maxDcbl = cell.item?.tonalityResult?.maxDecibel ?? 0
+            cell.avgDcbl = cell.item?.tonalityResult?.averageDecibel ?? 0
+            //filler word
+            var fillerWordTypeVar = FillerWordType(title: "Um", color: Palette.V2.V2_fillerWordsGrey, value: 10)
+            cell.fillerword = []
+            loopCount = 0;
+            for fw in cell.item?.fillerWords ?? [] {
+                fillerWordTypeVar.title = fw.type
+                fillerWordTypeVar.color = Palette.barColor[loopCount]
+                fillerWordTypeVar.value = Int(fw.score)
+                cell.fillerword.append(fillerWordTypeVar)
+                loopCount+=1
+            }
+            
+            
+            // OLD CODE - RANDOMIZED DATA FOR CHARTS
+            //cell.gaugeData = RandomDataGenerator.generateRandomGaugeData()
+            //cell.pieChartData = RandomDataGenerator.generateRandomPieChartData(numberOfCategories: 4)
+            //cell.tonalityData = RandomDataGenerator.generateRandomTonalityData()
+            
+            
             return cell
         }
     }
     
-    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        
-    }
 }
 
 extension EPICAIFeedController: FeedsCellDelegate {
     func feedsCell(_ cell: FeedsCell, pagerView: FSPagerView, pageControl: FSPageControl, didGoToPageWithIndex index: Int) {
         guard let indexPath = feedsTableView.indexPath(for: cell) else { return }
         lastPagerViewIndices[indexPath.row] = index
+    }
+}
+
+extension EPICAIFeedController : EPICAINotePopUpProtocol {
+    
+    private func displaySuccessAlert() {
+        DispatchQueue.main.async {
+            let hud = JGProgressHUD(style: (self.traitCollection.userInterfaceStyle == .light) ? .light : .dark)
+            hud.show(in: self.view, animated: true)
+            hud.indicatorView = JGProgressHUDSuccessIndicatorView()
+            hud.textLabel.text = "Success"
+            hud.square = true
+            hud.dismiss(afterDelay: 3)
+        }
+    }
+    
+    func addReplyOnCommnet(indexPath: IndexPath, message: String,isReport:Bool) {
+        let feedItem = self.items[indexPath.row]
+        self.showLoader()
+        self.viewModel.reportVideo(epicFeedItem: feedItem, comment: message) { state in
+            if state {
+                self.hideLoader()
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
+                    self.displaySuccessAlert()
+                }
+            }
+            else {
+                self.hideLoader()
+            }
+        }
     }
 }
 

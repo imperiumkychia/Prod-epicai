@@ -11,6 +11,18 @@ import SwiftUI
 import Reachability
 import CoreLocation
 
+protocol TestP {
+    associatedtype TestType
+    var items:[TestType] { get set}
+    mutating func add(item:TestType)
+}
+
+extension TestP {
+    mutating func add(item:TestType) {
+        self.items.append(item)
+    }
+}
+
 class EPICAIOfflineVideoManager : NSObject {
     
     static var shared = EPICAIOfflineVideoManager()
@@ -156,11 +168,8 @@ class EPICAIOfflineUploadOperation : Operation {
     
     
     override func main() {
-        
         let videoUpalodVM = EPICAICreatePostVideoVM()
-        
         let location = CLLocation(latitude: Double(videoDetails.latitude) ?? 0.0, longitude: Double(videoDetails.longitude) ?? 0.0)
-        
         guard let videoURL = URL(string: videoDetails.videoPath) else { return }
         
         videoUpalodVM.createVideoRecord(videoTitle: self.videoDetails.title, videoURL:videoURL, location: location , completion: { (createVideoDetails , error) in

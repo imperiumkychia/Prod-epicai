@@ -19,6 +19,6 @@ extension Notification.Name {
     
     public static let didAddNewPublicVideo = Notification.Name("didAddNewPublicVideo")
     public static let didRenamePrivateVideo = Notification.Name("didRenamePrivateVideo")
-
-
+    
+    public static let didChageTabCalled = Notification.Name("didChageTabCalled")
 }

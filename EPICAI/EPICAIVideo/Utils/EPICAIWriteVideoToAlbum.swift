@@ -12,9 +12,6 @@ import UIKit
 class VideoWriterToAlbum {
     
     static func checkPhotoLibraryPermissionToWriteVideoFor(url:URL, completion:@escaping (String?) -> Void)  {
-        print("URL \(url)")
-        print(" File exist \(FileManager.default.fileExists(atPath: url.path))")
-        
         switch(PHPhotoLibrary.authorizationStatus()) {
         case .authorized:
             if let message  = self.writeVideoInPhotoAlbum(url: url) {
@@ -53,7 +50,6 @@ class VideoWriterToAlbum {
                     print ("Error: Cannot move the video \(url.path) to camera roll, error: \(String(describing: error?.localizedDescription))")
                     return
                 }
-                print("Video \(url.path) has been moved to camera roll")
             }
         }
         return errorString

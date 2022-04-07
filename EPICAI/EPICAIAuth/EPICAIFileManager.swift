@@ -58,6 +58,38 @@ class EPICAIFileManager {
         }
     }
     
+    var fileName:String = ""
+    var cropEndTime:Float = 0.0
+    var cropStartTime:Float? {
+        didSet {
+            if let startTime = self.cropStartTime {
+                guard let url = self.getCSVFilePathURL(self.fileName) else { return }
+                guard let dataStream = OutputStream(toFileAtPath: url.path, append: true) else { return }
+                do {
+                    self.csvBodyPointWriter =  try CSVWriter(stream: dataStream)
+                    let header = ["",String(startTime),String(cropEndTime)]
+                    csvBodyPointWriter?.beginNewRow()
+                    try csvBodyPointWriter?.write(row: header)
+                    csvBodyPointWriter?.stream.close()
+                } catch {
+                    print("Errror in file writing \(error.localizedDescription)")
+                }
+                
+                guard let url = self.getAudioCSVFilePathURL(self.fileName) else { return }
+                guard let dataStream = OutputStream(toFileAtPath: url.path, append: true) else { return }
+                do {
+                    self.csvAudioPointWriter =  try CSVWriter(stream: dataStream)
+                    let header = ["",String(startTime),String(cropEndTime)]
+                    csvAudioPointWriter?.beginNewRow()
+                    try csvAudioPointWriter?.write(row: header)
+                    csvAudioPointWriter?.stream.close()
+                } catch {
+                    print("Errror in file writing \(error.localizedDescription)")
+                }
+            }
+        }
+    }
+    
     var stopWritingBodyPause:Bool? {
         didSet {
             csvBodyPointWriter?.stream.close()
@@ -75,80 +107,17 @@ class EPICAIFileManager {
     private init() {
     }
     
-    
-    class func cropVideo(sourceURL: URL, statTime:Float, endTime:Float, completion:@escaping ((URL?,Bool)->Void))
-    {
-        let manager = FileManager.default
-        
-        guard let documentDirectory = try? manager.url(for: .documentDirectory, in: .userDomainMask, appropriateFor: nil, create: true) else {
-            completion(nil,false)
-            return
-        }
-        
-        let mediaType = "mp4"
-        if mediaType == kUTTypeMovie as String || mediaType == "mp4" as String {
-            let asset = AVAsset(url: sourceURL as URL)
-            let length = Float(asset.duration.value) / Float(asset.duration.timescale)
-            print("video length: \(length) seconds")
-            
-            let start = statTime
-            let end = endTime
-            
-            var outputURL = documentDirectory.appendingPathComponent("output")
-            do {
-                try manager.createDirectory(at: outputURL, withIntermediateDirectories: true, attributes: nil)
-                outputURL = outputURL.appendingPathComponent("\(UUID().uuidString).\(mediaType)")
-            }catch let error {
-                print(error)
-            }
-            
-            //Remove existing file
-            _ = try? manager.removeItem(at: outputURL)
-            
-            
-            guard let exportSession = AVAssetExportSession(asset: asset, presetName: AVAssetExportPresetHighestQuality) else {return}
-            exportSession.outputURL = outputURL
-            exportSession.outputFileType = .mp4
-            
-            let startTime = CMTime(seconds: Double(start ), preferredTimescale: 1000)
-            let endTime = CMTime(seconds: Double(end ), preferredTimescale: 1000)
-            let timeRange = CMTimeRange(start: startTime, end: endTime)
-            
-            exportSession.timeRange = timeRange
-            exportSession.exportAsynchronously{
-                switch exportSession.status {
-                case .completed:
-                    completion(outputURL,true)
-                    print("exported at \(outputURL)")
-                case .failed:
-                    completion(nil,false)
-                    print("failed \(String(describing: exportSession.error))")
-                    
-                case .cancelled:
-                    completion(nil,false)
-                    print("cancelled \(String(describing: exportSession.error))")
-                    
-                default: completion(nil,false)
-                }
-            }
-        }
-        else {
-            completion(nil, false)
-        }
-    }
-    
-    func cropVideo1(_ sourceURL1: URL, statTime:Float, endTime:Float){
+    func cropVideo(_ sourceURL1: URL, statTime:Float, endTime:Float, fileName:String, completion:@escaping (URL?) -> Void){
         let videoAsset: AVAsset = AVAsset(url: sourceURL1) as AVAsset
         let composition = AVMutableComposition()
         composition.addMutableTrack(withMediaType: AVMediaType.video, preferredTrackID: CMPersistentTrackID())
         
         let videoComposition = AVMutableVideoComposition()
-        videoComposition.renderSize = CGSize(width: 1280, height: 768)
+        videoComposition.renderSize = CGSize(width: 1280, height: 720)
         videoComposition.frameDuration = CMTimeMake(value: 8, timescale: 15)
         
         let instruction = AVMutableVideoCompositionInstruction()
-        let length = Float(videoAsset.duration.value)
-        print(length)
+        //let length = Float(videoAsset.duration.value)
         
         instruction.timeRange = CMTimeRangeMake(start: CMTime.zero, duration: CMTimeMakeWithSeconds(60, preferredTimescale: 30))
         
@@ -164,22 +133,22 @@ class EPICAIFileManager {
         
         exportSession.timeRange = timeRange
         
-        let formatter = DateFormatter()
-        formatter.dateFormat = "yyyy'-'MM'-'dd'T'HH':'mm':'ss'Z'"
-        
-        let date = Date()
-        
         let documentsPath = NSSearchPathForDirectoriesInDomains(.documentDirectory, .userDomainMask, true)[0] as NSString
-        let outputPath = "\(documentsPath)/\(formatter.string(from: date)).mp4"
+        let outputPath = "\(documentsPath)/CroppedVideo/\(fileName).mp4"
         let outputURL = URL(fileURLWithPath: outputPath)
         
         exportSession.outputURL = outputURL
         exportSession.outputFileType = AVFileType.mov
-        print("sucess")
+        
         exportSession.exportAsynchronously(completionHandler: { () -> Void in
             DispatchQueue.main.async(execute: {
-                self.exportDidFinish(exportSession)
-                print("sucess")
+                if let outputURL = exportSession.outputURL {
+                    completion(outputURL)
+                    self.exportDidFinish(exportSession)
+                }
+                else {
+                    completion(nil)
+                }
             })
         })
     }
@@ -190,12 +159,7 @@ class EPICAIFileManager {
                 DispatchQueue.main.async {
                     PHPhotoLibrary.shared().performChanges({
                         PHAssetChangeRequest.creationRequestForAssetFromVideo(atFileURL: outputURL)
-                    }) { saved, error in
-                        if saved {
-                            DispatchQueue.main.async {
-                                print("Video saved successfully.")
-                            }
-                        }
+                    }) { _ , error in
                         if error != nil {
                             //os_log("Video did not save for some reason", error.debugDescription);
                             debugPrint(error?.localizedDescription ?? "error is nil");
@@ -209,8 +173,11 @@ class EPICAIFileManager {
     func manageDeleteVideoAndAssets(videoURL:URL) {
         _ = self.removeBodyPointsCSV(videoURL.lastPathComponent.replacingOccurrences(of: "."+videoURL.pathExtension, with: ""))
         _ = self.removeAudioPointsCSV(videoURL.lastPathComponent.replacingOccurrences(of: "."+videoURL.pathExtension, with: ""))
-        EPICAIFileManager.removeVideoFile(atURL: videoURL) { state in
-            print("Remove video state = \(state)")
+        EPICAIFileManager.removeVideoFile(atURL: videoURL) { _ in }
+        let documentDir =  FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first
+        let originalVideoURL = documentDir?.appendingPathComponent((videoURL.lastPathComponent))
+        if let originalVideoURL = originalVideoURL {
+            EPICAIFileManager.removeVideoFile(atURL: originalVideoURL) { state in }
         }
         self.deleteExtractedAudioFile()
     }
@@ -254,6 +221,23 @@ class EPICAIFileManager {
         return nil
     }
     
+    func createCroppedVideoDirectory() -> Bool {
+        let paths = NSSearchPathForDirectoriesInDomains(.documentDirectory, .userDomainMask, true)
+        let documentsDirectory = paths[0]
+        let docURL = URL(string: documentsDirectory)!
+        let dataPath = docURL.appendingPathComponent("CroppedVideo")
+        if !FileManager.default.fileExists(atPath: dataPath.path) {
+            do {
+                try FileManager.default.createDirectory(atPath: dataPath.path, withIntermediateDirectories: true, attributes: nil)
+                return true
+            } catch {
+                print(error.localizedDescription)
+                return false
+            }
+        }
+        else {return true}
+    }
+    
     func createBodyPartsCSVDirectory() -> Bool {
         let paths = NSSearchPathForDirectoriesInDomains(.documentDirectory, .userDomainMask, true)
         let documentsDirectory = paths[0]
@@ -272,6 +256,7 @@ class EPICAIFileManager {
     }
     
     func createAudioCSVDirectory() -> Bool {
+        _ = self.createCroppedVideoDirectory()
         let paths = NSSearchPathForDirectoriesInDomains(.documentDirectory, .userDomainMask, true)
         let documentsDirectory = paths[0]
         let docURL = URL(string: documentsDirectory)!
@@ -310,8 +295,11 @@ class EPICAIFileManager {
     
     func getVidioLocalURL(fileName:String) -> URL? {
         guard let documentsDirectory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first else { return nil }
+        let croppedVideoURL =  documentsDirectory.appendingPathComponent("CroppedVideo/\(fileName)")
+        if FileManager.default.fileExists(atPath: croppedVideoURL.path) {
+            return croppedVideoURL
+        }
         let fileURL = documentsDirectory.appendingPathComponent(fileName)
-        print("Video file URL : \(fileURL)")
         return fileURL
     }
     
@@ -383,7 +371,6 @@ class EPICAIFileManager {
                 try FileManager.default.removeItem(atPath: fileURL.path)
                 return true
             }catch {
-                print("Error in removeBodyPointsCSV \(error.localizedDescription)")
                 return false
             }
         }
@@ -414,7 +401,6 @@ class EPICAIFileManager {
             return fileURL
         }
         catch {
-            print("Error while save video in document directory :\(error.localizedDescription)")
             return nil
         }
     }
@@ -426,27 +412,33 @@ class EPICAIFileManager {
                 try FileManager.default.removeItem(atPath:fileURL.path)
                 return true
             }catch {
-                print("Error in removeBodyPointsCSV \(error.localizedDescription)")
                 return false
             }
         }
         else { return false }
     }
     
-    func writeAudioPointsIntoCSV(volume:Int, closeFlasg:Bool, timeLapse:String) {
+    func writeAudioPointsIntoCSV(volume:Int, closeFlasg:Bool, timeLapse:String, timeCheck:Bool) {
         if let _ = self.audioPointFileName {
             guard let cvsWriter = self.csvAudioPointWriter else { return }
             do {
-                let nowDate = Date()
-                if self.lastAudioLogDate.addingTimeInterval(writingInterval) <= nowDate {
-                    self.lastAudioLogDate = nowDate
+                if closeFlasg { cvsWriter.stream.close() ; return }
+                if timeCheck {
+                    let nowDate = Date()
+                    if self.lastAudioLogDate.addingTimeInterval(writingInterval) <= nowDate {
+                        self.lastAudioLogDate = nowDate
+                        var csvRow:[String] = []
+                        csvRow.append(timeLapse)
+                        csvRow.append(String(volume))
+                        try cvsWriter.write(row: csvRow)
+                    }
+                }
+                else {
                     var csvRow:[String] = []
                     csvRow.append(timeLapse)
                     csvRow.append(String(volume))
-                    print("CSV audio row \(csvRow)")
                     try cvsWriter.write(row: csvRow)
                 }
-                if closeFlasg { cvsWriter.stream.close() }
             }
             catch {
                 print(error.localizedDescription)
@@ -454,20 +446,14 @@ class EPICAIFileManager {
         }
     }
     
-    func writeBodyPointsInToCSV(pointDict:Dictionary<VNRecognizedPointKey, VNRecognizedPoint>, height:Int, width:Int, closeFlasg:Bool, timeLapse:String) {
+    func writeBodyPointsInToCSV(pointDict:Dictionary<VNRecognizedPointKey, VNRecognizedPoint>, height:Int, width:Int, closeFlasg:Bool, timeLapse:String, timeCheck:Bool) {
         if let _ = self.bodyPoseFileName {
             guard let cvsWriter = self.csvBodyPointWriter else { return }
             do {
-                let nowDate = Date()
-                if self.lastBodyPointsLogDate.addingTimeInterval(writingInterval) <= nowDate {
-                    self.lastBodyPointsLogDate = nowDate
-                    print("Time lapse : \(timeLapse)")
+                if closeFlasg { cvsWriter.stream.close() }
+                if !timeCheck {
                     var csvRow:[String] = []
-                    // let date = Date()
-                    // let timestamp = "\(date.getTime())"
-                    
                     csvRow.append(timeLapse)
-                    
                     let nosePoint =  VNImagePointForNormalizedPoint(pointDict[VNRecognizedPointKey(rawValue: "head_joint")]!.location,
                                                                     width,
                                                                     height)
@@ -587,11 +573,136 @@ class EPICAIFileManager {
                     csvRow.append(String(Double(rEarPoint.x).rounded(toPlaces: 3)))
                     csvRow.append(String(Double(rEarPoint.y).rounded(toPlaces: 3)))
                     
-                    print("CSV Row \(csvRow)")
                     try cvsWriter.write(row: csvRow)
                 }
-                
-                if closeFlasg { cvsWriter.stream.close() }
+                else {
+                    let nowDate = Date()
+                    if self.lastBodyPointsLogDate.addingTimeInterval(writingInterval) <= nowDate {
+                        self.lastBodyPointsLogDate = nowDate
+                        var csvRow:[String] = []
+                        csvRow.append(timeLapse)
+                        let nosePoint =  VNImagePointForNormalizedPoint(pointDict[VNRecognizedPointKey(rawValue: "head_joint")]!.location,
+                                                                        width,
+                                                                        height)
+                        csvRow.append(String(Double(nosePoint.x).rounded(toPlaces: 3)))
+                        csvRow.append(String(Double(nosePoint.y).rounded(toPlaces: 3)))
+                        
+                        let neckPoint =  VNImagePointForNormalizedPoint(pointDict[VNRecognizedPointKey(rawValue: "neck_1_joint")]!.location,
+                                                                        width,
+                                                                        height)
+                        csvRow.append(String(Double(neckPoint.x).rounded(toPlaces: 3)))
+                        csvRow.append(String(Double(neckPoint.y).rounded(toPlaces: 3)))
+                        
+                        //Right
+                        let rShoulderPoint =  VNImagePointForNormalizedPoint(pointDict[VNRecognizedPointKey(rawValue: "right_shoulder_1_joint")]!.location,
+                                                                             width,
+                                                                             height)
+                        csvRow.append(String(Double(rShoulderPoint.x).rounded(toPlaces: 3)))
+                        csvRow.append(String(Double(rShoulderPoint.y).rounded(toPlaces: 3)))
+                        
+                        let rElbowPoint =  VNImagePointForNormalizedPoint(pointDict[VNRecognizedPointKey(rawValue: "right_forearm_joint")]!.location,
+                                                                          width,
+                                                                          height)
+                        csvRow.append(String(Double(rElbowPoint.x).rounded(toPlaces: 3)))
+                        csvRow.append(String(Double(rElbowPoint.y).rounded(toPlaces: 3)))
+                        
+                        let rwristPoint =  VNImagePointForNormalizedPoint(pointDict[VNRecognizedPointKey(rawValue: "right_hand_joint")]!.location,
+                                                                          width,
+                                                                          height)
+                        csvRow.append(String(Double(rwristPoint.x).rounded(toPlaces: 3)))
+                        csvRow.append(String(Double(rwristPoint.y).rounded(toPlaces: 3)))
+                        
+                        //Left
+                        let lShoulderPoint =  VNImagePointForNormalizedPoint(pointDict[VNRecognizedPointKey(rawValue: "left_shoulder_1_joint")]!.location,
+                                                                             width,
+                                                                             height)
+                        csvRow.append(String(Double(lShoulderPoint.x).rounded(toPlaces: 3)))
+                        csvRow.append(String(Double(lShoulderPoint.y).rounded(toPlaces: 3)))
+                        
+                        let lElbowPoint =  VNImagePointForNormalizedPoint(pointDict[VNRecognizedPointKey(rawValue: "left_forearm_joint")]!.location,
+                                                                          width,
+                                                                          height)
+                        csvRow.append(String(Double(lElbowPoint.x).rounded(toPlaces: 3)))
+                        csvRow.append(String(Double(lElbowPoint.y).rounded(toPlaces: 3)))
+                        
+                        let lwristPoint =  VNImagePointForNormalizedPoint(pointDict[VNRecognizedPointKey(rawValue: "left_hand_joint")]!.location,
+                                                                          width,
+                                                                          height)
+                        csvRow.append(String(Double(lwristPoint.x).rounded(toPlaces: 3)))
+                        csvRow.append(String(Double(lwristPoint.y).rounded(toPlaces: 3)))
+                        
+                        
+                        let rootPoint =  VNImagePointForNormalizedPoint(pointDict[VNRecognizedPointKey(rawValue: "root")]!.location,
+                                                                        width,
+                                                                        height)
+                        csvRow.append(String(Double(rootPoint.x).rounded(toPlaces: 3)))
+                        csvRow.append(String(Double(rootPoint.y).rounded(toPlaces: 3)))
+                        
+                        //Right
+                        let rHipPoint =  VNImagePointForNormalizedPoint(pointDict[VNRecognizedPointKey(rawValue: "right_upLeg_joint")]!.location,
+                                                                        width,
+                                                                        height)
+                        csvRow.append(String(Double(rHipPoint.x).rounded(toPlaces: 3)))
+                        csvRow.append(String(Double(rHipPoint.y).rounded(toPlaces: 3)))
+                        
+                        let rKneePoint =  VNImagePointForNormalizedPoint(pointDict[VNRecognizedPointKey(rawValue: "right_leg_joint")]!.location,
+                                                                         width,
+                                                                         height)
+                        csvRow.append(String(Double(rKneePoint.x).rounded(toPlaces: 3)))
+                        csvRow.append(String(Double(rKneePoint.y).rounded(toPlaces: 3)))
+                        
+                        let rAnklePoint =  VNImagePointForNormalizedPoint(pointDict[VNRecognizedPointKey(rawValue: "right_foot_joint")]!.location,
+                                                                          width,
+                                                                          height)
+                        csvRow.append(String(Double(rAnklePoint.x).rounded(toPlaces: 3)))
+                        csvRow.append(String(Double(rAnklePoint.y).rounded(toPlaces: 3)))
+                        
+                        
+                        //Left
+                        let lHipPoint =  VNImagePointForNormalizedPoint(pointDict[VNRecognizedPointKey(rawValue: "left_upLeg_joint")]!.location,
+                                                                        width,
+                                                                        height)
+                        csvRow.append(String(Double(lHipPoint.x).rounded(toPlaces: 3)))
+                        csvRow.append(String(Double(lHipPoint.y).rounded(toPlaces: 3)))
+                        
+                        let lKneePoint =  VNImagePointForNormalizedPoint(pointDict[VNRecognizedPointKey(rawValue: "left_leg_joint")]!.location,
+                                                                         width,
+                                                                         height)
+                        csvRow.append(String(Double(lKneePoint.x).rounded(toPlaces: 3)))
+                        csvRow.append(String(Double(lKneePoint.y).rounded(toPlaces: 3)))
+                        
+                        let lAnklePoint =  VNImagePointForNormalizedPoint(pointDict[VNRecognizedPointKey(rawValue: "left_foot_joint")]!.location,
+                                                                          width,
+                                                                          height)
+                        csvRow.append(String(Double(lAnklePoint.x).rounded(toPlaces: 3)))
+                        csvRow.append(String(Double(lAnklePoint.y).rounded(toPlaces: 3)))
+                        
+                        
+                        let lEyePoint =  VNImagePointForNormalizedPoint(pointDict[VNRecognizedPointKey(rawValue: "left_eye_joint")]!.location,
+                                                                        width,
+                                                                        height)
+                        csvRow.append(String(Double(lEyePoint.x).rounded(toPlaces: 3)))
+                        csvRow.append(String(Double(lEyePoint.y).rounded(toPlaces: 3)))
+                        let rEyePoint =  VNImagePointForNormalizedPoint(pointDict[VNRecognizedPointKey(rawValue: "right_eye_joint")]!.location,
+                                                                        width,
+                                                                        height)
+                        csvRow.append(String(Double(rEyePoint.x).rounded(toPlaces: 3)))
+                        csvRow.append(String(Double(rEyePoint.y).rounded(toPlaces: 3)))
+                        
+                        let lEarPoint =  VNImagePointForNormalizedPoint(pointDict[VNRecognizedPointKey(rawValue: "left_ear_joint")]!.location,
+                                                                        width,
+                                                                        height)
+                        csvRow.append(String(Double(lEarPoint.x).rounded(toPlaces: 3)))
+                        csvRow.append(String(Double(lEarPoint.y).rounded(toPlaces: 3)))
+                        let rEarPoint =  VNImagePointForNormalizedPoint(pointDict[VNRecognizedPointKey(rawValue: "right_ear_joint")]!.location,
+                                                                        width,
+                                                                        height)
+                        csvRow.append(String(Double(rEarPoint.x).rounded(toPlaces: 3)))
+                        csvRow.append(String(Double(rEarPoint.y).rounded(toPlaces: 3)))
+                        
+                        try cvsWriter.write(row: csvRow)
+                    }
+                }
             }
             catch {
                 print(error.localizedDescription)
@@ -603,10 +714,8 @@ class EPICAIFileManager {
         if FileManager.default.fileExists(atPath: atURL.path) {
             do {
                 try FileManager.default.removeItem(atPath: atURL.path)
-                print("Removed file at path", atURL.path)
                 comletion(true)
-            } catch let removeError {
-                print("couldn't remove file at path", removeError)
+            } catch {
                 comletion(false)
             }
         }

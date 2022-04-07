@@ -105,7 +105,6 @@ class AuthService: NSObject {
                 }
                 
             } catch {
-                print("Error getting id token: \(error)")
                 completion(nil)
             }
         }
@@ -118,14 +117,11 @@ class AuthService: NSObject {
                 // Get user sub
                 if let identityProvider = session as? AuthCognitoIdentityProvider {
                     let usersub = try identityProvider.getUserSub().get()
-                    print("++++++ User sub (uuid) - \(usersub)")
                     completion(usersub)
                 } else {
-                    print("++++++ no user sub (uuid)")
                     completion(nil)
                 }
             } catch {
-                print("Fetch auth session failed with error - \(error)")
                 completion(nil)
             }
         }
@@ -275,10 +271,8 @@ class AuthService: NSObject {
             case .success(let authResult):
                 NotificationCenter.default.post(name: .userDidSignIn, object: nil, userInfo: nil)
                 AuthService.updateCurrentUserAttributes()
-                print("Sign in with \(provider) succeeded: \(authResult.isSignedIn)")
                 completion(.success(authResult))
             case .failure(let error):
-                print("Sign in with \(provider) failed: \(error)")
                 completion(.failure(error))
             }
         }
@@ -287,8 +281,7 @@ class AuthService: NSObject {
     func performSignInWithApple(in window: UIWindow) {
         _ = Amplify.Auth.signInWithWebUI(for: .apple, presentationAnchor: window, options: nil) { [weak self] result in
             switch result {
-            case .success(let authResult):
-                print("Sign in with Apple succeeded: \(authResult.isSignedIn)")
+            case .success(_):
                 AuthService.updateCurrentUserAttributes()
                 DispatchQueue.main.async {
                     self?.getCurrentUserEmail(completion: { (email) in
@@ -297,7 +290,6 @@ class AuthService: NSObject {
                     })
                 }
             case .failure(let error):
-                print("Sign in with Apple failed: \(error)")
                 DispatchQueue.main.async {
                     AlertUser.alertUser(title: "Error", message: "\(error)", type: .error)
                 }
@@ -310,8 +302,7 @@ class AuthService: NSObject {
         
         _ = Amplify.Auth.signInWithWebUI(for: .facebook, presentationAnchor: window, options: nil) { [weak self] result in
             switch result {
-            case .success(let authResult):
-                print("Sign in with Facebook succeeded: \(authResult.isSignedIn)")
+            case .success(_):
                 AuthService.updateCurrentUserAttributes()
                 DispatchQueue.main.async {
                     self?.getCurrentUserEmail(completion: { (email) in
@@ -320,7 +311,6 @@ class AuthService: NSObject {
                     })
                 }
             case .failure(let error):
-                print("Sign in with Facebook failed: \(error)")
                 DispatchQueue.main.async {
                     AlertUser.alertUser(title: "Error", message: "\(error)", type: .error)
                 }
@@ -333,8 +323,7 @@ class AuthService: NSObject {
         
         _ = Amplify.Auth.signInWithWebUI(for: .google, presentationAnchor: window, options: nil) { [weak self] result in
             switch result {
-            case .success(let authResult):
-                print("Sign in with Google succeeded: \(authResult.isSignedIn)")
+            case .success(_):
                 AuthService.updateCurrentUserAttributes()
                 DispatchQueue.main.async {
                     self?.getCurrentUserEmail(completion: { (email) in
@@ -343,7 +332,6 @@ class AuthService: NSObject {
                     })
                 }
             case .failure(let error):
-                print("Sign in with Google failed: \(error)")
                 DispatchQueue.main.async {
                     AlertUser.alertUser(title: "Error", message: "\(error)", type: .error)
                 }
@@ -357,7 +345,6 @@ class AuthService: NSObject {
             result in
             switch result {
             case .success:
-                print("User signed out!")
                 //AuthService.updateCurrentUserAttributes()
                 if triggerNotifications {
                     DispatchQueue.main.async {

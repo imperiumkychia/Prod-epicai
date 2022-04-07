@@ -63,7 +63,7 @@ open class GaugeView: UIView {
     @IBInspectable public var needleFillColor: UIColor = UIColor(white: 0.5, alpha: 1)
     
     @IBInspectable public var needleThickness: CGFloat = 20.0
-
+    
     
     /// The padding between ring and divisions.
     @IBInspectable public var divisionsPadding: Double = 12
@@ -119,7 +119,7 @@ open class GaugeView: UIView {
     var divisionUnitValue: Double = 0
     
     private let needle = UIView()
-
+    
     lazy var progressLayer: CAShapeLayer = {
         let layer = CAShapeLayer()
         layer.contentsScale = UIScreen.main.scale
@@ -168,241 +168,244 @@ open class GaugeView: UIView {
     // MARK: DRAWING
     
     override open func draw(_ rect: CGRect) {
-        
-        // Prepare drawing
-        divisionUnitValue = numOfDivisions != 0 ? (maxValue - minValue)/Double(numOfDivisions) : 0
-        divisionUnitAngle = numOfDivisions != 0 ? abs(endAngle - startAngle)/Double(numOfDivisions) : 0
-        let center = CGPoint(x: bounds.width/2, y: bounds.height/2)
-        let ringRadius = Double(min(bounds.width, bounds.height))/2 - ringThickness/2
-        let dotRadius = ringRadius - ringThickness/2 - divisionsPadding - divisionsRadius/2
-        
-        // Draw the ring background
-        let context = UIGraphicsGetCurrentContext()
-        context?.setLineWidth(CGFloat(ringThickness))
-        context?.beginPath()
-        context?.addArc(center: center,
-                        radius: CGFloat(ringRadius),
-                        startAngle: 0,
-                        endAngle: .pi * 2,
-                        clockwise: false)
-        context?.setStrokeColor(ringBackgroundColor.withAlphaComponent(1.0).cgColor)
-        context?.strokePath()
-        
-        // Gradient
-        let path = UIBezierPath(arcCenter: center,
+        if progressLayer.superlayer == nil {
+            // Prepare drawing
+            divisionUnitValue = numOfDivisions != 0 ? (maxValue - minValue)/Double(numOfDivisions) : 0
+            divisionUnitAngle = numOfDivisions != 0 ? abs(endAngle - startAngle)/Double(numOfDivisions) : 0
+            let center = CGPoint(x: bounds.width/2, y: bounds.height/2)
+            let ringRadius = Double(min(bounds.width, bounds.height))/2 - ringThickness/2
+            let dotRadius = ringRadius - ringThickness/2 - divisionsPadding - divisionsRadius/2
+            
+            // Draw the ring background
+            let context = UIGraphicsGetCurrentContext()
+            context?.setLineWidth(CGFloat(ringThickness))
+            context?.beginPath()
+            context?.addArc(center: center,
+                            radius: CGFloat(ringRadius),
+                            startAngle: 0,
+                            endAngle: .pi * 2,
+                            clockwise: false)
+            
+            context?.setStrokeColor(ringBackgroundColor.withAlphaComponent(1.0).cgColor)
+            context?.strokePath()
+            
+            // Gradient
+            let path = UIBezierPath(arcCenter: center,
                                     radius: CGFloat(ringRadius),
                                     startAngle: CGFloat(startAngle),
                                     endAngle: CGFloat(endAngle), clockwise: true)
-        
-        let gradientLayer = CAGradientLayer()
-        gradientLayer.type = .conic
-        gradientLayer.startPoint = CGPoint(x: 0.5, y: 0.5)
-        gradientLayer.endPoint = CGPoint(x: 1.0, y: 1.0)
-        
-        gradientLayer.frame = bounds
-        gradientLayer.colors = [UIColor.yellow, UIColor.systemRed].map { $0.cgColor }
-
-        let mask = CAShapeLayer()
-        mask.fillColor = UIColor.clear.cgColor
-        mask.strokeColor = UIColor.white.cgColor
-        mask.lineWidth = CGFloat(ringThickness)
-        mask.path = path.cgPath
-        gradientLayer.mask = mask
-        
-        layer.addSublayer(gradientLayer)
-        
-        
-        /*
-        // new ///
-        let clipPath = UIBezierPath(arcCenter: center,
-                                    radius: CGFloat(ringRadius),
-                                    startAngle: CGFloat(startAngle),
-                                    endAngle: CGFloat(endAngle), clockwise: true).cgPath
-        
-        context?.saveGState()
-        context?.setLineWidth(CGFloat(ringThickness))
-        context?.addPath(clipPath)
-        context?.replacePathWithStrokedPath()
-        context?.clip()
-        
-        let colors = [UIColor.yellow.cgColor, UIColor.systemRed.cgColor]
-        let offsets = [CGFloat(0.0), CGFloat(1.0)]
-        let grad = CGGradient(colorsSpace: CGColorSpaceCreateDeviceRGB(), colors: colors as CFArray, locations: offsets)
-        let start = bounds.origin
-        let end = CGPoint(x: bounds.maxX, y: bounds.maxY)
-        context?.drawLinearGradient(grad!, start: start, end: end, options: [])
-
-        context?.restoreGState()
-        */
-        
-        /*
-        // Draw the ring progress background
-        context?.setLineWidth(CGFloat(ringThickness))
-        context?.beginPath()
-        context?.addArc(center: center,
-                        radius: CGFloat(ringRadius),
-                        startAngle: CGFloat(startAngle),
-                        endAngle: CGFloat(endAngle),
-                        clockwise: false)
-        context?.setStrokeColor(UIColor.systemYellow.cgColor)
-        context?.strokePath()
-        */
-        
-        // Draw divisions and subdivisions
-        if numOfDivisions != 0 {
-            for i in 0...numOfDivisions {
-                if i != numOfDivisions && numOfSubDivisions != 0 {
-                    for j in 0...numOfSubDivisions {
-                        
-                        // Subdivisions
-                        let value = Double(i) * divisionUnitValue + Double(j) * divisionUnitValue/Double(numOfSubDivisions) + minValue
-                        let angle = angleFromValue(value)
-                        let point = CGPoint(x: dotRadius * cos(angle) + Double(center.x),
-                                            y: dotRadius * sin(angle) + Double(center.y))
-                        context?.drawDot(center: point,
-                                         radius: subDivisionsRadius,
-                                         fillColor: subDivisionsColor)
+            
+            let gradientLayer = CAGradientLayer()
+            gradientLayer.type = .conic
+            gradientLayer.startPoint = CGPoint(x: 0.5, y: 0.5)
+            gradientLayer.endPoint = CGPoint(x: 1.0, y: 1.0)
+            
+            gradientLayer.frame = bounds
+            gradientLayer.colors = [UIColor.yellow, UIColor.systemRed].map { $0.cgColor }
+            
+            let mask = CAShapeLayer()
+            mask.fillColor = UIColor.clear.cgColor
+            mask.strokeColor = UIColor.white.cgColor
+            mask.lineWidth = CGFloat(ringThickness)
+            mask.path = path.cgPath
+            gradientLayer.mask = mask
+            
+            layer.addSublayer(gradientLayer)
+            
+            
+            /*
+             // new ///
+             let clipPath = UIBezierPath(arcCenter: center,
+             radius: CGFloat(ringRadius),
+             startAngle: CGFloat(startAngle),
+             endAngle: CGFloat(endAngle), clockwise: true).cgPath
+             
+             context?.saveGState()
+             context?.setLineWidth(CGFloat(ringThickness))
+             context?.addPath(clipPath)
+             context?.replacePathWithStrokedPath()
+             context?.clip()
+             
+             let colors = [UIColor.yellow.cgColor, UIColor.systemRed.cgColor]
+             let offsets = [CGFloat(0.0), CGFloat(1.0)]
+             let grad = CGGradient(colorsSpace: CGColorSpaceCreateDeviceRGB(), colors: colors as CFArray, locations: offsets)
+             let start = bounds.origin
+             let end = CGPoint(x: bounds.maxX, y: bounds.maxY)
+             context?.drawLinearGradient(grad!, start: start, end: end, options: [])
+             
+             context?.restoreGState()
+             */
+            
+            /*
+             // Draw the ring progress background
+             context?.setLineWidth(CGFloat(ringThickness))
+             context?.beginPath()
+             context?.addArc(center: center,
+             radius: CGFloat(ringRadius),
+             startAngle: CGFloat(startAngle),
+             endAngle: CGFloat(endAngle),
+             clockwise: false)
+             context?.setStrokeColor(UIColor.systemYellow.cgColor)
+             context?.strokePath()
+             */
+            
+            // Draw divisions and subdivisions
+            if numOfDivisions != 0 {
+                for i in 0...numOfDivisions {
+                    if i != numOfDivisions && numOfSubDivisions != 0 {
+                        for j in 0...numOfSubDivisions {
+                            
+                            // Subdivisions
+                            let value = Double(i) * divisionUnitValue + Double(j) * divisionUnitValue/Double(numOfSubDivisions) + minValue
+                            let angle = angleFromValue(value)
+                            let point = CGPoint(x: dotRadius * cos(angle) + Double(center.x),
+                                                y: dotRadius * sin(angle) + Double(center.y))
+                            context?.drawDot(center: point,
+                                             radius: subDivisionsRadius,
+                                             fillColor: subDivisionsColor)
+                        }
                     }
+                    
+                    // Divisions
+                    let value = Double(i) * divisionUnitValue + minValue
+                    let angle = angleFromValue(value)
+                    let point = CGPoint(x: dotRadius * cos(angle) + Double(center.x),
+                                        y: dotRadius * sin(angle) + Double(center.y))
+                    context?.drawDot(center: point,
+                                     radius: divisionsRadius,
+                                     fillColor: divisionsColor)
                 }
-                
-                // Divisions
-                let value = Double(i) * divisionUnitValue + minValue
-                let angle = angleFromValue(value)
+            }
+            
+            // Draw the limit dot
+            if showLimitDot && numOfDivisions != 0 {
+                let angle = angleFromValue(limitValue)
                 let point = CGPoint(x: dotRadius * cos(angle) + Double(center.x),
                                     y: dotRadius * sin(angle) + Double(center.y))
                 context?.drawDot(center: point,
-                                 radius: divisionsRadius,
-                                 fillColor: divisionsColor)
+                                 radius: limitDotRadius,
+                                 fillColor: limitDotColor)
             }
+            
+            // Progress Layer
+            if progressLayer.superlayer == nil {
+                layer.addSublayer(progressLayer)
+                
+                progressLayer.frame = CGRect(x: center.x - CGFloat(ringRadius) - CGFloat(ringThickness)/2,
+                                             y: center.y - CGFloat(ringRadius) - CGFloat(ringThickness)/2,
+                                             width: (CGFloat(ringRadius) + CGFloat(ringThickness)/2) * 2,
+                                             height: (CGFloat(ringRadius) + CGFloat(ringThickness)/2) * 2)
+                progressLayer.bounds = progressLayer.frame
+                let smoothedPath = UIBezierPath(arcCenter: progressLayer.position,
+                                                radius: CGFloat(ringRadius),
+                                                startAngle: CGFloat(startAngle),
+                                                endAngle: CGFloat(endAngle),
+                                                clockwise: true)
+                progressLayer.path = smoothedPath.cgPath
+                progressLayer.lineWidth = CGFloat(ringThickness + 2.0)
+            }
+            
+            
+            // Value Label
+            if valueLabel.superview == nil {
+                addSubview(valueLabel)
+            }
+            valueLabel.text = String(format: "%.0f", value)
+            valueLabel.font = valueFont
+            valueLabel.minimumScaleFactor = 10/valueFont.pointSize
+            valueLabel.textColor = valueTextColor
+            let insetX = ringThickness + divisionsPadding * 2 + divisionsRadius
+            valueLabel.frame = progressLayer.frame.insetBy(dx: CGFloat(insetX), dy: CGFloat(insetX))
+            valueLabel.frame = valueLabel.frame.offsetBy(dx: 0, dy: showUnitOfMeasurement ? CGFloat(-divisionsPadding/2) : 0)
+            
+            valueLabel.snp.makeConstraints { (make) in
+                make.width.equalTo(200.0)
+                make.center.equalTo(center.applying(.init(translationX: 0.0, y: -10.0)))
+            }
+            
+            // Min Value Label
+            if minValueLabel.superview == nil {
+                addSubview(minValueLabel)
+            }
+            minValueLabel.text = String(format: "%.0f", minValue)
+            minValueLabel.font = minMaxValueFont
+            minValueLabel.minimumScaleFactor = 10/minMaxValueFont.pointSize
+            minValueLabel.textColor = minMaxValueTextColor
+            minValueLabel.isHidden = !showMinMaxValue
+            let minDotCenter = CGPoint(x: CGFloat(dotRadius * cos(startAngle)) + center.x,
+                                       y: CGFloat(dotRadius * sin(startAngle)) + center.y)
+            minValueLabel.frame = CGRect(x: minDotCenter.x + 8, y: minDotCenter.y - 20, width: 40, height: 20)
+            
+            // Max Value Label
+            if maxValueLabel.superview == nil {
+                addSubview(maxValueLabel)
+            }
+            maxValueLabel.text = String(format: "%.0f", maxValue)
+            maxValueLabel.font = minMaxValueFont
+            maxValueLabel.minimumScaleFactor = 10/minMaxValueFont.pointSize
+            maxValueLabel.textColor = minMaxValueTextColor
+            maxValueLabel.isHidden = !showMinMaxValue
+            let maxDotCenter = CGPoint(x: CGFloat(dotRadius * cos(endAngle)) + center.x,
+                                       y: CGFloat(dotRadius * sin(endAngle)) + center.y)
+            maxValueLabel.frame = CGRect(x: maxDotCenter.x - 8 - 40, y: maxDotCenter.y - 20, width: 40, height: 20)
+            
+            // Unit Of Measurement Label
+            if unitOfMeasurementLabel.superview == nil {
+                addSubview(unitOfMeasurementLabel)
+            }
+            unitOfMeasurementLabel.text = unitOfMeasurement
+            unitOfMeasurementLabel.font = unitOfMeasurementFont
+            unitOfMeasurementLabel.minimumScaleFactor = 10/unitOfMeasurementFont.pointSize
+            unitOfMeasurementLabel.textColor = unitOfMeasurementTextColor
+            unitOfMeasurementLabel.isHidden = !showUnitOfMeasurement
+            unitOfMeasurementLabel.frame = CGRect(x: valueLabel.frame.origin.x,
+                                                  y: valueLabel.frame.maxY - 10,
+                                                  width: valueLabel.frame.width,
+                                                  height: 20)
+            
+            unitOfMeasurementLabel.snp.makeConstraints { (make) in
+                make.centerX.equalTo(valueLabel)
+                make.top.equalTo(valueLabel.snp.bottom).offset(-10.0)
+            }
+            
+            
+            /*
+             let cm = CAShapeLayer()
+             let circlePath = UIBezierPath(arcCenter: center, radius: CGFloat(3), startAngle: CGFloat(0), endAngle: CGFloat(Double.pi * 2), clockwise: true)
+             cm.path = circlePath.cgPath
+             cm.fillColor = UIColor.systemBlue.cgColor
+             layer.addSublayer(cm)
+             */
+            
+            
+            needle.backgroundColor = .clear
+            needle.bounds = CGRect(x: 0, y: 0, width: 20, height: ringRadius * 0.9)
+            needle.layer.anchorPoint = CGPoint(x: 0.5, y: 1)
+            needle.center = CGPoint(x: bounds.midX, y: bounds.midY)
+            addSubview(needle)
+            let triangleLayer = CAShapeLayer()
+            let trianglePath = UIBezierPath()
+            let y = (needleThickness / (2 * tan(.pi / 7.0)))
+            trianglePath.move(to: CGPoint(x: needleThickness / 2.0, y: 0.0))
+            trianglePath.addLine(to: CGPoint(x: 0.0, y: y))
+            trianglePath.addLine(to: CGPoint(x: needleThickness, y: y))
+            trianglePath.close()
+            triangleLayer.path = trianglePath.cgPath
+            triangleLayer.fillColor = needleFillColor.cgColor
+            needle.layer.addSublayer(triangleLayer)
         }
-        
-        // Draw the limit dot
-        if showLimitDot && numOfDivisions != 0 {
-            let angle = angleFromValue(limitValue)
-            let point = CGPoint(x: dotRadius * cos(angle) + Double(center.x),
-                                y: dotRadius * sin(angle) + Double(center.y))
-            context?.drawDot(center: point,
-                             radius: limitDotRadius,
-                             fillColor: limitDotColor)
-        }
-        
-        // Progress Layer
-        if progressLayer.superlayer == nil {
-            layer.addSublayer(progressLayer)
-        }
-        progressLayer.frame = CGRect(x: center.x - CGFloat(ringRadius) - CGFloat(ringThickness)/2,
-                                     y: center.y - CGFloat(ringRadius) - CGFloat(ringThickness)/2,
-                                     width: (CGFloat(ringRadius) + CGFloat(ringThickness)/2) * 2,
-                                     height: (CGFloat(ringRadius) + CGFloat(ringThickness)/2) * 2)
-        progressLayer.bounds = progressLayer.frame
-        let smoothedPath = UIBezierPath(arcCenter: progressLayer.position,
-                                        radius: CGFloat(ringRadius),
-                                        startAngle: CGFloat(startAngle),
-                                        endAngle: CGFloat(endAngle),
-                                        clockwise: true)
-        progressLayer.path = smoothedPath.cgPath
-        progressLayer.lineWidth = CGFloat(ringThickness + 2.0)
-        
-        // Value Label
-        if valueLabel.superview == nil {
-            addSubview(valueLabel)
-        }
-        valueLabel.text = String(format: "%.0f", value)
-        valueLabel.font = valueFont
-        valueLabel.minimumScaleFactor = 10/valueFont.pointSize
-        valueLabel.textColor = valueTextColor
-        let insetX = ringThickness + divisionsPadding * 2 + divisionsRadius
-        valueLabel.frame = progressLayer.frame.insetBy(dx: CGFloat(insetX), dy: CGFloat(insetX))
-        valueLabel.frame = valueLabel.frame.offsetBy(dx: 0, dy: showUnitOfMeasurement ? CGFloat(-divisionsPadding/2) : 0)
-        
-        valueLabel.snp.makeConstraints { (make) in
-            make.width.equalTo(200.0)
-            make.center.equalTo(center.applying(.init(translationX: 0.0, y: -15.0)))
-        }
-        
-        // Min Value Label
-        if minValueLabel.superview == nil {
-            addSubview(minValueLabel)
-        }
-        minValueLabel.text = String(format: "%.0f", minValue)
-        minValueLabel.font = minMaxValueFont
-        minValueLabel.minimumScaleFactor = 10/minMaxValueFont.pointSize
-        minValueLabel.textColor = minMaxValueTextColor
-        minValueLabel.isHidden = !showMinMaxValue
-        let minDotCenter = CGPoint(x: CGFloat(dotRadius * cos(startAngle)) + center.x,
-                                   y: CGFloat(dotRadius * sin(startAngle)) + center.y)
-        minValueLabel.frame = CGRect(x: minDotCenter.x + 8, y: minDotCenter.y - 20, width: 40, height: 20)
-        
-        // Max Value Label
-        if maxValueLabel.superview == nil {
-            addSubview(maxValueLabel)
-        }
-        maxValueLabel.text = String(format: "%.0f", maxValue)
-        maxValueLabel.font = minMaxValueFont
-        maxValueLabel.minimumScaleFactor = 10/minMaxValueFont.pointSize
-        maxValueLabel.textColor = minMaxValueTextColor
-        maxValueLabel.isHidden = !showMinMaxValue
-        let maxDotCenter = CGPoint(x: CGFloat(dotRadius * cos(endAngle)) + center.x,
-                                   y: CGFloat(dotRadius * sin(endAngle)) + center.y)
-        maxValueLabel.frame = CGRect(x: maxDotCenter.x - 8 - 40, y: maxDotCenter.y - 20, width: 40, height: 20)
-        
-        // Unit Of Measurement Label
-        if unitOfMeasurementLabel.superview == nil {
-            addSubview(unitOfMeasurementLabel)
-        }
-        unitOfMeasurementLabel.text = unitOfMeasurement
-        unitOfMeasurementLabel.font = unitOfMeasurementFont
-        unitOfMeasurementLabel.minimumScaleFactor = 10/unitOfMeasurementFont.pointSize
-        unitOfMeasurementLabel.textColor = unitOfMeasurementTextColor
-        unitOfMeasurementLabel.isHidden = !showUnitOfMeasurement
-        unitOfMeasurementLabel.frame = CGRect(x: valueLabel.frame.origin.x,
-                                              y: valueLabel.frame.maxY - 10,
-                                              width: valueLabel.frame.width,
-                                              height: 20)
-        
-        unitOfMeasurementLabel.snp.makeConstraints { (make) in
-            make.centerX.equalTo(valueLabel)
-            make.top.equalTo(valueLabel.snp.bottom).offset(-10.0)
-        }
-        
-        
-        /*
-        let cm = CAShapeLayer()
-        let circlePath = UIBezierPath(arcCenter: center, radius: CGFloat(3), startAngle: CGFloat(0), endAngle: CGFloat(Double.pi * 2), clockwise: true)
-        cm.path = circlePath.cgPath
-        cm.fillColor = UIColor.systemBlue.cgColor
-        layer.addSublayer(cm)
-        */
-        
-        
-        needle.backgroundColor = .clear
-        needle.bounds = CGRect(x: 0, y: 0, width: 20, height: ringRadius * 0.9)
-        needle.layer.anchorPoint = CGPoint(x: 0.5, y: 1)
-        needle.center = CGPoint(x: bounds.midX, y: bounds.midY)
-        addSubview(needle)
-        let triangleLayer = CAShapeLayer()
-        let trianglePath = UIBezierPath()
-        let y = (needleThickness / (2 * tan(.pi / 7.0)))
-        trianglePath.move(to: CGPoint(x: needleThickness / 2.0, y: 0.0))
-        trianglePath.addLine(to: CGPoint(x: 0.0, y: y))
-        trianglePath.addLine(to: CGPoint(x: needleThickness, y: y))
-        trianglePath.close()
-        triangleLayer.path = trianglePath.cgPath
-        triangleLayer.fillColor = needleFillColor.cgColor
-        needle.layer.addSublayer(triangleLayer)
-        
     }
     
     
     func degreeToRadian(_ degree: CGFloat) -> CGFloat {
-            return CGFloat(degree * CGFloat(Double.pi / 180.0))
+        return CGFloat(degree * CGFloat(Double.pi / 180.0))
     }
     public func strokeGauge() {
         
         // Set progress for ring layer
         let progress = maxValue != 0 ? (value - minValue)/(maxValue - minValue) : 0
         progressLayer.strokeStart = CGFloat(progress)
-
+        
         // Set ring stroke color
         var ringColor = ringBackgroundColor
         if let delegate = delegate {

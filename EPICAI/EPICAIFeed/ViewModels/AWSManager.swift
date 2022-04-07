@@ -29,21 +29,13 @@ class AWSManager: NSObject {
             completion(downloadToFileName)
             return
         }
-        
-        
-        //let options = StorageDownloadFileRequest.Options(accessLevel: .protected, targetIdentityId: identityId, pluginOptions: nil)
         _ = Amplify.Storage.downloadFile(key: "profileImages/" + key, local: downloadToFileName,
             progressListener: { progress in
-            
-            print("progress \(progress)")
-                /// If progress is needed
             }, resultListener: { event in
                 switch event {
                 case .success:
-                    print("Completed downloading: \(key)")
                     completion(downloadToFileName)
-                case .failure(let storageError):
-                    print("Failed downloading \(key): \(storageError.errorDescription). \(storageError.recoverySuggestion)")
+                case .failure(_):
                     completion(nil)
             }
         })
@@ -105,10 +97,8 @@ class AWSManager: NSObject {
             }, resultListener: { event in
                 switch event {
                 case .success:
-                    print("Completed downloading: \(key)")
                     completion(downloadToFileName)
-                case .failure(let storageError):
-                    print("Failed downloading \(key): \(storageError.errorDescription). \(storageError.recoverySuggestion)")
+                case .failure(_):
                     completion(nil)
             }
         })
@@ -147,8 +137,6 @@ class AWSManager: NSObject {
             }, resultListener: { event in
                 switch event {
                 case .success:
-                    print("Completed downloading: \(currentLogName)")
-                    /// Uploading renamed log file
                     _ = Amplify.Storage.uploadFile(key: newLogName, local: url,
                         progressListener: { progress in
                             /// If progress is needed
@@ -156,19 +144,13 @@ class AWSManager: NSObject {
                         }, resultListener: { event in
                             switch event {
                             case .success:
-                                print("Completed uploading: \(newLogName)")
                                 self.removeLogForVideoWith(key: currentLogName)
-                                /// Delete temporary local url
                                 self.removeLocalFileAt(url: url)
-                            case .failure(let storageError):
-                                print("Failed uploading \(newLogName): \(storageError.errorDescription). \(storageError.recoverySuggestion)")
-                                /// Delete temporary local url
+                            case .failure(_):
                                 self.removeLocalFileAt(url: url)
-                                
                         }
                     })
-                case .failure(let storageError):
-                    print("Failed downloading \(currentLogName): \(storageError.errorDescription). \(storageError.recoverySuggestion)")
+                case .failure(_): break
             }
         })
 
@@ -189,10 +171,8 @@ class AWSManager: NSObject {
         let logFileName = key.replacingOccurrences(of: ".mov", with: ".csv")
         _ = Amplify.Storage.remove(key: logFileName) { event in
             switch event {
-            case .success(_):
-                print("Remove log file for video: \(key)")
-            case .failure(_):
-                print("Unable to remove log for video: \(key)")
+            case .success(_): break
+            case .failure(_): break
             }
         }
     }
@@ -203,12 +183,6 @@ class AWSManager: NSObject {
         _ = Amplify.Auth.signUp(username: username, password: password, options: options) { result in
             switch result {
             case .success(let signUpResult):
-                if case let .confirmUser(deliveryDetails, _) = signUpResult.nextStep {
-                    print("Delivery details \(String(describing: deliveryDetails))")
-                    print(">>>>>>>> \(signUpResult.isSignupComplete), next: \(signUpResult.nextStep)")
-                } else {
-                    print("SignUp Complete")
-                }
                 completion(signUpResult.isSignupComplete, signUpResult.nextStep, nil)
             case .failure(let error):
                 completion(nil, nil, error)
@@ -222,7 +196,6 @@ class AWSManager: NSObject {
             case .success(_):
                 completion(true, nil)
             case .failure(let error):
-                print("An error occurred while registering a user \(error)")
                 completion(nil, error)
             }
         }
@@ -232,7 +205,6 @@ class AWSManager: NSObject {
         _ = Amplify.Auth.fetchAuthSession { result in
             switch result {
             case .success(let session):
-                print("Is user signed in - \(session.isSignedIn)")
                 if session.isSignedIn {
                     completion(true)
                 } else {
@@ -254,7 +226,6 @@ class AWSManager: NSObject {
                     completion(false, nil)
                 }
             case .failure(let error):
-                print("Sign in failed \(error)")
                 completion(false, error)
             }
         }

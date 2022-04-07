@@ -22,15 +22,15 @@ class EPICAICommentCell: UICollectionViewCell {
     @IBOutlet weak var replyImgView: UIImageView!
     @IBOutlet weak var reportImgView: UIImageView!
     
-    
     var performReply:((IndexPath) -> Void)?
+    var performReportContent:((IndexPath) -> Void)?
     
     @IBAction func replyBtnClicked(sender:UIButton) {
         self.performReply?(self.indexPath)
     }
     
     @IBAction func reportComment(_ sender: Any) {
-        print("Report comment called")
+        self.performReportContent?(self.indexPath)
     }
     
     override func awakeFromNib() {
@@ -79,12 +79,8 @@ class EPICAICommentCell: UICollectionViewCell {
                 self.commentTxt.text  = commentText
             }
             if let commentCreatedOnText = commnet?.comment.createdOn {
-                self.timeAgoLbl.text  = commentCreatedOnText
-            }
-            if let commentCreatedOnText = commnet?.comment.createdOn {
-                self.timeAgoLbl.text  = commentCreatedOnText
+                self.timeAgoLbl.text  = commentCreatedOnText.getDisplayDate()
             }
         }
     }
-    
 }

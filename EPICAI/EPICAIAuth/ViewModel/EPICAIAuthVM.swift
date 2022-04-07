@@ -48,7 +48,6 @@ class EPICAIAuthVM  {
                 if state {
                     self.manageUserSession(user: EPICAIUser())
                 }
-                print("State \(state)")
             }
         }
     }
@@ -100,21 +99,17 @@ class EPICUserLoginOperation:Operation {
                 appSyncClient?.fetch(query: GetUserQuery(user_uuid: uuid), cachePolicy: .fetchIgnoringCacheData, resultHandler: { result, error in
                     if error != nil {
                         self.loginRecord.loginStatus = .loginFailed
-                        print("Error in manageUserSession :\(String(describing: error?.localizedDescription))")
                     }
-                    else if let errors = result?.errors {
+                    else if let _ = result?.errors {
                         self.loginRecord.loginStatus = .loginFailed
-                        print("Error in manageUserSession :\(errors[0].localizedDescription)")
                     }
                     else {
                         if let user = result?.data?.getUser {
                             self.loginRecord.loginStatus = .loggedIn
-                            print("Manage user session :\(user) ")
                             self.manageUserSession(user:user)
                         }
                         else {
                             self.loginRecord.loginStatus = .userExist
-                            //self.registerNewUser(authProvider: userAuthProvider, userUUID: uuid)
                         }
                     }
                 })

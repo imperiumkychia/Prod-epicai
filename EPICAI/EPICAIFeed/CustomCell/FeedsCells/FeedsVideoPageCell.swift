@@ -10,6 +10,7 @@ import UIKit
 import FSPagerView
 import SnapKit
 import Player
+import AVFoundation
 
 class FeedsVideoPageCell: FSPagerViewCell {
     
@@ -50,12 +51,11 @@ class FeedsVideoPageCell: FSPagerViewCell {
         previewView.view.translatesAutoresizingMaskIntoConstraints = true
         previewView.playerDelegate = self
         previewView.playbackDelegate = self
-        previewView.fillMode = .resizeAspectFill
+        //previewView.fillMode = .resizeAspectFill
         previewView.playbackPausesWhenBackgrounded = true
         previewView.playbackPausesWhenResigningActive = true
         previewView.playbackResumesWhenEnteringForeground = false
         previewView.playbackResumesWhenBecameActive = false
-        
         
         contentView.addSubview(previewView.view)
         

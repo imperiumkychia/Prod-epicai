@@ -8,8 +8,7 @@
                     "endpointType": "GraphQL",
                     "endpoint": "https://rpfnn7ubmvcwjlisyoceu2kxkm.appsync-api.ap-southeast-1.amazonaws.com/graphql",
                     "region": "ap-southeast-1",
-                    "authorizationType": "API_KEY",
-                    "apiKey": "da2-4uaastgkgvfpzm3imdwo2dddvu"
+                    "authorizationType": "AMAZON_COGNITO_USER_POOLS",
                 }
             }
         }

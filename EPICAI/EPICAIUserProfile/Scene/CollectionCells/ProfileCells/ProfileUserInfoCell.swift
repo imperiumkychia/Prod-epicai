@@ -8,6 +8,7 @@
 import Foundation
 import SnapKit
 import UIKit
+import SQLite
 
 class ProfileUserInfoCell: UITableViewCell {
     
@@ -21,21 +22,40 @@ class ProfileUserInfoCell: UITableViewCell {
     private var followerBtn: UIButton!
     private var subscriptionBtn: UIButton!
     
-    var name: String? {
-        didSet {
-            nameLabel.text = name
-        }
-    }
+    var moveToUserList:((Bool) -> Void)?
+    var updateFollowStatus:((Bool) -> Void)?
     
-    var following: String? {
+    var userDetails:EPICAIUser? {
         didSet {
-            nameLabel.text = name
-        }
-    }
-    
-    var profileImage: UIImage? {
-        didSet {
-            profileImageView.image = profileImage ?? #imageLiteral(resourceName: "noProfileImage")
+            guard let details = self.userDetails else { return }
+            if let myProfile = EPICAISharedPreference.userSession?.uuid, myProfile != details.uuid {
+                self.subscriptionBtn.isHidden = false
+            }
+            else {
+                self.subscriptionBtn.isHidden = true
+            }
+            self.nameLabel.text = details.firstName + " " + details.lastName
+            self.followerBtn.setTitle("Followers (\(details.followerCount))", for: .normal)
+            self.followingBtn.setTitle("Following (\(details.followCount))", for: .normal)
+            
+            if details.followStatus {
+                self.subscriptionBtn.setTitle("Unfollow", for: .normal)
+            }
+            else {
+                self.subscriptionBtn.setTitle("Follow", for: .normal)
+            }
+            
+            AWSManager.shared().downloadProfileImage(key: details.imageUrl) { imageURL in
+                if let imageURL = imageURL {
+                    do {
+                        let data = try Data(contentsOf: imageURL)
+                        DispatchQueue.main.async { self.profileImageView.image = UIImage(data: data) }
+                       
+                    } catch {
+                        DispatchQueue.main.async { self.profileImageView.image = #imageLiteral(resourceName: "noProfileImage") }
+                    }
+                }
+            }
         }
     }
     
@@ -54,7 +74,7 @@ class ProfileUserInfoCell: UITableViewCell {
         selectionStyle = .none
         backgroundColor = Palette.V2.V2_VCBackground
         contentView.backgroundColor = backgroundColor
-        
+       
         dividerView = UIView(frame: .zero)
         dividerView.translatesAutoresizingMaskIntoConstraints = false
         dividerView.backgroundColor = Palette.V2.V2_profileTableDivider
@@ -83,7 +103,7 @@ class ProfileUserInfoCell: UITableViewCell {
         
         followerBtn = UIButton(frame: .zero)
         followerBtn.translatesAutoresizingMaskIntoConstraints = false
-        followerBtn.setTitle("Followers 150", for: .normal)
+        followerBtn.setTitle("Followers (0)", for: .normal)
         followerBtn.contentHorizontalAlignment  = .left
         followerBtn.titleLabel?.font = LatoFont.bold.withSize(13)
         followerBtn.setTitleColor(Palette.darkPurple, for: .normal)
@@ -92,7 +112,7 @@ class ProfileUserInfoCell: UITableViewCell {
         
         followingBtn = UIButton(frame: .zero)
         followingBtn.translatesAutoresizingMaskIntoConstraints = false
-        followingBtn.setTitle("Following 150", for: .normal)
+        followingBtn.setTitle("Following (0)", for: .normal)
         followingBtn.contentHorizontalAlignment  = .left
         followingBtn.titleLabel?.font = LatoFont.bold.withSize(13)
         followingBtn.setTitleColor(Palette.darkPurple, for: .normal)
@@ -101,13 +121,15 @@ class ProfileUserInfoCell: UITableViewCell {
         
         subscriptionBtn = UIButton(frame: .zero)
         subscriptionBtn.translatesAutoresizingMaskIntoConstraints = false
-        subscriptionBtn.setTitle("Subscriptions -> Tier 1", for: .normal)
-        subscriptionBtn.contentHorizontalAlignment  = .left
+        subscriptionBtn.setTitle("Follow", for: .normal)
+        subscriptionBtn.contentHorizontalAlignment  = .center
         subscriptionBtn.titleLabel?.font = LatoFont.bold.withSize(13)
-        subscriptionBtn.setTitleColor(Palette.darkPurple, for: .normal)
+        subscriptionBtn.setTitleColor(.white, for: .normal)
+        subscriptionBtn.layer.cornerCurve = .continuous
+        subscriptionBtn.layer.cornerRadius = 5
+        subscriptionBtn.backgroundColor = Palette.darkPurple
         subscriptionBtn.addTarget(self, action: #selector(moveToSubscription(_ :)), for: .touchUpInside)
         contentView.addSubview(subscriptionBtn)
-        
         
         dividerView.snp.makeConstraints { (make) in
             make.height.equalTo(1.0)
@@ -150,21 +172,24 @@ class ProfileUserInfoCell: UITableViewCell {
         subscriptionBtn.snp.makeConstraints { make in
             make.top.equalTo(followerBtn.snp.bottom)
             make.leading.equalTo(nameLabel)
-            make.trailing.equalTo(contentView).offset(-20)
+            make.width.equalTo(150)
+            make.height.equalTo(40)
         }
+        self.subscriptionBtn.isHidden = true
     }
     
     @objc func moveToFollowers(_ sender:UIButton) {
-        print("Move to moveToFollowers")
+        guard let moveToUsers = self.moveToUserList else { return }
+        moveToUsers(false)
     }
     
     @objc func moveToFollowings(_ sender:UIButton) {
-        print("Move to moveToFollowings")
+        guard let moveToUsers = self.moveToUserList else { return }
+        moveToUsers(true)
     }
     
     @objc func moveToSubscription(_ sender:UIButton) {
-        print("Move to moveToSubscription")
+        guard let updateFollowStatus = self.updateFollowStatus else { return }
+        updateFollowStatus(self.userDetails?.followStatus ?? false)
     }
-    
-
 }

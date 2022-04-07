@@ -63,6 +63,9 @@ public struct Palette {
         static let V2_pieChartBlue = UIColor(hex: "#a6d2f1")
         static let V2_pieChartGreen = UIColor(hex: "#b8d9ac")
         static let V2_pieChartRed = UIColor(hex: "#ff6d5d")
+        static let V2_pieChartMediumPurple = UIColor(hex: "#9370DB")
+        static let V2_pieChartViolet = UIColor(hex: "#EE82EE")
+        static let V2_pieChartAqua = UIColor(hex: "#OOFFEE")
         static let V2_pieChartInnerCircle = UIColor.modedColor(light: "#eff0ff", dark: "#151628")
         static let V2_cameraBottomCenterButtonBackground = UIColor.modedColor(light: "#474c8c", dark: "#b3b4bc")
         static let V2_cameraBottomSideBackground = UIColor.modedColor(light: "#b3c4d0", dark: "#334357")
@@ -88,6 +91,7 @@ public struct Palette {
         static let V2_VideoMoreButton = UIColor(hex: "#091065")
         static let V2_VideoTrimCancelButton = UIColor(hex: "#cecfe0")
     }
+    static let barColor = [Palette.V2.V2_pieChartRed, Palette.V2.V2_pieChartYellow, Palette.V2.V2_pieChartBlue, Palette.V2.V2_pieChartGreen,Palette.V2.V2_pieChartMediumPurple,Palette.V2.V2_pieChartViolet,Palette.V2.V2_pieChartAqua]
 }
 
 // MARK: - Fonts
@@ -170,10 +174,9 @@ let bodyPoseCSVHeader = ["timelapse",
                  "l_eye_x", "l_eye_y",
                  "r_eye_x", "r_eye_y",
                  "l_ear_x", "l_ear_y",
-                 "r_ear_x", "r_ear_y"]
+                 "r_ear_x", "r_ear_y",
+                 "cropping_start_time","cropping_end_time"]
 
-let audioCSVHeader = ["timelapse", "sound_dB"]
-
-
+let audioCSVHeader = ["timelapse", "sound_dB","cropping_start_time","cropping_end_time"]
 
 public let museoFont = UIFont(name: "Museo", size: 17.0)

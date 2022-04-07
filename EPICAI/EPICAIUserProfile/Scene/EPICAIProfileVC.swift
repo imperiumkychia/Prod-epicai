@@ -8,13 +8,13 @@
 
 import UIKit
 import JGProgressHUD
+import Amplify
 
 class EPICAIProfileVC: UIViewController {
-
+    
     var profileViewModel: EPICAIProfileVM!
-
     let itemsMargin: CGFloat = 20.0
-    var userDetails:EPICAIUser?
+    var otherUserDetails:EPICAIUser?
     var items = [EPICAIFeedItem]()
     var userItem: EPICAIUserAccountItem?
     
@@ -88,15 +88,15 @@ class EPICAIProfileVC: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-
-        if self.userDetails != nil {
+        
+        if self.otherUserDetails != nil {
             self.leftMenuItems()
         }
         else {
             self.rightMenuItems()
         }
         setupUIElements()
-        initializeViewModel()
+        
     }
     
     override func viewWillDisappear(_ animated: Bool) {
@@ -110,11 +110,11 @@ class EPICAIProfileVC: UIViewController {
         if let tbar = tabBarController as? GenericTabBarController{
             tbar.floatingTabbarView.toggle(hide: false)
         }
+        initializeViewModel()
     }
-
+    
     func initializeViewModel() {
-        profileViewModel = EPICAIProfileVM(user: self.userDetails)
-        
+        profileViewModel = EPICAIProfileVM(user: self.otherUserDetails)
         DispatchQueue.main.async {
             self.ai.textLabel.text = "Please wait..."
             self.ai.show(in: self.view, animated: true)
@@ -170,11 +170,16 @@ class EPICAIProfileVC: UIViewController {
                                                selector: #selector(shouldRefreshFeedsTable(_:)),
                                                name: .didRenamePrivateVideo,
                                                object: nil)
-
+        
+        NotificationCenter.default.addObserver(self,
+                                               selector: #selector(shouldMoveToRoot(_:)),
+                                               name: .didChageTabCalled,
+                                               object: nil)
+        
         view.backgroundColor = Palette.V2.V2_VCBackground
         view.addSubview(profileTableView)
         view.addSubview(ai)
-
+        
         profileTableView.snp.makeConstraints { (make) in
             make.top.equalTo(0).offset(itemsMargin)
             make.bottom.equalTo(view)
@@ -192,7 +197,7 @@ class EPICAIProfileVC: UIViewController {
     }
     
     @objc func settingsButtonTapped(_ sender: UIButton) {
-        guard let toVC = UIStoryboard(name: "Main", bundle: nil).instantiateViewController(identifier: "ProfileSettingsViewController") as? EPICAISettingsVC else { return }
+        guard let toVC = UIStoryboard(name: "Main", bundle: nil).instantiateViewController(identifier: "EPICAISettingsVC") as? EPICAISettingsVC else { return }
         navigationController?.pushViewController(toVC, animated: true)
     }
     
@@ -206,6 +211,10 @@ class EPICAIProfileVC: UIViewController {
     
     @objc func shouldRefreshFeedsTable(_ notification: Notification) {
         refreshProfileData()
+    }
+    
+    @objc func shouldMoveToRoot(_ notification: Notification) {
+        _ = self.navigationController?.popViewController(animated: true)
     }
     
     
@@ -238,13 +247,13 @@ extension EPICAIProfileVC: UITableViewDelegate, UITableViewDataSource {
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
         switch indexPath.section {
         case 0:
-            return 130.0
+            return (self.otherUserDetails == nil) ? 110.0 : 150
         case 1:
             return 260.0
         case 3:
             return 200.0
         default:
-            return 320.0
+            return 650.0
         }
     }
     
@@ -253,18 +262,32 @@ extension EPICAIProfileVC: UITableViewDelegate, UITableViewDataSource {
         switch indexPath.section {
         case 0:
             guard let cell = tableView.dequeueReusableCell(withIdentifier: "ProfileUserInfoCell", for: indexPath) as? ProfileUserInfoCell else { return UITableViewCell() }
-            cell.profileImage = userItem?.userImage
-            cell.name = (userItem?.user.firstName ?? "") + " " + (userItem?.user.lastName ?? "")
+            cell.userDetails =  self.userItem?.user
+            cell.moveToUserList = { follow in
+                self.routeToUserList(follow: follow)
+            }
+            cell.updateFollowStatus = { followState in
+                if var otherUser = self.otherUserDetails {
+                    self.profileViewModel.performFollow(state: !followState, selectedUser: otherUser) { successState in
+                        if successState {
+                            otherUser.followStatus = !followState
+                            cell.userDetails =  otherUser
+                        }
+                    }
+                }
+                
+            }
             return cell
         case 1:
             guard let cell = tableView.dequeueReusableCell(withIdentifier: "ProfileOverviewCell", for: indexPath) as? ProfileOverviewCell else { return UITableViewCell() }
-            cell.data = [1, 9, 9, 7, 9, 9, 9, 8]
-            cell.score = CGFloat(CGFloat(cell.data.sum()) / CGFloat(cell.data.count))
+            let result = self.items.map { Double($0.video.score)}
+            cell.data = result //[6, 9, 9, 7, 9, 9, 9, 8,10, 14, 23, 9,40, 7,7,7,7,7,35,30]
+            cell.score = (result.sum() > 0) ? CGFloat(CGFloat(result.sum()) / CGFloat(result.count)) : 0.0
             return cell
         case 2:
             guard let cell = tableView.dequeueReusableCell(withIdentifier: "ProfileVideosCell", for: indexPath) as? ProfileVideosCell else { return UITableViewCell() }
             cell.delegate = self
-            cell.user = self.userDetails
+            cell.user = self.otherUserDetails
             cell.item = items[indexPath.row]
             return cell
         case 3:
@@ -275,12 +298,21 @@ extension EPICAIProfileVC: UITableViewDelegate, UITableViewDataSource {
         }
     }
     
+    private func routeToUserList(follow:Bool) {
+        let vc = EPICAIFollowListVC.instantiateFromAppStoryBoard(appStoryBoard: .UsersStoryboard)
+        vc.follow  = follow
+        vc.otherUser = self.otherUserDetails
+        self.navigationController?.pushViewController(vc, animated: true)
+    }
+    
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         switch indexPath.section {
         case 2:
-            let toVC = EPICAIVideoDetailsVC()
-            toVC.videoItem = items[indexPath.row]
-            navigationController?.pushViewController(toVC, animated: true)
+            if self.otherUserDetails == nil {
+                let toVC = EPICAIVideoDetailsVC()
+                toVC.videoItem = items[indexPath.row]
+                navigationController?.pushViewController(toVC, animated: true)
+            }
         default:
             break
         }
@@ -290,10 +322,89 @@ extension EPICAIProfileVC: UITableViewDelegate, UITableViewDataSource {
 extension EPICAIProfileVC: ProfileVideosCellDelegate {
     
     func profileVideoCell(_ cell: ProfileVideosCell, didAskToShareVideoItem item: EPICAIFeedItem?) {
-        let viewController  = EPICAIVideoDetailsVC()
-        viewController.videoItem = item
-        self.navigationController?.pushViewController(viewController, animated: true)
-        print("Method called")
+        guard let video = item?.video else { return }
+        self.showActionSheet(videoItem: video, indexPath: cell.indexPath)
+        //let viewController  = EPICAIVideoDetailsVC()
+        //viewController.videoItem = item
+        //self.navigationController?.pushViewController(viewController, animated: true)
+    }
+    
+    private func showActionSheet(videoItem:EPICAIVideo,indexPath:IndexPath?) {
+        let controller = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
+        controller.view.tintColor = Palette.V2.V2_VCTitle
+        
+        let cancelAction = UIAlertAction(title: "Cancel", style: .cancel) { _ in }
+        let resultWithVideoAction = UIAlertAction(title: "Result with video", style: .default) { action in
+            self.shareVideoWithVideoFlow(videoWithResult: true, videoItem: videoItem, indexPath: indexPath)
+        }
+        let shareAction = UIAlertAction(title: "Result only", style: .default) { action in
+            self.shareVideoWithVideoFlow(videoWithResult: false, videoItem: videoItem, indexPath: indexPath)
+        }
+        controller.addAction(cancelAction)
+        
+        if videoItem.share == 1 && videoItem.videoShare == 0 {
+            controller.addAction(resultWithVideoAction)
+        }
+        else if videoItem.share == 0 && videoItem.videoShare == 0 {
+            controller.addAction(resultWithVideoAction)
+            controller.addAction(shareAction)
+        }
+        self.present(controller, animated: true) {}
+    }
+    
+    func shareVideoWithVideoFlow(videoWithResult:Bool, videoItem:EPICAIVideo, indexPath:IndexPath?) {
+        
+        self.showLoader(withTitle: "Sharing video")
+        
+        let videoUpdateMutaionInput = (videoWithResult) ? UpdateVideoInput(videoUuid: videoItem.videoUUID, share: 1 ,shareVideo: 1) : UpdateVideoInput(videoUuid: videoItem.videoUUID, share: 1)
+        
+        self.updateVideoDetails(videoMutationInput: videoUpdateMutaionInput) { error in
+            if let error = error {
+                print("Error while updating video title:\(error.localizedDescription)")
+            }
+            else {
+                DispatchQueue.main.async {
+                    guard let indexPath = indexPath else { return }
+                    if videoWithResult {
+                        self.items[indexPath.row].video.share = 1
+                        self.items[indexPath.row].video.videoShare = 1
+                    }
+                    else {
+                        self.items[indexPath.row].video.share = 1
+                    }
+                    self.profileTableView.reloadRows(at: [indexPath], with: .fade)
+                    EPICAIGenericAlertView().show(title: "Success", message: "Video details updated successfully.", onViewController: self) {}
+                }
+            }
+            self.hideLoader()
+        }
+    }
+    
+    private func showLoader(withTitle:String) {
+        DispatchQueue.main.async {
+            self.ai.textLabel.text = "\(withTitle)..."
+            self.ai.show(in: self.view, animated: true)
+        }
+    }
+    
+    private func hideLoader() {
+        DispatchQueue.main.async {
+            self.ai.dismiss()
+        }
+    }
+    
+    func updateVideoDetails(videoMutationInput:UpdateVideoInput, completion:@escaping (Error?) -> Void) {
+        appSyncClient?.perform(mutation: UpdateVideoMutation(updateVideoInput: videoMutationInput), resultHandler: { result, error in
+            if let error = error {
+                completion(error)
+            }
+            else if let errors = result?.errors {
+                completion(errors[0])
+            }
+            else {
+                completion(nil)
+            }
+        })
     }
     
     func profileVideoCell(_ cell: ProfileVideosCell, didAskToShareVideoWithUUID videoUUID: String?) {

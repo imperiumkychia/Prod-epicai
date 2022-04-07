@@ -12,7 +12,6 @@ import Player
 
 class VideoHighlightsCell: UITableViewCell {
     
-    
     private var titleLabel: UILabel!
     private var previewView: Player!
     private var playButtonContainer: UIView!
@@ -81,7 +80,7 @@ class VideoHighlightsCell: UITableViewCell {
         previewView.view.translatesAutoresizingMaskIntoConstraints = true
         previewView.playerDelegate = self
         previewView.playbackDelegate = self
-        previewView.fillMode = .resizeAspectFill
+        previewView.fillMode = .resizeAspect
         previewView.playbackPausesWhenBackgrounded = true
         previewView.playbackPausesWhenResigningActive = true
         previewView.playbackResumesWhenEnteringForeground = false
@@ -129,6 +128,7 @@ class VideoHighlightsCell: UITableViewCell {
         titleLabel.snp.makeConstraints { (make) in
             make.top.equalTo(contentView).offset(itemsMargin)
             make.centerX.equalTo(contentView)
+            make.height.equalTo(40)
         }
         
         dividerView.snp.makeConstraints { (make) in
@@ -140,7 +140,7 @@ class VideoHighlightsCell: UITableViewCell {
         
         previewView.view.snp.makeConstraints { (make) in
             make.top.equalTo(titleLabel.snp.bottom)
-            make.height.equalTo(170.0)
+            make.height.equalTo(270.0)
             make.leading.equalTo(contentView).offset(2 * itemsMargin)
             make.trailing.equalTo(contentView).offset(-2 * itemsMargin)
         }
@@ -162,6 +162,7 @@ class VideoHighlightsCell: UITableViewCell {
         explanationTitleLabel.snp.makeConstraints { (make) in
             make.top.equalTo(previewView.view.snp.bottom).offset(itemsMargin)
             make.centerX.equalTo(previewView.view)
+            make.height.equalTo(40)
         }
         
         explanationDetailLabel.snp.makeConstraints { (make) in

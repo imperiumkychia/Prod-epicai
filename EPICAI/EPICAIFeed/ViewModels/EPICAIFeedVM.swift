@@ -35,8 +35,6 @@ class EPICAIFeedVM: NSObject {
 extension EPICAIFeedVM {
     
     func updateLikeCount(videoItem:EPICAIFeedItem, indexPath:IndexPath,likeState:Bool, completion:@escaping (IndexPath?) -> Void ) {
-        
-        print("Index path :\(indexPath)")
         if self.requestOnProgress { return }
         
         guard let userUUID = EPICAISharedPreference.userSession?.uuid else { return }
@@ -44,42 +42,26 @@ extension EPICAIFeedVM {
         let checkUserLikeTable = ListVideoLikebyVideoAndUserQuery(user_uuid: userUUID, video_uuid: videoItem.video.videoUUID)
         
         appSyncClient?.fetch(query: checkUserLikeTable, cachePolicy: .fetchIgnoringCacheData, resultHandler: { result, error in
-            if let error = error {
-                print("Error while fetching like details : \(error.localizedDescription)")
-            }
-            else if let errors = result?.errors {
-                print("Error while fetching like details : \(errors[0].localizedDescription)")
-            }
+            if let _ = error { }
+            else if let _ = result?.errors { }
             else {
                 if let result = result?.data?.listVideoLikebyVideoAndUser {
-                    print("Result : \(result)")
-                   
                     if result.count > 0 {
                         appSyncClient?.perform(mutation: DeleteVideoLikeMutation(video_like_uuid:  result[0]!.videoLikeUuid), resultHandler: { result, error in
-                            if let error = error {
-                                print("Error while deleting record :\(error)")
-                            }
-                            else if let errors = result?.errors {
-                                print("Error while deleting record :\(errors[0])")
-                            }
+                            if let _ = error { }
+                            else if let _ = result?.errors { }
                             else {
                                 completion(indexPath)
-                                print("Record deleted successfully")
                             }
                         })
                     }
                     else {
                         let createVideoLike = CreateVideo_likeInput(videoLikeUuid: UUID().uuidString, userUuid: userUUID, videoUuid:videoItem.video.videoUUID, createdDatetime: Date().getServerDate())
                         appSyncClient?.perform(mutation: CreateVideoLikeMutation(createVideo_likeInput: createVideoLike), resultHandler: { result, error in
-                            if let error = error {
-                                print("Error while create video like record :\(error)")
-                            }
-                            else if let errors = result?.errors {
-                                print("Error while create video like record :\(errors[0])")
-                            }
+                            if let _ = error { }
+                            else if let _ = result?.errors { }
                             else {
                                 completion(indexPath)
-                                print("Record created successfully")
                             }
                         })
                     }
@@ -89,9 +71,27 @@ extension EPICAIFeedVM {
         })
     }
     
+    func reportVideo(epicFeedItem:EPICAIFeedItem, comment:String ,  completion:@escaping (Bool) -> Void ) {
+        
+        guard let userUUID = EPICAISharedPreference.userSession?.uuid else { return }
+        
+        let createReportInput = CreateReportInput(reportUuid: UUID().uuidString,
+                                                  byUser: userUUID,
+                                                  datetime: Date().getServerDate(),
+                                                  status: 1,
+                                                  message: comment,
+                                                  type: "video",
+                                                  videoUuid: epicFeedItem.video.videoUUID)
+        
+        appSyncClient?.perform(mutation: CreateReportMutation(createReportInput: createReportInput), resultHandler: { result, error in
+            if let _ = error { completion(false) }
+            else if let _ = result?.errors?[0] { completion(false) }
+            else  { completion(true) }
+        })
+    }
+    
     func getVideosList(){
         var results = [EPICAIFeedItem]()
-        print("User uuid :\(String(describing: EPICAISharedPreference.userSession?.uuid))")
         if let userUUID = EPICAISharedPreference.userSession?.uuid {
             appSyncClient?.fetch(query: ListVideoShareWithLikeQuery(user_uuid: userUUID),cachePolicy: .fetchIgnoringCacheData) {(result, error) in
                 guard let unWrappedVideosList = result?.data?.listVideoShareWithLike else { self.items = nil ; return }
@@ -102,29 +102,58 @@ extension EPICAIFeedVM {
                         appSyncClient?.fetch(query: GetUserQuery(user_uuid:uwvideo.userUuid), cachePolicy: .fetchIgnoringCacheData) {
                             (result, error) in
                             if let user = result?.data?.getUser {
+                                var feedItem = EPICAIFeedItem(video: EPICAIVideo(awsListVideo: uwvideo), user: EPICAIUser(awsListUser: user))
+                                
+                                // CREATED BY KANG YEE CHIA : 5th APRIL 2022
+                                // Assign analyzed result to each object
+                                // Speed of Speech
+                                if let speedResult = uwvideo.speedResult, speedResult.count > 0 {
+                                    feedItem.speedOfSpeech = SpeedOfSpeech.speedOfResult(awsResultArray: speedResult)
+                                    //SpeedOfSpeech.speedOfResult(awsResultArray: speedResult)
+                                    //print("[DEBUG] EPICAIFeedVM : \(speedResult)")
+                                }
+                                // Body Language
+                                if let blResult = uwvideo.blResult, blResult.count > 0 {
+                                    feedItem.bodyLaguageResult =  BodyLanguage.bodyLanguages(awsResultArray: blResult)
+                                }
+                                // Tonality
+                                if let  tonalityResult = uwvideo.tonalityResult, tonalityResult.count > 0 {
+                                    feedItem.tonalityResult = TonalityResult.tonalityResult(awsResultArray: tonalityResult)
+                                    
+                                    if let tonalityResultArray = uwvideo.tonalityResultDetail, tonalityResultArray.count > 0 {
+                                        feedItem.tonalityResult?.results = TonalityResult.tonalityResultDetails(awsResultArray: tonalityResultArray)
+                                    }
+                                }
+                                //filler words
+                                if let  fwResult = uwvideo.fwResult , fwResult.count > 0 {
+                                    feedItem.fillerWords = FillerWord.fillerWords(awsResultArray: fwResult)
+                                }
+                                
+                                
+                                
                                 if let imageURLString = user.imageUrl {
                                     AWSManager.shared().downloadProfileImage(key: imageURLString) { imageURL in
                                         if let imageURL = imageURL {
                                             do {
                                                 let data = try Data(contentsOf: imageURL)
-                                                var feedItem = EPICAIFeedItem(video: EPICAIVideo(awsListVideo: uwvideo), user: EPICAIUser(awsListUser: user))
+                                                //var feedItem = EPICAIFeedItem(video: EPICAIVideo(awsListVideo: uwvideo), user: EPICAIUser(awsListUser: user))
                                                 feedItem.userImage = UIImage(data: data)
                                                 results.append(feedItem)
                                                 group.leave()
                                             } catch {
-                                                let feedItem = EPICAIFeedItem(video: EPICAIVideo(awsListVideo: uwvideo), user: EPICAIUser(awsListUser: user))
+                                                //let feedItem = EPICAIFeedItem(video: EPICAIVideo(awsListVideo: uwvideo), user: EPICAIUser(awsListUser: user))
                                                 results.append(feedItem)
                                                 group.leave()
                                             }
                                         } else {
-                                            let feedItem = EPICAIFeedItem(video: EPICAIVideo(awsListVideo: uwvideo), user: EPICAIUser(awsListUser: user))
+                                            //let feedItem = EPICAIFeedItem(video: EPICAIVideo(awsListVideo: uwvideo), user: EPICAIUser(awsListUser: user))
                                             results.append(feedItem)
                                             group.leave()
                                         }
                                     }
                                 }
                                 else {
-                                    let feedItem = EPICAIFeedItem(video: EPICAIVideo(awsListVideo: uwvideo), user: EPICAIUser(awsListUser: user))
+                                    //let feedItem = EPICAIFeedItem(video: EPICAIVideo(awsListVideo: uwvideo), user: EPICAIUser(awsListUser: user))
                                     results.append(feedItem)
                                     group.leave()
                                 }
@@ -133,6 +162,7 @@ extension EPICAIFeedVM {
                     }
                 }
                 group.notify(queue: .main) {
+                    //print("[DEBUG] EPICAIFeedVM : \(results)")
                     self.items = results
                 }
             }
@@ -145,12 +175,10 @@ extension EPICAIFeedVM {
         for item in items {
             group.enter()
             if !item.video.videoName.isEmpty {
-                print("Video name: \(item.video.videoName)")
                 _ = Amplify.Storage.getURL(key: item.video.videoName, options: .none, resultListener: { result in
                     var dummyItem = item
                     switch result {
-                    case .failure(let error):
-                        print("Error \(error.localizedDescription)")
+                    case .failure(_):
                         dummyItem.videoLocalURL = nil
                         results.append(dummyItem)
                         group.leave()

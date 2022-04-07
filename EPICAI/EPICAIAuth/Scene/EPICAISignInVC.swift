@@ -66,6 +66,14 @@ class EPICAISignInVC: UIViewController, AWSCognitoIdentityInteractiveAuthenticat
         super.viewDidLoad()
         NotificationCenter.default.addObserver(self, selector: #selector(userDidSignIn(_:)), name: .userDidSignIn, object: nil)
         setupUIElements(forOrientation: orientation)
+        if let value = EPICAISharedPreference.displayTutorial, !value {
+            DispatchQueue.main.async {
+                let controller = EPICAITutorialVC.instantiateFromAppStoryBoard(appStoryBoard: .NotificationSB)
+                controller.modalPresentationStyle = .fullScreen
+                self.present(controller, animated: true)
+                EPICAISharedPreference.displayTutorial = true
+            }
+        }
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -240,7 +248,6 @@ class EPICAISignInVC: UIViewController, AWSCognitoIdentityInteractiveAuthenticat
             }
             else {
                 if let user = result?.data?.getUser {
-                    print("Manage user session :\(user) ")
                     self.manageSession(user: user)
                 }
                 else {
@@ -312,14 +319,13 @@ class EPICAISignInVC: UIViewController, AWSCognitoIdentityInteractiveAuthenticat
                     downloader.download(from: url) { image in
                         if let userImage = image {
                             let imageKey = "profile_image__\(userUUID).png"
+                            user.imageUrl = imageKey
                             AWSManager.shared().uploadProfileImage(image: userImage, key: imageKey) { result in
                                 switch result {
-                                case.failure(let error):
+                                case.failure( _):
                                     self.createUser(user: user, authProvider: authProvider)
-                                    print("Unable to upload user image: \(error)")
-                                case .success(let message):
+                                case .success( _):
                                     self.createUser(user: user, authProvider: authProvider)
-                                    print("Uploaded user image: \(message)")
                                 }
                             }
                         }
@@ -344,7 +350,6 @@ class EPICAISignInVC: UIViewController, AWSCognitoIdentityInteractiveAuthenticat
                 print("Error in createUser \(String(describing: result?.errors?[0].localizedDescription))")
             }
             else {
-                print("User register successfully.")
                 DispatchQueue.main.async {
                     self.manageUserSession(uuid: user.uuid, userAuthProvider: authProvider)
                 }
@@ -368,7 +373,6 @@ class EPICAISignInVC: UIViewController, AWSCognitoIdentityInteractiveAuthenticat
                 if authResult.isSignedIn {
                     AuthService.shared().getCurrentUserUUID { (uuid) in
                         if let uuid = uuid {
-                            print("Sign in user UUID :\(uuid)")
                             self.fetchedUserUUID = uuid
                             self.manageUserSession(uuid: uuid, userAuthProvider: .google)
                             DispatchQueue.main.async {
@@ -379,12 +383,10 @@ class EPICAISignInVC: UIViewController, AWSCognitoIdentityInteractiveAuthenticat
                                     sd.setRootViewController(windowSceen: windowScene)
                                 }
                             }
-                            print("UUID with apple sign in \(uuid)")
                         } else {
                             self.mainQueue.async {
                                 self.ai.dismiss()
                             }
-                            print("User not found. Registering new user...")
                         }
                     }
                 }
@@ -393,7 +395,6 @@ class EPICAISignInVC: UIViewController, AWSCognitoIdentityInteractiveAuthenticat
     }
     
     @objc func signInWithFacebookButtonTapped(_ sender: Any) {
-        
         ai.textLabel.text = "Signing in..."
         ai.detailTextLabel.text = nil
         ai.indicatorView = JGProgressHUDIndeterminateIndicatorView()
@@ -401,11 +402,9 @@ class EPICAISignInVC: UIViewController, AWSCognitoIdentityInteractiveAuthenticat
         AuthService.shared().performSignIn(provider: .facebook, in: window) { (result) in
             switch result {
             case .failure(let error):
-                print("Error signing in: \(error)")
                 self.mainQueue.async {
                     self.ai.dismiss()
                     EPICAIGenericAlertView().show(title: "Error", message: "\(error)", onViewController: self, isShort: false) {}
-                    
                 }
             case .success(let authResult):
                 if authResult.isSignedIn {
@@ -421,12 +420,10 @@ class EPICAISignInVC: UIViewController, AWSCognitoIdentityInteractiveAuthenticat
                                     sd.setRootViewController(windowSceen: windowScene)
                                 }
                             }
-                            print("UUID with facebook sign in \(uuid)")
                         } else {
                             self.mainQueue.async {
                                 self.ai.dismiss()
                             }
-                            print("User not found")
                         }
                     }
                 }
@@ -435,21 +432,36 @@ class EPICAISignInVC: UIViewController, AWSCognitoIdentityInteractiveAuthenticat
     }
     
     @objc func signInWithAppleButtonTapped(_ sender: Any) {
+        ai.textLabel.text = "Signing in..."
+        ai.detailTextLabel.text = nil
+        ai.indicatorView = JGProgressHUDIndeterminateIndicatorView()
+        ai.show(in: self.view, animated: true)
         AuthService.shared().performSignIn(provider: .apple, in: window) { (result) in
             switch result {
             case .failure(let error):
-                print("Error signing in: \(error)")
                 self.mainQueue.async {
+                    self.ai.dismiss()
                     EPICAIGenericAlertView().show(title: "Error", message: "\(error)", onViewController: self, isShort: false) {}
                     //AlertUser.alertUser(title: "Error", message: "\(error)", type: .error)
                 }
             case .success(let authResult):
                 if authResult.isSignedIn {
-                    /// Get user ID
                     AuthService.shared().getCurrentUserUUID { (uuid) in
                         if let uuid = uuid {
                             self.fetchedUserUUID = uuid
-                            print("UUID with apple String(describing: sign) in \(uuid)")
+                            self.manageUserSession(uuid: uuid, userAuthProvider: .apple)
+                            DispatchQueue.main.async {
+                                self.ai.dismiss()
+                                guard let windowScene = self.view.window?.windowScene else { return }
+                                let scene = UIApplication.shared.connectedScenes.first
+                                if let sd : SceneDelegate = (scene?.delegate as? SceneDelegate) {
+                                    sd.setRootViewController(windowSceen: windowScene)
+                                }
+                            }
+                        } else {
+                            self.mainQueue.async {
+                                self.ai.dismiss()
+                            }
                         }
                     }
                 }
@@ -496,36 +508,36 @@ class EPICAISignInVC: UIViewController, AWSCognitoIdentityInteractiveAuthenticat
         return hashString
     }
     
-    private func createUserLogin(uuid: String, provider: AuthProvider) {
-        let format = "yyyy-MM-dd HH:mm:ss"
-        let formatter = DateFormatter()
-        formatter.dateFormat = format
-        let now = Date()
-        _ = formatter.string(from: now)
-        
-        var authMethod = ""
-        switch provider {
-        case .google:
-            authMethod = "G"
-        case .facebook:
-            authMethod = "FB"
-        case .apple:
-            authMethod = "APPL"
-        default:
-            authMethod = "other"
-        }
-        
-        _ = UUID().uuidString
-        
-        //        let userLogin = EPICAIUserLogin()
-        //        userLogin?.logonUuid = logon_UUID
-        //        userLogin?.userUuid = uuid
-        //        userLogin?.loginTime = loginTime
-        //        userLogin?.oauthMethod = authMethod
-        //
-        //
-        //        APIHandler.shared().createUserLogin(userLogin: userLogin!) { (_) in }
-    }
+//    private func createUserLogin(uuid: String, provider: AuthProvider) {
+//        let format = "yyyy-MM-dd HH:mm:ss"
+//        let formatter = DateFormatter()
+//        formatter.dateFormat = format
+//        let now = Date()
+//        _ = formatter.string(from: now)
+//
+//        var authMethod = ""
+//        switch provider {
+//        case .google:
+//            authMethod = "G"
+//        case .facebook:
+//            authMethod = "FB"
+//        case .apple:
+//            authMethod = "APPL"
+//        default:
+//            authMethod = "other"
+//        }
+//
+//        _ = UUID().uuidString
+//
+//        //        let userLogin = EPICAIUserLogin()
+//        //        userLogin?.logonUuid = logon_UUID
+//        //        userLogin?.userUuid = uuid
+//        //        userLogin?.loginTime = loginTime
+//        //        userLogin?.oauthMethod = authMethod
+//        //
+//        //
+//        //        APIHandler.shared().createUserLogin(userLogin: userLogin!) { (_) in }
+//    }
     
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         if segue.identifier == Segues.showMainVC.rawValue {

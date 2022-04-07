@@ -2,9 +2,9 @@
 //  ProfileVideosCell.swift
 //  EPICAI
 //
-//  Created by Pouya Khansaryan on 11/06/21.
-//  Copyright © 2021 Pouya Kh. All rights reserved.
+//  Created by Abdul fattah on 09/12/21.
 //
+
 
 
 import Foundation
@@ -73,8 +73,6 @@ class ProfileVideosCell: UITableViewCell {
     private func updateValues() {
         guard let item = self.item else { return }
         
-        print("Items :\(item)")
-        
         if item.video.title == "null" || item.video.title.isEmpty ||  item.video.title == ""{
             statusLabel.text = "No title"
         }
@@ -92,6 +90,22 @@ class ProfileVideosCell: UITableViewCell {
         videoDateLabel.text = formattedDateString(string: item.video.dataTime)
         videoURL = item.videoLocalURL
         videoScoreLabel.text = "score: \(item.video.score)/100"
+        
+        if item.video.share == 1 && item.video.videoShare == 1 {
+            self.shareButton.isHidden = true
+        }
+        else {
+            self.shareButton.isHidden = false
+        }
+        
+        if let uuid = EPICAISharedPreference.userSession?.uuid {
+            if item.user.uuid != uuid {
+                self.shareButton.isHidden = true
+            }
+            else {
+                self.shareButton.isHidden = false
+            }
+        }
     }
     
     private func configureUI() {
@@ -233,7 +247,6 @@ class ProfileVideosCell: UITableViewCell {
         } else {
             previewView.playFromCurrentTime()
         }
-        
     }
     
     @objc func shareButtonTapped(_ sender: UIButton) {
@@ -243,7 +256,6 @@ class ProfileVideosCell: UITableViewCell {
 
 extension ProfileVideosCell: PlayerDelegate, PlayerPlaybackDelegate {
     func playerReady(_ player: Player) {
-        
     }
     
     func playerPlaybackStateDidChange(_ player: Player) {

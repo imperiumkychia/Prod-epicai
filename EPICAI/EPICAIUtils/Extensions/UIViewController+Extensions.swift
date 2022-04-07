@@ -10,7 +10,7 @@ import UIKit
 
 enum AppStoryBoard : String {
     
-    case Main, Comment, User, Video, Setting, EPICAuthStoryboard,VPStoryboard
+    case Main, Comment, UsersStoryboard, Video, Setting, EPICAuthStoryboard,VPStoryboard, NotificationSB
     
     var instance : UIStoryboard {
         return UIStoryboard(name: self.rawValue, bundle: .main)
@@ -87,6 +87,12 @@ extension UIViewController {
 
 
 extension UIViewController {
+    
+    func pushToAdvanceSettingsVC() {
+        let vc = EPICAIAdvanceSettingVC.instantiateFromAppStoryBoard(appStoryBoard: .NotificationSB)
+        self.navigationController?.pushViewController(vc, animated: true)
+    }
+    
     func pushAccountViewController() {
         let toVC = EPICAIAccountVC()
         navigationController?.pushViewController(toVC, animated: true)
@@ -94,6 +100,11 @@ extension UIViewController {
     
     func pushSubscriptionViewController() {
         let toVC = EPICAISubscriptionsVC()
+        navigationController?.pushViewController(toVC, animated: true)
+    }
+    
+    func pushTutorialViewController() {
+        let toVC = EPICAITutorialVC.instantiateFromAppStoryBoard(appStoryBoard: .NotificationSB)
         navigationController?.pushViewController(toVC, animated: true)
     }
     

@@ -33,9 +33,45 @@ extension Date {
         formatter.dateFormat = format
         return formatter.string(from: Date())
     }
+    
+    func getDisplayDate(string:String?) -> String? {
+        let dateFormatter = DateFormatter()
+        let targetDateFormat = "dd/MM/yyyy"
+        let originalDateFormat = "yyyy-MM-dd HH:mm:ss"
+        dateFormatter.dateFormat = originalDateFormat
+        guard let string = string, let date = dateFormatter.date(from: string) else { return nil}
+        dateFormatter.dateFormat = targetDateFormat
+        return dateFormatter.string(from: date)
+    }
+}
+
+extension String {
+    func getDisplayDate() -> String {
+        let dateFormatter = DateFormatter()
+        let targetDateFormat = "dd/MM/yyyy HH:mm:ss"
+        let originalDateFormat = "yyyy-MM-dd HH:mm:ss"
+        dateFormatter.dateFormat = originalDateFormat
+        guard let date = dateFormatter.date(from: self) else { return ""}
+        dateFormatter.dateFormat = targetDateFormat
+        return dateFormatter.string(from: date)
+    }
 }
 
 extension TimeInterval{
+    
+    var minuteSecondMS: String {
+        return String(format:"%d:%02d.%02d", minute, second, millisecond)
+    }
+    var minute: Int {
+        return Int((self/60).truncatingRemainder(dividingBy: 60))
+    }
+    var second: Int {
+        return Int(truncatingRemainder(dividingBy: 60))
+    }
+    var millisecond: Int {
+        return Int((self*100).truncatingRemainder(dividingBy: 100))
+    }
+    
     func stringFromTimeInterval() -> String {
         let time = NSInteger(self)
         let ms = Int((self.truncatingRemainder(dividingBy: 1)) * 100)

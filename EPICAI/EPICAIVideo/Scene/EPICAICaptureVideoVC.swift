@@ -49,6 +49,7 @@ class EPICAICaptureVideoVC: UIViewController {
     
     var previewView : UIView!
     private var previewLayer: AVCaptureVideoPreviewLayer?
+    let videoEntitleMentVM = EPICAIEntitlementVM()
     
     private func setupAndBeginCapturingVideoFrames() {
         self.videoCapture = EPICAIVideoCapture()
@@ -74,7 +75,22 @@ class EPICAICaptureVideoVC: UIViewController {
     }
     
     func resetTimerTime() {
-        self.timeValueLabel.text = "05.00"
+        if !self.videoCapture.captureSession.isRunning {
+            if let timeInSecond = EPICAISharedPreference.advanceSetting?.poseTimerTime {
+                self.timeValueLabel.text = (timeInSecond > 5) ? "10.00" : "0\(timeInSecond):00"
+            }
+            else {
+                self.timeValueLabel.text = "05.00"
+            }
+        }
+        else {
+            if let timeInSecond = EPICAISharedPreference.advanceSetting?.poseTimerTime {
+                self.timeValueLabel.text = (timeInSecond > 5) ? "10.00" : "0\(timeInSecond):00"
+            }
+            else {
+                self.timeValueLabel.text = "05.00"
+            }
+        }
         self.timer?.invalidate()
         timer = nil
         self.startTime = 0
@@ -102,34 +118,81 @@ class EPICAICaptureVideoVC: UIViewController {
         EPICAIFileManager.shared().audioPointFileName = fileName
     }
     
+    override func viewDidLayoutSubviews() {
+      super.viewDidLayoutSubviews()
+      updatePreview()
+    }
+
+    func updatePreview() {
+      let orientation: AVCaptureVideoOrientation
+      switch UIDevice.current.orientation {
+        case .portrait:
+          orientation = .portrait
+          self.bottomBar.snp.updateConstraints { make in
+              make.bottom.equalTo(-100)
+          }
+        case .landscapeRight:
+          orientation = .landscapeLeft
+          self.bottomBar.snp.updateConstraints { make in
+              make.bottom.equalTo(-50)
+          }
+        case .landscapeLeft:
+          orientation = .landscapeRight
+          self.bottomBar.snp.updateConstraints { make in
+              make.bottom.equalTo(-50)
+          }
+        case .portraitUpsideDown:
+          orientation = .portraitUpsideDown
+          self.bottomBar.snp.updateConstraints { make in
+              make.bottom.equalTo(-100)
+          }
+        default:
+          orientation = .portrait
+          self.bottomBar.snp.updateConstraints { make in
+              make.bottom.equalTo(-100)
+          }
+      }
+      self.previewView.frame.size.width = self.view.frame.size.width
+      self.previewView.frame.size.height = self.view.frame.size.height
+
+      if previewLayer?.connection?.isVideoOrientationSupported == true {
+          previewLayer?.connection?.videoOrientation = orientation
+      }
+      let rootLayer :CALayer = self.previewView.layer
+      rootLayer.masksToBounds=true
+      self.previewLayer?.frame = rootLayer.bounds
+    }
+    
     override func viewWillTransition(to size: CGSize,
                                      with coordinator: UIViewControllerTransitionCoordinator) {
-        if UIDevice.current.orientation.isLandscape {
-            print("landscape")
-            if bottomBar != nil {
-                bottomBar.snp.makeConstraints { (make) in
-                    make.width.equalTo(bottomBar.frame.width)
-                    make.height.equalTo(bottomBar.frame.height)
-                    make.centerX.equalTo(view)
-                    make.bottom.equalTo(-60)
-                }
-            }
-        } else {
-            if bottomBar != nil {
-                bottomBar.snp.makeConstraints { (make) in
-                    make.width.equalTo(bottomBar.frame.width)
-                    make.height.equalTo(bottomBar.frame.height)
-                    make.centerX.equalTo(view)
-                    make.bottom.equalTo(-100)
-                }
+        super.viewWillTransition(to: size, with: coordinator)
+        
+    }
+    
+    func showAVideoRecordLimitAlert() {
+        let alert = CDAlertView(title: "EPICAI Alert!", message: "Your, Recording limit get exausted, revise your plan or contact to admin", type: .alarm)
+        let doneAction = CDAlertViewAction(title: "Ok", font: nil, textColor: nil, backgroundColor: nil) { (_) -> Bool in
+            //self.dismiss(animated: true, completion: nil)
+            self.moveToFeedPage()
+            return true
+        }
+        alert.circleFillColor = Palette.darkPurple
+        doneAction.buttonTextColor = Palette.darkPurple
+        alert.add(action: doneAction)
+        alert.show()
+    }
+    
+    func videoEntitlementCheck() {
+        self.videoEntitleMentVM.getVideoEntitlementDetails()
+        self.videoEntitleMentVM.notifyVideoEntitlement = { details in
+            if details.remainingSeconds <= 0  {
+                self.showAVideoRecordLimitAlert()
             }
         }
-        // Reinitilize the camera to update its output stream with the new orientation.
     }
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        
         previewView = UIView(frame: CGRect(x: 0,
                                            y: 0,
                                            width: UIScreen.main.bounds.size.width,
@@ -174,7 +237,12 @@ class EPICAICaptureVideoVC: UIViewController {
         self.timeValueLabel.layer.cornerRadius = 20
         self.timeValueLabel.textColor = Palette.V2.V2_cameraTimerLabel
         self.timeValueLabel.font = LatoFont.regular.withSize(20)
-        self.timeValueLabel.text = "05:00"
+        if let timeInSecond = EPICAISharedPreference.advanceSetting?.poseTimerTime {
+            self.timeValueLabel.text = (timeInSecond > 5) ? "10.00" : "0\(timeInSecond):00"
+        }
+        else {
+            self.timeValueLabel.text = "05.00"
+        }
         
         view.addSubview(self.timeValueLabel)
         timeValueLabel.snp.makeConstraints { (make) in
@@ -215,6 +283,12 @@ class EPICAICaptureVideoVC: UIViewController {
         self.imageView.image = nil
         self.previewLayer?.removeFromSuperlayer()
         self.previewLayer = nil
+        if let timeInSecond = EPICAISharedPreference.advanceSetting?.poseTimerTime {
+            self.timeValueLabel.text = (timeInSecond > 5) ? "10.00" : "0\(timeInSecond):00"
+        }
+        else {
+            self.timeValueLabel.text = "05.00"
+        }
         self.setupAndBeginCapturingVideoFrames()
         if let tb = tabBarController as? GenericTabBarController {
             tb.hideFloatingTabBar(true)
@@ -224,6 +298,7 @@ class EPICAICaptureVideoVC: UIViewController {
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         self.requestPermission()
+        self.videoEntitlementCheck()
     }
     
     func requestPermission() {
@@ -254,29 +329,30 @@ class EPICAICaptureVideoVC: UIViewController {
     }
     
     @objc func closeButtonTapped(_ sender: UIButton) {
-        self.showAlertWithOption()
-//        self.stopCapturing()
-//        if let tb = tabBarController as? GenericTabBarController {
-//            if let videoURL = self.videoCapture.videoURL {
-//                EPICAIFileManager.shared().manageDeleteVideoAndAssets(videoURL: videoURL)
-//            }
-//            tb.floatingTabbarView.changeTab(toIndex: 0)
-//            self.navigationController?.popToRootViewController(animated: true)
-//        }
+        if let torchState = EPICAISharedPreference.advanceSetting?.tourchState, torchState && self.isRecording {
+            self.showAlertWithOption()
+        }
+        else  {
+            self.moveToFeedPage()
+        }
+    }
+    
+    private func moveToFeedPage() {
+        self.stopCapturing(moveToNextVC:false)
+        self.navigationController?.popToRootViewController(animated: true)
+        if let videoURL = self.videoCapture.videoURL {
+            EPICAIFileManager.shared().manageDeleteVideoAndAssets(videoURL: videoURL)
+        }
+        if let tabCont = self.tabBarController as? GenericTabBarController {
+            tabCont.floatingTabbarView.changeTab(toIndex: 0)
+        }
     }
     
     func showAlertWithOption() {
         let alert = CDAlertView(title: "EPICAI Alert!", message: "Are you confirm to stop the recording? Press yes, to exit the recording", type: .alarm)
         let doneAction = CDAlertViewAction(title: "Yes", font: nil, textColor: nil, backgroundColor: nil) { (_) -> Bool in
             //self.dismiss(animated: true, completion: nil)
-            self.stopCapturing()
-            if let videoURL = self.videoCapture.videoURL {
-                EPICAIFileManager.shared().manageDeleteVideoAndAssets(videoURL: videoURL)
-            }
-            if let tabCont = self.tabBarController as? GenericTabBarController {
-                tabCont.floatingTabbarView.changeTab(toIndex: 0)
-            }
-            self.navigationController?.popToRootViewController(animated: true)
+            self.moveToFeedPage()
             return true
         }
         let cancelAction = CDAlertViewAction(title: "No", font: nil, textColor: nil, backgroundColor: nil) { (_) -> Bool in
@@ -296,6 +372,10 @@ class EPICAICaptureVideoVC: UIViewController {
         let alert = CDAlertView(title: "EPICAI Alert!", message: "Are you confirm to stop the recording? Press yes, to exit the recording", type: .alarm)
         let doneAction = CDAlertViewAction(title: "Yes", font: nil, textColor: nil, backgroundColor: nil) { (_) -> Bool in
             //self.dismiss(animated: true, completion: nil)
+            self.stopCapturing(moveToNextVC: false)
+            if let videoURL = self.videoCapture.videoURL {
+                EPICAIFileManager.shared().manageDeleteVideoAndAssets(videoURL: videoURL)
+            }
             self.openVideoGallary()
             return true
         }
@@ -344,7 +424,6 @@ class EPICAICaptureVideoVC: UIViewController {
     
     // MARK: - ChangeCamera
     @objc private func changeCamera(_ cameraButton: UIButton) {
-        print("changeCamera")
         if self.videoCapture.captureSession.isRunning {
             videoCapture.flipCamera { error in
                 if let error = error {
@@ -365,7 +444,7 @@ class EPICAICaptureVideoVC: UIViewController {
     @objc private func toggleMovieRecording(_ recordButton: UIButton) {
         if self.isRecording {
             if let  video = self.videoCapture.videoURL, video.getResourceSizeInInt() > 20 {
-                self.stopCapturing()
+                self.stopCapturing(moveToNextVC: true)
             }
             else {
                 return
@@ -373,7 +452,7 @@ class EPICAICaptureVideoVC: UIViewController {
         } else {
             self.isRecording = true
             //self.videoCapture.startCapturing()
-            self.videoCapture.prepareCapturing()
+           
             
             self.videoCapture.updateCountDown = { value in
                 self.timeValueLabel.text = String(format: "%d:00", value)
@@ -393,6 +472,7 @@ class EPICAICaptureVideoVC: UIViewController {
                                                  repeats: true)
                 }
             }
+            self.videoCapture.prepareCapturing()
         }
     }
     
@@ -404,20 +484,20 @@ class EPICAICaptureVideoVC: UIViewController {
         if time >= Double(maximumVideoLength) * 60.0 {
             self.mainQueue.async {
                 self.resetTimerTime()
-                self.stopCapturing()
+                self.stopCapturing(moveToNextVC: true)
             }
         }
     }
     
-    func stopCapturing() {
-        self.resetTimerTime()
+    func stopCapturing(moveToNextVC:Bool) {
         self.videoCapture.stopTimer()
         self.videoCapture.stopCapturing()
+        self.resetTimerTime()
         self.recordButton.setImage(#imageLiteral(resourceName: "startRecord"), for: .normal)
         self.isRecording = false
         self.videoCapture.videoCuptureDone = { url in
             DispatchQueue.main.async {
-                self.moveToVideoTrimimg(videoURL: url)
+                if moveToNextVC { self.moveToVideoTrimimg(videoURL: url) }
             }
         }
     }
@@ -434,10 +514,30 @@ class EPICAICaptureVideoVC: UIViewController {
 extension EPICAICaptureVideoVC: UIImagePickerControllerDelegate, UINavigationControllerDelegate {
     
     func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
-        let videoExaminationVC = EPICAIVideoExaminationVC.instantiateFromAppStoryBoard(appStoryBoard: .VPStoryboard)
-        videoExaminationVC.videoURL = info[UIImagePickerController.InfoKey.mediaURL] as? URL
-        self.navigationController?.pushViewController(videoExaminationVC, animated: true)
-        picker.dismiss(animated: true, completion: nil)
+        
+        guard let videoURL = info[UIImagePickerController.InfoKey.mediaURL] as? URL else { return }
+        
+        if  videoURL.getDuration() > 1200 {
+            self.showLargeVideoFromGallaryAlert(picker)
+        }
+        else {
+            let videoExaminationVC = EPICAIVideoExaminationVC.instantiateFromAppStoryBoard(appStoryBoard: .VPStoryboard)
+            videoExaminationVC.videoURL = info[UIImagePickerController.InfoKey.mediaURL] as? URL
+            self.navigationController?.pushViewController(videoExaminationVC, animated: true)
+            picker.dismiss(animated: true, completion: nil)
+        }
+    }
+    
+    func showLargeVideoFromGallaryAlert(_ picker: UIImagePickerController) {
+        let alert = CDAlertView(title: "EPICAI Alert!", message: "Video is too long to process. Please select video which have duration lower then 20 minutes", type: .alarm)
+        let doneAction = CDAlertViewAction(title: "Ok", font: nil, textColor: nil, backgroundColor: nil) { (_) -> Bool in
+            picker.dismiss(animated: true, completion: nil)
+            return true
+        }
+        alert.circleFillColor = Palette.darkPurple
+        doneAction.buttonTextColor = Palette.darkPurple
+        alert.add(action: doneAction)
+        alert.show()
     }
 }
 
@@ -455,12 +555,10 @@ extension EPICAICaptureVideoVC: VideoCaptureDelegate {
     
     func estimation(_ cgImage:CGImage) {
         imageSize = CGSize(width: cgImage.width, height: cgImage.height)
-        print("Image size:height :\(imageSize.height), width :\(imageSize.width)")
         let requestHandler = VNImageRequestHandler(cgImage: cgImage)
         
         // Create a new request to recognize a human body pose.
         let request = VNDetectHumanBodyPoseRequest(completionHandler: bodyPoseHandler)
-        
         do {
             // Perform the body pose-detection request.
             try requestHandler.perform([request])
@@ -487,9 +585,7 @@ extension EPICAICaptureVideoVC: VideoCaptureDelegate {
                 let ps = processObservation(observation)
                 return ps ?? []
             }
-            
             let flatten = points.flatMap{$0}
-            
             let image = currentFrame?.drawPoints(points: flatten)
             DispatchQueue.main.async {
                 self.imageView.image = image
@@ -505,7 +601,7 @@ extension EPICAICaptureVideoVC: VideoCaptureDelegate {
             guard $0.confidence > 0 else { return nil }
             DispatchQueue.main.async {
                 if self.timeStampString != "" {
-                    EPICAIFileManager.shared().writeBodyPointsInToCSV(pointDict: recognizedPoints, height: Int(self.imageSize.height), width: Int(self.imageSize.width),closeFlasg: self.videoCapture.captureState == .end, timeLapse: self.timeStampString)
+                    EPICAIFileManager.shared().writeBodyPointsInToCSV(pointDict: recognizedPoints, height: Int(self.imageSize.height), width: Int(self.imageSize.width),closeFlasg: self.videoCapture.captureState == .end, timeLapse: self.timeStampString, timeCheck: true)
                 }
             }
             return VNImagePointForNormalizedPoint($0.location,

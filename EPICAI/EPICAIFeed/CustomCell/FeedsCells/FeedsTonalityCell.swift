@@ -20,11 +20,18 @@ class FeedsTonalityCell: FSPagerViewCell {
     private var minView: TonalityInfoItemView!
     private var avgView: TonalityInfoItemView!
 
+    //CREATED BY CHIA KANG YEE: 5th APRIL 2022
+    //Receive value from FeedsCell for tonality min, max and avg decibel
+    var minDcbl: Double = 0.0
+    var maxDcbl: Double = 0.0
+    var avgDcbl: Double = 0.0
     var data: [Double] = [] {
         didSet {
             if !data.isEmpty { configureUI() }
         }
     }
+    
+    
     
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -52,9 +59,16 @@ class FeedsTonalityCell: FSPagerViewCell {
             make.centerX.equalTo(contentView)
         }
         
-        maxView = TonalityInfoItemView(title: "Max Decibel",value: CGFloat(data.max() ?? 0.0))
-        minView = TonalityInfoItemView(title: "Min Decibel",value: CGFloat(data.min() ?? 0.0))
-        avgView = TonalityInfoItemView(title: "Average Decibel",value: CGFloat(data.sum() / Double(data.count)))
+        //CREATED BY CHIA KANG YEE: 5th APRIL 2022
+        //Use passed in variable as value
+        maxView = TonalityInfoItemView(title: "Max Decibel",value: CGFloat(maxDcbl))
+        minView = TonalityInfoItemView(title: "Min Decibel",value: CGFloat(minDcbl))
+        avgView = TonalityInfoItemView(title: "Average Decibel",value: CGFloat(avgDcbl))
+        
+        //OLD CODE - calculate manually using tonality result details
+        //maxView = TonalityInfoItemView(title: "Max Decibel",value: CGFloat(data.max() ?? 0.0))
+        //minView = TonalityInfoItemView(title: "Min Decibel",value: CGFloat(data.min() ?? 0.0))
+        //avgView = TonalityInfoItemView(title: "Average Decibel",value: CGFloat(data.sum() / Double(data.count)))
         
         infoStackView = UIStackView(arrangedSubviews: [maxView, minView, avgView])
         infoStackView.axis = .horizontal
@@ -152,15 +166,15 @@ class TonalityInfoItemView: UIView {
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
         titleLabel.textColor = Palette.V2.V2_tonalityLegendTitle.withAlphaComponent(0.7)
         titleLabel.font = LatoFont.regular.withSize(11.0)
-        titleLabel.textAlignment = .left
+        titleLabel.textAlignment = .center
         titleLabel.text = self.title
         addSubview(titleLabel)
         
         valueLabel = UILabel(frame: .zero)
         valueLabel.translatesAutoresizingMaskIntoConstraints = false
         valueLabel.textColor = Palette.V2.V2_tonalityLegendTitle
-        valueLabel.font = LatoFont.bold.withSize(26.0)
-        valueLabel.textAlignment = .left
+        valueLabel.font = LatoFont.bold.withSize(24.0)
+        valueLabel.textAlignment = .center
         valueLabel.text = String(format: "%.1f", self.value)
         addSubview(valueLabel)
         

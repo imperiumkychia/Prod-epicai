@@ -9,6 +9,8 @@ import Foundation
 import CoreData
 import CoreLocation
 
+/// Application define Model, Responsible to localize video response
+/// Transformation form from various API's like ListVideoShareWithLikeQuery, ListShareableVideoQuery, ListShareableVideobyUserQuery, ListVideobyUserQuery, ListVideosQuery
 struct  EPICAIVideo {
     
     var videoUUID:String = defaultText
@@ -79,6 +81,26 @@ struct  EPICAIVideo {
         self.longitude = awsListVideo.longitude ?? ""
     }
     
+    init(awsListVideo:ListShareableVideobyUserQuery.Data.ListShareableVideobyUser) {
+        self.videoUUID = awsListVideo.videoUuid
+        self.userUUID = awsListVideo.userUuid
+        self.dataTime = awsListVideo.datetime ?? ""
+        self.videoName = awsListVideo.videoName ?? ""
+        self.videoSize = awsListVideo.videoSize ?? ""
+        self.videoInfo = awsListVideo.videoInfo ?? ""
+        self.videoPath = awsListVideo.path ?? ""
+        self.videoShare = awsListVideo.share ?? 0
+        self.videoDuration = awsListVideo.videoDuration ?? 0.0
+        self.videoStatus = awsListVideo.active ?? 0
+        self.videoUploadStatus = awsListVideo.uploadStatus ?? ""
+        self.analyseStatus = awsListVideo.analyseStatus ?? ""
+        self.likeCount = awsListVideo.likesCount ?? 0
+        self.commentsCount = awsListVideo.commentsCount ?? 0
+        self.title = awsListVideo.title ?? ""
+        self.latitude = awsListVideo.latitude ?? ""
+        self.longitude = awsListVideo.longitude ?? ""
+    }
+    
     init(awsListVideo:ListVideobyUserQuery.Data.ListVideobyUser) {
         self.videoUUID = awsListVideo.videoUuid
         self.userUUID = awsListVideo.userUuid
@@ -123,6 +145,9 @@ struct  EPICAIVideo {
         self.longitude = awsListVideo.longitude ?? ""
     }
     
+    /// This function convert the response retrive from API name ListShareableVideoQuery
+    /// Parameter take as aws array of [ListShareableVideoQuery.Data.ListShareableVideo?]
+    /// Tranform result into array of [EPICAIVideo]
     static func feedItemsFromArray(awsItems:[ListShareableVideoQuery.Data.ListShareableVideo?]) -> [EPICAIVideo] {
         var items:[EPICAIVideo] = []
         for item in awsItems {

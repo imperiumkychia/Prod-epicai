@@ -11,6 +11,8 @@ import MediaPlayer
 import CoreLocation
 import CDAlertView
 import Reachability
+import SQLite
+import JGProgressHUD
 
 class EPICAIComposePost : UIViewController {
     
@@ -25,30 +27,39 @@ class EPICAIComposePost : UIViewController {
     var videoTitle = videoTitlePlaceHolder
     var expandingCellHeight: CGFloat = 70
     let expandingIndexRow = 1
-    var uploadOption = false
+    var cropStartTime:Float = 0.0
+    var cropEndTime:Float = 0.0
     
     var videoUploadVM = EPICAICreatePostVideoVM()
     //var offileVideoManager = EPICAIOfflineVideoManager()
+    
+    var ai:JGProgressHUD  = {
+        let hud = JGProgressHUD(style: .light)
+        hud.interactionType = .blockAllTouches
+        hud.detailTextLabel.text = "Please wait..."
+        return hud
+    }()
     
     @IBAction func moveBack(_ sender: Any) {
         showAlertWithOption()
     }
     
-    func manageProgress() {
-        self.videoUploadVM.showProgress = { (progress, uploadState, error) in
-            DispatchQueue.main.async {
-                print("Progress state :\(String(describing: uploadState))")
-                switch(uploadState) {
-                case .Start: self.closeBtn.isHidden = false ;
-                case .Video: self.closeBtn.isHidden = false ;self.activityIndicator.startAnimating()
-                case .BodyPoint: self.closeBtn.isHidden = true
-                case .AudioPoint: self.closeBtn.isHidden = true
-                case .Finish: self.closeBtn.isHidden = true ; self.activityIndicator.stopAnimating()
-                default: self.closeBtn.isHidden = false ;self.activityIndicator.stopAnimating()
-                }
-            }
-        }
-    }
+//    func manageProgress() {
+//        if (self.videoUploadVM.progressState) { return }
+//        self.videoUploadVM.showProgress = { (progress, uploadState, error) in
+//            DispatchQueue.main.async {
+//                print("Progress state :\(String(describing: uploadState))")
+//                switch(uploadState) {
+//                case .Start: self.closeBtn.isHidden = false ;
+//                case .Video: self.closeBtn.isHidden = false ;self.activityIndicator.startAnimating()
+//                case .BodyPoint: self.closeBtn.isHidden = true
+//                case .AudioPoint: self.closeBtn.isHidden = true
+//                case .Finish: self.closeBtn.isHidden = true ; self.activityIndicator.stopAnimating()
+//                default: self.closeBtn.isHidden = false ;self.activityIndicator.stopAnimating()
+//                }
+//            }
+//        }
+//    }
     
     func cancelUpload() {
         if self.videoUploadVM.progresType == .Video {
@@ -73,10 +84,12 @@ class EPICAIComposePost : UIViewController {
     
     func uploadSuccess() {
         EPICAIFileManager.shared().manageDeleteVideoAndAssets(videoURL: self.videoURL!)
-        if let tabCont = self.tabBarController as? GenericTabBarController {
-            tabCont.floatingTabbarView.changeTab(toIndex: 2)
+        DispatchQueue.main.async {
+            if let tabCont = self.tabBarController as? GenericTabBarController {
+                tabCont.floatingTabbarView.changeTab(toIndex: 2)
+            }
+            self.navigationController?.popToRootViewController(animated: true)
         }
-        self.navigationController?.popToRootViewController(animated: true)
     }
     
     func showAlertWithOption() {
@@ -126,6 +139,12 @@ class EPICAIComposePost : UIViewController {
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         self.hideNavBar()
+        if self.cropStartTime > 0.0 {
+            guard let videoURL = self.videoURL else { return }
+            EPICAIFileManager.shared().fileName = videoURL.lastPathComponent.replacingOccurrences(of: "."+videoURL.pathExtension, with: "")
+            EPICAIFileManager.shared().cropEndTime = self.cropEndTime
+            EPICAIFileManager.shared().cropStartTime = self.cropStartTime
+        }
     }
     
     override func viewWillDisappear(_ animated: Bool) {
@@ -133,17 +152,80 @@ class EPICAIComposePost : UIViewController {
         self.showNavBar()
     }
     
+    private func showProgressView() {
+        DispatchQueue.main.async{
+            self.ai.show(in: self.view)
+        }
+    }
+    
+    private func hideProgressView() {
+        DispatchQueue.main.async{
+            self.ai.dismiss(animated: true)
+        }
+    }
+    
     func callUploadVideoDetails() {
-        self.manageProgress()
-        self.videoUploadVM.createVideoRecord(videoTitle: self.videoTitle, videoURL: self.videoURL!, location: self.currentLocation) { videoDetails, error  in
-            if let error = error {
-                print("Error \(error.localizedDescription)")
-            }
-            else {
+        self.showProgressView()
+        //self.manageProgress()
+        self.videoUploadVM.createVideoRecordWith(videoTitle, videoURL: self.videoURL!, location: self.currentLocation) { state in
+            if state {
                 self.uploadSuccess()
             }
-            print("Video details \(String(describing: videoDetails))")
+            else {
+                self.showVideoUploadError()
+            }
+            self.hideProgressView()
         }
+//        self.videoUploadVM.createVideoRecord(videoTitle: self.videoTitle, videoURL: self.videoURL!, location: self.currentLocation) { videoDetails, error  in
+//            if let error = error {
+//                self.hideProgressView()
+//                print("Error \(error.localizedDescription)")
+//            }
+//            else {
+//                self.hideProgressView()
+//                self.uploadSuccess()
+//            }
+//            print("Video details \(String(describing: videoDetails))")
+//        }
+    }
+    
+    func showVideoUploadError() {
+        let alert = CDAlertView(title: "EPICAI Error!", message: "Something went wrong please try after some time or check your network connection", type: .error)
+        let doneAction = CDAlertViewAction(title: "Ok", font: nil, textColor: nil, backgroundColor: nil) { (_) -> Bool in
+            return true
+        }
+        doneAction.buttonTextColor = Palette.darkPurple
+        alert.add(action: doneAction)
+        alert.show()
+    }
+    
+    func showOfflineDataAlertOption() {
+        let alert = CDAlertView(title: "EPICAI Alert!", message: "Oops!! you are not connected to internet", type: .warning)
+        
+        let cancelAction:CDAlertViewAction
+        alert.circleFillColor = Palette.darkPurple
+        
+        if EPICAIOfflineVideoManager.shared.getDataStoreCount() > 2 {
+            cancelAction = CDAlertViewAction(title: "Discard upload", font: nil, textColor: nil, backgroundColor: nil) { (_) -> Bool in
+                self.cancelUpload()
+                return true
+            }
+        }
+        else {
+            cancelAction = CDAlertViewAction(title: "Save to future use", font: nil, textColor: nil, backgroundColor: nil) { (_) -> Bool in
+                let epicVideo = EPICAIVideo(videoTitle: self.videoTitle, videoURL: self.videoURL!, location: self.currentLocation)
+                if let _ = EPICAIOfflineVideoManager.shared.saveVideoRecord(epicVideo: epicVideo) {
+                    if let tabCont = self.tabBarController as? GenericTabBarController {
+                        tabCont.floatingTabbarView.changeTab(toIndex: 0)
+                    }
+                    self.navigationController?.popToRootViewController(animated: true)
+                }
+                return true
+            }
+        }
+        cancelAction.buttonTextColor = Palette.darkPurple
+        alert.add(action: cancelAction)
+        alert.show()
     }
     
     func showDataAlertOption() {
@@ -166,8 +248,7 @@ class EPICAIComposePost : UIViewController {
         else {
             cancelAction = CDAlertViewAction(title: "Save to future use", font: nil, textColor: nil, backgroundColor: nil) { (_) -> Bool in
                 let epicVideo = EPICAIVideo(videoTitle: self.videoTitle, videoURL: self.videoURL!, location: self.currentLocation)
-                if let messsage = EPICAIOfflineVideoManager.shared.saveVideoRecord(epicVideo: epicVideo) {
-                    print("Message from core data : \(messsage)")
+                if let _ = EPICAIOfflineVideoManager.shared.saveVideoRecord(epicVideo: epicVideo) {
                     if let tabCont = self.tabBarController as? GenericTabBarController {
                         tabCont.floatingTabbarView.changeTab(toIndex: 0)
                     }
@@ -190,8 +271,11 @@ class EPICAIComposePost : UIViewController {
                 if reachability.connection == .wifi {
                     self.callUploadVideoDetails()
                 }
-                else {
+                else if reachability.connection == .cellular {
                     self.showDataAlertOption()
+                }
+                else {
+                    self.showOfflineDataAlertOption()
                 }
             }
             catch {
@@ -270,7 +354,7 @@ extension EPICAIComposePost : UITableViewDelegate {
             return 250
         }
         else {
-            return  self.videoUploadVM.progressState ? 80 : 65
+            return 70
         }
     }
 }
@@ -279,7 +363,6 @@ extension EPICAIComposePost: ExpandingCellDelegate {
     
     func updatedHeight(height: CGFloat,textView: UITextView)
     {
-        print("Updated video title \(String(describing: textView.text))")
         videoTitle = textView.text
         expandingCellHeight = height
         UIView.setAnimationsEnabled(false)
@@ -313,13 +396,7 @@ fileprivate extension EPICAIComposePost {
 extension EPICAIComposePost : EPICAILocationManagerDelegate {
     func deviceCurrentLocDetails(errorWhilegettingGeoCode: Bool, location: CLLocation) {
         EPICAILocationManager.dispose()
-        if errorWhilegettingGeoCode {
-            print("Error while getting location : \(errorWhilegettingGeoCode)")
-        }
-        else {
-            self.currentLocation = location
-            print("Location location : \(location)")
-        }
+        if !errorWhilegettingGeoCode { self.currentLocation = location }
     }
 }
 

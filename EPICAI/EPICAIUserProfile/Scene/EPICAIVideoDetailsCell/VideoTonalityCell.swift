@@ -13,7 +13,6 @@ import Charts
 
 class VideoTonalityCell: UITableViewCell {
     
-    
     private var titleLabel: UILabel!
     private var dividerView: UIView!
     private var barChartView: BarChartView!
@@ -27,7 +26,6 @@ class VideoTonalityCell: UITableViewCell {
             if !data.isEmpty { updateValues() }
         }
     }
-    
     
     private let itemsMargin: CGFloat = 20.0
     
@@ -58,8 +56,6 @@ class VideoTonalityCell: UITableViewCell {
         dividerView.backgroundColor = Palette.V2.V2_profileTableDivider
         contentView.addSubview(dividerView)
         
-        
-        
         titleLabel.snp.makeConstraints { (make) in
             make.top.equalTo(contentView).offset(itemsMargin)
             make.centerX.equalTo(contentView)
@@ -89,7 +85,6 @@ class VideoTonalityCell: UITableViewCell {
             make.trailing.equalTo(contentView).offset(-itemsMargin)
             make.height.equalTo(60.0)
         }
-        
         
         barChartView = BarChartView(frame: .zero)
         barChartView.translatesAutoresizingMaskIntoConstraints = false
@@ -125,8 +120,6 @@ class VideoTonalityCell: UITableViewCell {
                                                              viewPortHandler: barChartView.viewPortHandler,
                                                              cornerRadius: 4.0,
                                                              excludeBaseCorners: true)
-        
-        
     }
     
     private func updateValues() {
@@ -149,7 +142,6 @@ class VideoTonalityCell: UITableViewCell {
         let chartData = BarChartData(dataSet: set)
         chartData.barWidth = 0.4
         barChartView.data = chartData
-
     }
 }
 

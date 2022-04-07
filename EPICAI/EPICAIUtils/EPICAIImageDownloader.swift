@@ -11,15 +11,14 @@ import UIKit
 public class ImageGet {
     
     func download(from url: URL, completion: @escaping (UIImage?) -> Void) {
+        
         URLSession.shared.dataTask(with: url) { data, response, error in
             guard let httpURLResponse = response as? HTTPURLResponse, httpURLResponse.statusCode == 200,
                   let mimeType = response?.mimeType, mimeType.hasPrefix("image"),
                   let data = data, error == nil,
                   let image = UIImage(data: data) else { completion(nil); return}
             completion(image)
-                
-        }.resume()
-        
+       }.resume()
     }
     
     func download(from link: String, completion: @escaping (UIImage?) -> Void) {

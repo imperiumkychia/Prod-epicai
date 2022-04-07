@@ -93,11 +93,9 @@ extension EPICAISubscriptionsVC: UITableViewDelegate, UITableViewDataSource {
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         guard let cell = tableView.dequeueReusableCell(withIdentifier: "SubscriptionsCell", for: indexPath) as? SubscriptionsCell else { return UITableViewCell() }
-        
         cell.tierTitle = subscriptions[indexPath.row].title
         cell.tierDescription = subscriptions[indexPath.row].description
         cell.hasCheckmark = indexPath.row == userTierIndex ? true : false
-        
         return cell
     }
     

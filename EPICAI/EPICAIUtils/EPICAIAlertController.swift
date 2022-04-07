@@ -37,7 +37,6 @@ class AlertUser {
             alert.circleFillColor = Palette.darkPurple
             doneAction.buttonTextColor = Palette.darkPurple
         }
-        
         alert.add(action: doneAction)
         alert.show()
     }

@@ -19,9 +19,11 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         // This delegate does not imply the connecting scene or session are new (see `application:configurationForConnectingSceneSession` instead).
         guard let windowSceen = (scene as? UIWindowScene) else { return }
         self.setRootViewController(windowSceen:windowSceen)
+        UserDefaults.standard.set(false, forKey: "_UIConstraintBasedLayoutLogUnsatisfiable")
     }
     
-    
+    /// This method responsible to store login data, using API GetUserQuery.
+    /// Also maintained store in preference(UserDefault)
     func manageUserSession(uuid:String) {
         appSyncClient?.fetch(query: GetUserQuery(user_uuid: uuid), cachePolicy: .fetchIgnoringCacheData, resultHandler: { result, error in
             if let user = result?.data?.getUser {
@@ -45,15 +47,15 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
                     EPICAISharedPreference.userSession =  EPICAIUser(awsListUser: user)
                 }
             }
-            else {
-                print("Failed of get userUUID")
-            }
         })
     }
     
+    /// This method responsible to show the first controller.
+    /// Checking wether user session retained
     func setRootViewController(windowSceen:UIWindowScene) {
         //window?.rootViewController = storyboard.instantiateViewController(withIdentifier: "TabBarViewController")
         let window = UIWindow(windowScene: windowSceen)
+        
         if EPICAISharedPreference.userSession?.uuid != nil {
             let storyboard = UIStoryboard.init(name: "Main", bundle: .main)
             window.rootViewController = storyboard.instantiateViewController(withIdentifier: "TabBarViewController")
@@ -100,7 +102,6 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     func sceneWillEnterForeground(_ scene: UIScene) {
         // Called as the scene transitions from the background to the foreground.
         // Use this method to undo the changes made on entering the background.
-        print("sceneWillEnterForeground")
         do {
             let hostName = "google.com"
             let reachability = try Reachability(hostname: hostName)
@@ -108,19 +109,14 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
                 // let offlineOperation = OfflineStoreUploadOperation()
                 // offlineOperation.statrtOperation()
             }
-            print(" reachability.connection : \( reachability.connection)")
             reachability.whenReachable = { reachability in
                 switch(reachability.connection) {
-                case .wifi:
-                    print("Wi-fi connected")
-                    // let offlineOperation = OfflineStoreUploadOperation()
-                    // offlineOperation.statrtOperation()
-                default : print("default connected :\(reachability.connection)")
+                case .wifi: break
+                default : break
                 }
             }
         }
         catch {
-            print("Error in reachibility setup : \(error.localizedDescription)")
         }
     }
 
@@ -129,7 +125,5 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         // Use this method to save data, release shared resources, and store enough scene-specific state information
         // to restore the scene back to its current state.
     }
-
-
 }
 

@@ -9,27 +9,6 @@ import UIKit
 
 class EPICAISettingsVC: UIViewController {
     
-    let itemsMargin: CGFloat = 20.0
-    
-    lazy var titleLabel: UILabel = {
-        let label = UILabel(frame: .zero)
-        label.translatesAutoresizingMaskIntoConstraints = false
-        label.text = "Settings"
-        label.font = LatoFont.bold.withSize(27.0)
-        label.textColor = Palette.V2.V2_VCTitle
-        return label
-    }()
-    
-//    lazy var backButton: UIButton = {
-//        let button = UIButton(frame: .zero)
-//        button.translatesAutoresizingMaskIntoConstraints = false
-//        let image = UIImage(systemName: "chevron.left", withConfiguration: UIImage.SymbolConfiguration(pointSize: 25.0, weight: .regular))
-//        button.setImage(image, for: .normal)
-//        button.addTarget(self, action: #selector(backButtonTapped(_:)), for: .touchUpInside)
-//        button.tintColor = Palette.V2.V2_VCTitle
-//        return button
-//    }()
-    
     lazy var settingsTableView: UITableView = {
         let table = UITableView(frame: .zero, style: .plain)
         table.translatesAutoresizingMaskIntoConstraints = false
@@ -90,29 +69,11 @@ class EPICAISettingsVC: UIViewController {
         if let tbar = tabBarController as? GenericTabBarController{
             tbar.floatingTabbarView.toggle(hide: true)
         }
-        
     }
 
     private func setupUIElements() {
         view.backgroundColor = Palette.V2.V2_VCBackground
-
-        view.addSubview(backButton)
-        view.addSubview(titleLabel)
         view.addSubview(settingsTableView)
-        
-//        backButton.snp.makeConstraints { (make) in
-//            make.leading.equalTo(view).offset(itemsMargin)
-//            make.height.equalTo(25)
-//            make.width.equalTo(25)
-//            make.top.equalTo(view.snp.topMargin).offset(itemsMargin-15)
-//        }
-//
-//        titleLabel.snp.makeConstraints { (make) in
-//            make.height.equalTo(44)
-//            make.leading.equalTo(backButton.snp.trailing).offset(itemsMargin)
-//            make.centerY.equalTo(backButton)
-//        }
-        
         settingsTableView.snp.makeConstraints { (make) in
             make.top.equalTo(0).offset(10.0)
             make.bottom.equalTo(view)
@@ -168,7 +129,7 @@ extension EPICAISettingsVC: UITableViewDelegate, UITableViewDataSource {
         case 2:
             return 3
         case 3:
-            return 7
+            return 8
         case 4:
             return 4
         default:
@@ -190,137 +151,107 @@ extension EPICAISettingsVC: UITableViewDelegate, UITableViewDataSource {
         switch indexPath.section {
         case 0:
             guard let cell = tableView.dequeueReusableCell(withIdentifier: "SettingsUserInfoCell", for: indexPath) as? EPICAIUserInfoCell else { return UITableViewCell() }
-            
             cell.delegate = self
             cell.profileImage = userItem?.userImage ?? #imageLiteral(resourceName: "noProfileImage")
             cell.name = (userItem?.user.firstName ?? "") + " " + (userItem?.user.lastName ?? "")
             cell.detail = userItem?.user.email
-            
             return cell
-            
         case 1:
             if indexPath.row == 0 {
                 guard let cell = tableView.dequeueReusableCell(withIdentifier: "SettingsGenericLinkCell", for: indexPath) as? EPICGenericLinkCell else { return UITableViewCell() }
-                
                 cell.isArrowHidden = false
                 cell.title = "Subscription Tier"
                 cell.detail = "Detail"
                 return cell
             } else if indexPath.row == 1{
                 guard let cell = tableView.dequeueReusableCell(withIdentifier: "SettingsGenericLinkCell", for: indexPath) as? EPICGenericLinkCell else { return UITableViewCell() }
-                
-                cell.isArrowHidden = false
+                cell.isArrowHidden = true
                 cell.title = "Logged in Account"
                 cell.detail = userItem?.user.vendor
                 return cell
             }
             else {
                 guard let cell = tableView.dequeueReusableCell(withIdentifier: "SettingsGenericLinkCell", for: indexPath) as? EPICGenericLinkCell else { return UITableViewCell() }
-                
                 cell.isArrowHidden = false
                 cell.title = "Advance settings"
-                cell.detail = ""
+                cell.detail = "Detail"
                 return cell
             }
-            
         case 2:
             if indexPath.row == 0 {
                 guard let cell = tableView.dequeueReusableCell(withIdentifier: "SettingsGenericSwitchCell", for: indexPath) as? EPICAIGenericSwitchCell else { return UITableViewCell() }
-                
                 cell.title = "Push Notification"
                 cell.status = true
-
                 return cell
             } else if indexPath.row == 1 {
                 guard let cell = tableView.dequeueReusableCell(withIdentifier: "SettingsGenericSwitchCell", for: indexPath) as? EPICAIGenericSwitchCell else { return UITableViewCell() }
-                
                 cell.title = "Allow Mobile Data Upload"
                 cell.status = true
-                
                 return cell
             } else if indexPath.row == 2 {
                 guard let cell = tableView.dequeueReusableCell(withIdentifier: "SettingsGenericSwitchCell", for: indexPath) as? EPICAIGenericSwitchCell else { return UITableViewCell() }
-                
                 cell.title = "Allow Background Process"
                 cell.status = true
-                
                 return cell
             } else {
                 return UITableViewCell()
             }
-           
         case 3:
             if indexPath.row == 0 {
                 guard let cell = tableView.dequeueReusableCell(withIdentifier: "SettingsGenericLinkCell", for: indexPath) as? EPICGenericLinkCell else { return UITableViewCell() }
-                
+                cell.title = "App Tutorial"
+                cell.detail = ""
+                cell.isArrowHidden = false
+                return cell
+            }
+            if indexPath.row == 1 {
+                guard let cell = tableView.dequeueReusableCell(withIdentifier: "SettingsGenericLinkCell", for: indexPath) as? EPICGenericLinkCell else { return UITableViewCell() }
                 cell.title = "Feedback"
                 cell.detail = ""
                 cell.isArrowHidden = false
-
                 return cell
-                
-            } else if indexPath.row == 1 {
+            } else if indexPath.row == 2 {
                 guard let cell = tableView.dequeueReusableCell(withIdentifier: "SettingsGenericLinkCell", for: indexPath) as? EPICGenericLinkCell else { return UITableViewCell() }
-                
                 cell.title = "Common Question"
                 cell.detail = ""
                 cell.isArrowHidden = false
-
                 return cell
-                
-            } else if indexPath.row == 2 {
+            } else if indexPath.row == 3 {
                 guard let cell = tableView.dequeueReusableCell(withIdentifier: "SettingsGenericLinkCell", for: indexPath) as? EPICGenericLinkCell else { return UITableViewCell() }
-                
                 cell.title = "Contact Us"
                 cell.detail = ""
                 cell.isArrowHidden = false
-
                 return cell
-                
-            } else if indexPath.row == 3 {
+            } else if indexPath.row == 4 {
                 guard let cell = tableView.dequeueReusableCell(withIdentifier: "SettingsGenericLinkCell", for: indexPath) as? EPICGenericLinkCell else { return UITableViewCell() }
-                
                 cell.title = "End User Agrement"
                 cell.detail = ""
                 cell.isArrowHidden = false
-
                 return cell
-                
-            } else if indexPath.row == 4 {
+            } else if indexPath.row == 5 {
                 guard let cell = tableView.dequeueReusableCell(withIdentifier: "SettingsGenericLinkCell", for: indexPath) as? EPICGenericLinkCell else { return UITableViewCell() }
-                
                 cell.title = "Privacy Policy"
                 cell.detail = ""
                 cell.isArrowHidden = false
-
                 return cell
-                
-            } else if indexPath.row == 5 {
+            } else if indexPath.row == 6 {
                 guard let cell = tableView.dequeueReusableCell(withIdentifier: "SettingsGenericLinkCell", for: indexPath) as? EPICGenericLinkCell else { return UITableViewCell() }
-                
                 cell.title = "Version"
                 cell.detail = appVersion ?? "-"
                 cell.isArrowHidden = true
-                
                 return cell
-                
-            } else if indexPath.row == 6 {
+            } else if indexPath.row == 7 {
                 guard let cell = tableView.dequeueReusableCell(withIdentifier: "SettingsSignOutCell", for: indexPath) as? EPICAISignOutCell else { return UITableViewCell() }
-                
                 return cell
-                
             } else {
                 return UITableViewCell()
             }
-            
         case 4:
             guard let cell = tableView.dequeueReusableCell(withIdentifier: "SettingsGenericEmptyCell", for: indexPath) as? EPICAISettingsEmptyCell else { return UITableViewCell() }
             return cell
         default:
             return UITableViewCell()
         }
-        
-        
     }
     
     func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
@@ -357,45 +288,50 @@ extension EPICAISettingsVC: UITableViewDelegate, UITableViewDataSource {
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         switch indexPath.section {
-        case 0:
-            print("...")
+        case 0: break
         case 1:
             if indexPath.row == 0 {
                 self.pushSubscriptionViewController()
             }
-        case 2:
-            print("...")
+            if indexPath.row == 2 {
+                self.pushToAdvanceSettingsVC()
+            }
+        case 2: break
+            
         case 3:
             if indexPath.row == 0 {
-                self.pushFeedbackViewController()
+                self.pushTutorialViewController()
                 break
             }
             if indexPath.row == 1 {
+                self.pushFeedbackViewController()
+                break
+            }
+            if indexPath.row == 2 {
                 self.pushCommonQuestionViewController()
                 break
             }
             
-            if indexPath.row == 2 {
+            if indexPath.row == 3 {
                 self.pushContactUsViewController()
                 break
             }
             
-            if indexPath.row == 3 {
+            if indexPath.row == 4 {
                 self.pushEndUserAgreementViewController()
                 break
             }
             
-            if indexPath.row == 4 {
+            if indexPath.row == 5 {
                 self.pushPrivacyPolicyViewController()
                 break
             }
             
-            if indexPath.row == 6 {
+            if indexPath.row == 7 {
                 self.signoutFlow()
             }
             
-        default:
-            print("...")
+        default: break
         }
     }
     
@@ -412,12 +348,6 @@ extension EPICAISettingsVC: UITableViewDelegate, UITableViewDataSource {
         
         let okAction = UIAlertAction(title: "Yes", style: .default) { _ in
             AuthService.shared().signOut()
-            EPICAISharedPreference.userSession = nil
-            guard let windowScene = self.view.window?.windowScene else { return }
-            let scene = UIApplication.shared.connectedScenes.first
-            if let sd : SceneDelegate = (scene?.delegate as? SceneDelegate) {
-                sd.setRootViewController(windowSceen: windowScene)
-            }
         }
         
         let cancelAction = UIAlertAction(title: "Cancel", style: .cancel) { _ in }

@@ -1,10 +1,12 @@
 import UIKit
+import SQLite
 
 protocol EPICAINotePopUpProtocol {
-    func addReplyOnCommnet(indexPath:IndexPath, message:String)
+    func addReplyOnCommnet(indexPath:IndexPath, message:String, isReport:Bool)
 }
 
-class EPICAINotePopUpVC: UIViewController , UITextViewDelegate{
+class EPICAINotePopUpVC: UIViewController , UITextViewDelegate {
+    var isReport:Bool = false
     
     override func viewDidLoad() {
         
@@ -17,7 +19,7 @@ class EPICAINotePopUpVC: UIViewController , UITextViewDelegate{
         if forwardnotes == "" {
             maxLimit.text = "0/1000 (Max. 1000 characters)"
             maxLimit.textColor = UIColor.black
-            notesdata.text = "Reply..."
+            notesdata.text = (isReport) ? "Report..." : "Reply..."
             notesdata.textColor = UIColor.lightGray
         }
         else {
@@ -29,9 +31,11 @@ class EPICAINotePopUpVC: UIViewController , UITextViewDelegate{
             maxLimit.text = "\(notesdata.text.count)/1000 (Max. 1000 characters)"
         }
         
-        // headingTitle.font = UtilityClasses.setFontSizeForButton()
-        // addNotesBtn.titleLabel?.font = UtilityClasses.setFontSizeForButton()
-        // cancel.titleLabel?.font = UtilityClasses.setFontSizeForButton()
+        headingTitle.font = LatoFont.bold.withSize(17)
+        addNotesBtn.titleLabel?.font = LatoFont.bold.withSize(15)
+        cancel.titleLabel?.font =  LatoFont.bold.withSize(15)
+        headingTitle.text =  (isReport) ? "Report Content" : "Reply on comment"
+        self.addNotesBtn.setTitle((isReport) ? "Report" : "Reply", for: .normal)
     }
     
     func lines(yourLabel : UITextView) -> Int {
@@ -111,7 +115,7 @@ class EPICAINotePopUpVC: UIViewController , UITextViewDelegate{
             if textView.text == "" {
                 maxLimit.text = "0/1000 (Max. 1000 characters)"
                 maxLimit.textColor = UIColor.black
-                textView.text = "Reply..."
+                textView.text = (isReport) ? "Report..." : "Reply..."
                 textView.textColor = UIColor.lightGray
                 textView.resignFirstResponder()
             }
@@ -146,7 +150,7 @@ class EPICAINotePopUpVC: UIViewController , UITextViewDelegate{
     
     //MARK: View Didload
     func textViewDidBeginEditing(_ textView: UITextView) {
-        if textView.textColor == UIColor.lightGray || textView.text == "Reply..." {
+        if textView.textColor == UIColor.lightGray || textView.text == ((isReport) ? "Report..." : "Reply...") {
             textView.text = nil
             textView.textColor = Palette.V2.V2_VCTitle
         }
@@ -154,7 +158,7 @@ class EPICAINotePopUpVC: UIViewController , UITextViewDelegate{
     
     func textViewDidEndEditing(_ textView: UITextView) {
         if textView.text.isEmpty {
-            textView.text = "Reply..."
+            textView.text = (isReport) ? "Report..." : "Reply..."
             textView.textColor = UIColor.lightGray
             textView.resignFirstResponder()
         }
@@ -162,9 +166,9 @@ class EPICAINotePopUpVC: UIViewController , UITextViewDelegate{
     
     @IBAction func notesAdd(_ sender: Any) {
         self.view.endEditing(true)
-        if !notesdata.text.isEmptyString() && notesdata.text != "Reply..." {
+        if !notesdata.text.isEmptyString(), let text = notesdata.text, text != ((isReport) ? "Report..." : "Reply...") {
             if let text = self.notesdata.text {
-                self.delegate?.addReplyOnCommnet(indexPath: self.indexPath, message: text)
+                self.delegate?.addReplyOnCommnet(indexPath: self.indexPath, message: text, isReport: self.isReport)
                 self.dismiss(animated: true, completion: nil)
             }
         }

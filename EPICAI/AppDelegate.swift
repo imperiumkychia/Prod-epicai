@@ -24,15 +24,20 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             try Amplify.add(plugin: AWSCognitoAuthPlugin())
             try Amplify.add(plugin: AWSS3StoragePlugin())
             try Amplify.add(plugin: AWSAPIPlugin())
+            Amplify.Logging.logLevel = .info
             try Amplify.configure()
-            print("Amplify configured with Storage, API and Cognito plugins")
+            //print("Amplify configured with Storage, API and Cognito plugins")
         } catch {
-            print("Failed to initialize Amplify with \(error)")
+            //print("Failed to initialize Amplify with \(error)")
         }
     }
     
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         do {
+            if EPICAISharedPreference.advanceSetting?.tourchState == nil && EPICAISharedPreference.advanceSetting?.poseTimerTime == nil {
+                let advanceSettings  = AdvanceSettingsModel(tocuhState: true, poseTimerTime: 5, feedLimit: 10)
+                EPICAISharedPreference.advanceSetting = advanceSettings
+            }
             self.configureAmplify()
             
             let cacheConfiguration = try AWSAppSyncCacheConfiguration()
@@ -44,9 +49,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             appSyncClient?.apolloClient?.cacheKeyForObject = { $0["id"] }
             
             //self.setRootViewController()
-            print("AppSyncClient initialized with cacheConfiguration: \(cacheConfiguration)")
+            //print("AppSyncClient initialized with cacheConfiguration: \(cacheConfiguration)")
         } catch {
-            print("Error initializing AppSync client. \(error)")
+            //print("Error initializing AppSync client. \(error)")
         }
         return true
     }

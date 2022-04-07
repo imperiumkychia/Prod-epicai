@@ -8,6 +8,7 @@
 import UIKit
 import SnapKit
 import FSPagerView
+import SwiftUI
 
 protocol FeedsCellDelegate: AnyObject {
     func feedsCell(_ cell: FeedsCell,
@@ -48,7 +49,7 @@ class FeedsCell: UITableViewCell {
     var selectedUserDetails:((EPICAIUser) -> Void)?
     var likePost:((EPICAIFeedItem, IndexPath?) -> Void)!
     var displayAllCommnets:((EPICAIFeedItem,_ indexPath:IndexPath?) -> Void)!
-    var reportInappropriateContent:((EPICAIFeedItem) -> Void)!
+    var reportInappropriateContent:((EPICAIFeedItem, IndexPath?) -> Void)!
     
     weak var delegate: FeedsCellDelegate?
     
@@ -98,7 +99,12 @@ class FeedsCell: UITableViewCell {
     
     var gaugeData: Double = 0.0
     var tonalityData = [Double]()
-    var pieChartData = [Double]()
+    var pieChartData = [LegendCategory]()
+    var minDcbl: Double = 0.0
+    var maxDcbl: Double = 0.0
+    var avgDcbl: Double = 0.0
+    var fillerword = [FillerWordType]()
+    
     
     override func awakeFromNib() {
         super.awakeFromNib()
@@ -120,7 +126,7 @@ class FeedsCell: UITableViewCell {
     }
     
     @IBAction func reportContent(_ sender: Any) {
-        self.reportInappropriateContent(self.item!)
+        self.reportInappropriateContent(self.item!, self.indexPath)
     }
     
     private func updateValues() {
@@ -220,11 +226,12 @@ class FeedsCell: UITableViewCell {
         pageViewContainer.addSubview(pageControl)
         
         pageControl.snp.makeConstraints { (make) in
-            make.centerX.equalTo(pageViewContainer.snp.centerX).offset(-pageControl.frame.width/2)
-            make.bottom.equalTo(pageViewContainer)
+            make.centerX.equalTo(pageViewContainer.snp.centerX).offset(-pageControl.frame.width-10)
+            make.bottom.equalTo(pageViewContainer).offset(-8)
             make.height.equalTo(20.0)
             make.width.equalTo(10)
         }
+        
         
         self.likeButton.setTitle("", for: .normal)
         self.reportBtn.setTitle("", for: .normal)
@@ -244,6 +251,7 @@ class FeedsCell: UITableViewCell {
             self.reportBtn.tintColor = UIColor.init(white: 0.80, alpha: 1)
             default: break
         }
+        
     }
     
     override func prepareForReuse() {
@@ -277,6 +285,12 @@ extension FeedsCell: FSPagerViewDelegate, FSPagerViewDataSource {
     
     func feedsPieChartCell(index:Int) -> FSPagerViewCell {
         guard let cell = pagerView.dequeueReusableCell(withReuseIdentifier: "FeedsPieChartCell", at: index) as? FeedsPieChartCell else { return FSPagerViewCell() }
+        
+        //CREATED BY CHIA KANG YEE: 6th APRIL 2022
+        //dynamic result
+        cell.categories=pieChartData
+        
+        /*
         cell.categories = [(title: "Hand in pocket",
                             color: Palette.V2.V2_pieChartRed,
                             percentage: pieChartData[0]),
@@ -289,6 +303,7 @@ extension FeedsCell: FSPagerViewDelegate, FSPagerViewDataSource {
                            (title: "Normal",
                             color: Palette.V2.V2_pieChartGreen,
                             percentage: pieChartData[3])]
+         */
         
         return cell
     }
@@ -301,6 +316,13 @@ extension FeedsCell: FSPagerViewDelegate, FSPagerViewDataSource {
     
     func feedsTonalityCell(index:Int) -> FSPagerViewCell {
         guard let cell = pagerView.dequeueReusableCell(withReuseIdentifier: "FeedsTonalityCell", at: index) as? FeedsTonalityCell else { return FSPagerViewCell() }
+        //CREATED BY CHIA KANG YEE: 5th APRIL 2022
+        //Assign parameter to be used in FeedsTonalityCell
+        cell.minDcbl = minDcbl
+        cell.maxDcbl = maxDcbl
+        cell.avgDcbl = avgDcbl
+        
+        
         cell.data = tonalityData
         return cell
     }
@@ -308,9 +330,18 @@ extension FeedsCell: FSPagerViewDelegate, FSPagerViewDataSource {
     func feedsFillerWordsCell(index:Int) -> FSPagerViewCell {
         guard let cell = pagerView.dequeueReusableCell(withReuseIdentifier: "FeedsFillerWordsCell", at: index) as? FeedsFillerWordsCell else { return FSPagerViewCell() }
         
+        //OLD CODE
+        /*
         cell.data = [(title: "Um", color: Palette.V2.V2_fillerWordsGrey, value: 10),
                      (title: "You Know", color: Palette.V2.V2_fillerWordsLightBlue, value: 7),
+                     (title: "Ah", color: Palette.V2.V2_fillerWordsLightBlue, value: 13),
                      (title: "I Mean", color: Palette.V2.V2_fillerWordsBlue, value: 4)]
+         */
+        
+        //CREATED BY CHIA KANG YEE: 5th APRIL 2022
+        //Setup fillerwords variable to be dynamic
+        cell.data = fillerword
+        
         
         return cell
     }
@@ -353,9 +384,19 @@ extension FeedsCell: FSPagerViewDelegate, FSPagerViewDataSource {
         // Filler words
         case 4:
             guard let cell = pagerView.dequeueReusableCell(withReuseIdentifier: "FeedsFillerWordsCell", at: index) as? FeedsFillerWordsCell else { return FSPagerViewCell() }
+            
+            //CREATED BY CHIA KANG YEE: 5th APRIL 2022
+            //Setup fillerwords variable to be dynamic
+            cell.data = fillerword
+            
+            //OLD CODE
+            /*
             cell.data = [(title: "Um", color: Palette.V2.V2_fillerWordsGrey, value: 10),
                          (title: "You Know", color: Palette.V2.V2_fillerWordsLightBlue, value: 7),
+                         (title: "Ah", color: Palette.V2.V2_fillerWordsLightBlue, value: 13),
                          (title: "I Mean", color: Palette.V2.V2_fillerWordsBlue, value: 4)]
+             */
+            
             
             return cell
             
@@ -394,7 +435,7 @@ class RandomDataGenerator {
     }
     
     static func generateRandomTonalityData() -> [Double] {
-        return (1...30).map( {_ in Double.random(in: 1...100)} )
+        return (1...100).map( {_ in Double.random(in: 1...100)} )
     }
     
     static func generateRandomGaugeData() -> Double {

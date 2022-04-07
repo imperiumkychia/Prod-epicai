@@ -9,6 +9,10 @@ import Foundation
 import Amplify
 import UIKit
 
+/// Application define View Model, Class name EPICAIProfileVM
+/// Responsible to retrive data from API's, User Related
+/// Convert data into application define model.
+/// Respond to controller.
 class EPICAIProfileVM: NSObject {
     
     private var user:EPICAIUser?
@@ -43,6 +47,8 @@ class EPICAIProfileVM: NSObject {
         super.init()
     }
     
+    /// Function responsible to assign user data
+    /// Assign user values into property called, user
     func getUserInfo() {
         if let user = self.user {
             self.fetchUserDetails(user: user)
@@ -57,31 +63,59 @@ class EPICAIProfileVM: NSObject {
     }
     
     func fetchUserDetails(user:EPICAIUser) {
-        appSyncClient?.fetch(query: GetUserQuery(user_uuid: user.uuid), cachePolicy: .fetchIgnoringCacheData, resultHandler: { result, error in
-            if let user = result?.data?.getUser {
-                if let imageURLString = user.imageUrl {
-                    AWSManager.shared().downloadProfileImage(key: imageURLString) { imageURL in
-                        if let imageURL = imageURL {
-                            do {
-                                let data = try Data(contentsOf: imageURL)
-                                self.userItem = EPICAIUserAccountItem(user: EPICAIUser(awsListUser: user), userImage: UIImage(data: data))
-                            } catch {
+        if let selfUUID = EPICAISharedPreference.userSession?.uuid, selfUUID != user.uuid {
+            appSyncClient?.fetch(query: GetOtherUserProfileQuery(user_uuid: user.uuid, current_user_uuid: selfUUID), cachePolicy: .fetchIgnoringCacheData, resultHandler: { result, error in
+                if let user = result?.data?.getOtherUserProfile {
+                    if let imageURLString = user.imageUrl {
+                        AWSManager.shared().downloadProfileImage(key: imageURLString) { imageURL in
+                            if let imageURL = imageURL {
+                                do {
+                                    let data = try Data(contentsOf: imageURL)
+                                    self.userItem = EPICAIUserAccountItem(user: EPICAIUser(awsOtherUserDetails: user), userImage: UIImage(data: data))
+                                } catch {
+                                    self.userItem = EPICAIUserAccountItem(user: EPICAIUser(awsOtherUserDetails: user), userImage: nil)
+                                }
+                            } else {
+                                self.userItem = EPICAIUserAccountItem(user: EPICAIUser(awsOtherUserDetails: user), userImage: nil)
+                            }
+                        }
+                    } else {
+                        self.userItem = EPICAIUserAccountItem(user: EPICAIUser(awsOtherUserDetails: user), userImage: nil)
+                    }
+                }
+            })
+        }
+        else {
+            appSyncClient?.fetch(query: GetUserQuery(user_uuid: user.uuid), cachePolicy: .fetchIgnoringCacheData, resultHandler: { result, error in
+                if let user = result?.data?.getUser {
+                    if let imageURLString = user.imageUrl {
+                        AWSManager.shared().downloadProfileImage(key: imageURLString) { imageURL in
+                            if let imageURL = imageURL {
+                                do {
+                                    let data = try Data(contentsOf: imageURL)
+                                    self.userItem = EPICAIUserAccountItem(user: EPICAIUser(awsListUser: user), userImage: UIImage(data: data))
+                                } catch {
+                                    self.userItem = EPICAIUserAccountItem(user: EPICAIUser(awsListUser: user), userImage: nil)
+                                }
+                            } else {
                                 self.userItem = EPICAIUserAccountItem(user: EPICAIUser(awsListUser: user), userImage: nil)
                             }
-                        } else {
-                            self.userItem = EPICAIUserAccountItem(user: EPICAIUser(awsListUser: user), userImage: nil)
                         }
+                    } else {
+                        self.userItem = EPICAIUserAccountItem(user: EPICAIUser(awsListUser: user), userImage: nil)
                     }
-                } else {
-                    self.userItem = EPICAIUserAccountItem(user: EPICAIUser(awsListUser: user), userImage: nil)
                 }
-            }
-        })
+            })
+        }
+        
     }
     
+    /// Function responsible to assign user data
+    /// Assign user values into property called, items
+    /// Notify controller too.
     func getVideosList(){
         if let user = self.user {
-            self.fetchUserFeedItems(user: EPICAIUser(userUUID: user.uuid))
+            self.fectchOtherUsersProfileItem(user: user)
         }
         else {
             if let userUUID = EPICAISharedPreference.userSession?.uuid {
@@ -90,6 +124,61 @@ class EPICAIProfileVM: NSObject {
         }
     }
     
+    /// Function responsible to fetch video list, using API ListShareableVideobyUserQuery
+    /// Assign user values into property called, items
+    /// Notify controller too.
+    func fectchOtherUsersProfileItem(user:EPICAIUser) {
+        if let userUUID = EPICAISharedPreference.userSession?.uuid {
+            var results = [EPICAIFeedItem]()
+            appSyncClient?.fetch(query: ListShareableVideobyUserQuery(user_uuid: user.uuid, current_user_uuid: userUUID), cachePolicy: .fetchIgnoringCacheData, resultHandler: {(result, error) in
+                guard let unWrappedVideosList = result?.data?.listShareableVideobyUser else { self.items = nil ; return }
+                let group = DispatchGroup()
+                for video in unWrappedVideosList {
+                    if let uwvideo = video {
+                        group.enter()
+                        appSyncClient?.fetch(query: GetUserQuery(user_uuid:uwvideo.userUuid), cachePolicy: .fetchIgnoringCacheData) {
+                            (result, error) in
+                            if let user = result?.data?.getUser {
+                                if let imageURLString = user.imageUrl {
+                                    AWSManager.shared().downloadProfileImage(key: imageURLString) { imageURL in
+                                        if let imageURL = imageURL {
+                                            do {
+                                                let data = try Data(contentsOf: imageURL)
+                                                var feedItem = EPICAIFeedItem(video: EPICAIVideo(awsListVideo: uwvideo), user: EPICAIUser(awsListUser: user))
+                                                feedItem.userImage = UIImage(data: data)
+                                                results.append(feedItem)
+                                                group.leave()
+                                            } catch {
+                                                let feedItem = EPICAIFeedItem(video: EPICAIVideo(awsListVideo: uwvideo), user: EPICAIUser(awsListUser: user))
+                                                results.append(feedItem)
+                                                group.leave()
+                                            }
+                                        } else {
+                                            let feedItem = EPICAIFeedItem(video: EPICAIVideo(awsListVideo: uwvideo), user: EPICAIUser(awsListUser: user))
+                                            results.append(feedItem)
+                                            group.leave()
+                                        }
+                                    }
+                                }
+                                else {
+                                    let feedItem = EPICAIFeedItem(video: EPICAIVideo(awsListVideo: uwvideo), user: EPICAIUser(awsListUser: user))
+                                    results.append(feedItem)
+                                    group.leave()
+                                }
+                            }
+                        }
+                    }
+                }
+                group.notify(queue: .main) {
+                    self.items = results
+                }
+            })
+        }
+    }
+    
+    /// Function responsible to fetch feed video list, using API ListVideobyUserQuery
+    /// Assign user values into property called, items
+    /// Notify controller too.
     func fetchUserFeedItems(user:EPICAIUser) {
         var results = [EPICAIFeedItem]()
         appSyncClient?.fetch(query: ListVideobyUserQuery(user_uuid: user.uuid),cachePolicy: .fetchIgnoringCacheData) {(result, error) in
@@ -137,24 +226,59 @@ class EPICAIProfileVM: NSObject {
         }
     }
     
+    /// Function responsible to follow/Unfollow
+    /// Notify controller too.
+    func performFollow(state:Bool, selectedUser:EPICAIUser, completion:@escaping (Bool) -> Void) {
+        guard let userUUID = EPICAISharedPreference.userSession?.uuid else { return }
+        if (state) {
+            let createFollowInput = CreateFollowInput(followUuid: UUID().uuidString, userUuid: userUUID, following: selectedUser.uuid)
+            appSyncClient?.perform(mutation: CreateFollowMutation(createFollowInput: createFollowInput), resultHandler:  { result, error in
+                if let _ = error {
+                    completion(false)
+                }
+                else if let _ = result?.errors?[0] {
+                    completion(false)
+                }
+                else {
+                    completion(true)
+                }
+            })
+        }
+        else {
+            let deleteFollowMutation = DeleteFollowMutation(user_uuid: userUUID, following: selectedUser.uuid)
+            appSyncClient?.perform(mutation: deleteFollowMutation, resultHandler:  { result, error in
+                if let _ = error {
+                    completion(false)
+                }
+                else if let _ = result?.errors?[0] {
+                    completion(false)
+                }
+                else {
+                    completion(true)
+                }
+            })
+        }
+    }
+    
+    /// Extraction video's URL from [EPICAIFeedItem]
+    /// AWS S3 URls
+    /// Assign items to itemsWithURL
+    /// Notify controller too.
     func getVideoLocalURLs(for items: [EPICAIFeedItem]) {
         var results = [EPICAIFeedItem]()
         let group = DispatchGroup()
         for item in items {
             group.enter()
             if !item.video.videoName.isEmpty {
-                print("Profile Video name: \(item.video.videoName)")
                 _ = Amplify.Storage.getURL(key: item.video.videoName, options: .none, resultListener: { result in
                     var dummyItem = item
                     switch result {
-                    case .failure(let error):
-                        print("Video URL Error \(error.localizedDescription)")
+                    case .failure(_):
                         dummyItem.videoLocalURL = nil
                         results.append(dummyItem)
                         group.leave()
                     case .success(let url):
                         dummyItem.videoLocalURL = url
-                        print("Video URL In Profile \(url)")
                         results.append(dummyItem)
                         group.leave()
                     }

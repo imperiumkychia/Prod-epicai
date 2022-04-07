@@ -92,7 +92,6 @@ final class EPICAIAudioContext {
             @unknown default:
                 break
             }
-            
             completionHandler(nil)
         }
     }

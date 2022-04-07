@@ -24,19 +24,36 @@ class EPICAICommentVM :NSObject {
         super.init()
     }
     
+    func reportComment(commentItem:EPICAIComment, comment:String ,  completion:@escaping (Bool) -> Void ) {
+        
+        guard let userUUID = EPICAISharedPreference.userSession?.uuid else { return }
+        
+        let createReportInput = CreateReportInput(reportUuid: UUID().uuidString,
+                                                  commentUuid: commentItem.uuid,
+                                                  byUser: userUUID,
+                                                  datetime: Date().getServerDate(),
+                                                  status: 1,
+                                                  message: comment,
+                                                  type: "comment")
+        
+        appSyncClient?.perform(mutation: CreateReportMutation(createReportInput: createReportInput), resultHandler: { result, error in
+            if let _ = error { completion(false) }
+            else if let _ = result?.errors?[0] { completion(false) }
+            else  { completion(true) }
+        })
+    }
+    
     func updateFeedCommentCount(feedItem:EPICAIFeedItem, indexPath:IndexPath) {
         let videoMutaionInput = UpdateVideoInput(videoUuid: feedItem.video.videoUUID, commentsCount: feedItem.video.commentsCount+1)
         appSyncClient?.perform(mutation: UpdateVideoMutation(updateVideoInput: videoMutaionInput), resultHandler: { result, error in
             if error != nil{
-                print(error ?? "Error Getting Lists")
+               return
             }
-            if let resultError = result?.errors {
-                print("Error saving the item on server: \(resultError)")
+            if let _ = result?.errors {
                 return
             }
             else {
                 self.onUpdateCommentsCount(indexPath)
-                print("Success updateFeedCommentCount : \(String(describing: result))")
             }
         })
     }
@@ -53,12 +70,9 @@ class EPICAICommentVM :NSObject {
             (result, error) in
                 if error != nil{
                     completion(nil)
-                    print(error ?? "Error Getting Lists")
                 }
-                if let resultError = result?.errors {
+                if let _ = result?.errors {
                     completion(nil)
-                    print("Error saving the item on server: \(resultError)")
-                    return
                 }
                 else {
                     let comment = EPICAIComment(uuid: commentUuid, videoUUID: feedItem.video.videoUUID, userUUID: userSession.uuid, comment: text, createdOn: Date().getServerDate(), repliedTo: "", modifiedOn: "")
@@ -82,19 +96,15 @@ class EPICAICommentVM :NSObject {
             (result, error) in
                 if error != nil{
                     completion(nil)
-                    print(error ?? "Error Getting Lists")
                 }
-                if let resultError = result?.errors {
+                if let _ = result?.errors {
                     completion(nil)
-                    print("Error saving the item on server: \(resultError)")
-                    return
                 }
                 else {
                     let comment = EPICAIComment(uuid: commentUuid, videoUUID: feedItem.video.videoUUID, userUUID: userSession.uuid, comment: text, createdOn:  Date().getServerDate(), repliedTo: item.uuid, modifiedOn: "")
                     var newCommentItem = EPICAICommentItem(comment: comment, user:userSession)
                     newCommentItem.userImage = EPICAIFileManager.shared().getEPICAIUserSessionImage()
                     completion(newCommentItem)
-                    print("MUTATION - CREATE DATA : \(String(describing: result))")
                 }
         })
     }
@@ -149,7 +159,6 @@ class EPICAICommentVM :NSObject {
                     let replies = (result.filter{ $0.comment.repliedTo == commentItem.comment.uuid })
                     comments[i].replies =  replies.sorted(by: { $0.comment.createdOn > $1.comment.createdOn })
                 }
-                //self.items = result.filter { $0.comment.repliedTo == "null" ||  $0.comment.repliedTo.isEmpty }
                 self.items = comments
             }
         })

@@ -7,20 +7,21 @@
 import UIKit
 import JGProgressHUD
 import Amplify
+import SwiftUI
 
 class EPICAIVideoDetailsVC: UIViewController {
-    
     
     let itemsMargin: CGFloat = 20.0
     
     private var dateFormatter = DateFormatter()
     private let targetDateFormat = "dd/MM/yyyy"
     private let originalDateFormat = "yyyy-MM-dd HH:mm:ss"
+    
     var indexPath:IndexPath?
     var videoItem: EPICAIFeedItem?
-    var gaugeData: Double = RandomDataGenerator.generateRandomGaugeData()
-    var tonalityData = RandomDataGenerator.generateRandomTonalityData()
-    var pieChartData = RandomDataGenerator.generateRandomPieChartData(numberOfCategories: 4)
+    var aiCoachVM = AICoachVM()
+    var segmentControll: UISegmentedControl!
+    var aiCoachDetails:AICoach = AICoach()
     
     lazy var titleLabel: UILabel = {
         let label = UILabel(frame: .zero)
@@ -31,7 +32,11 @@ class EPICAIVideoDetailsVC: UIViewController {
         return label
     }()
     
-    
+    lazy var segmentView:UIView = {
+        let view = UIView(frame: CGRect(x: 0, y: view.safeAreaInsets.top + 44, width: self.view.frame.width, height: 100))
+        //view.translatesAutoresizingMaskIntoConstraints = false
+        return view
+    }()
     
     lazy var videoDetailTableView: UITableView = {
         let table = UITableView(frame: .zero, style: .plain)
@@ -44,6 +49,12 @@ class EPICAIVideoDetailsVC: UIViewController {
         table.register(VideoSpeedOfSpeechCell.self, forCellReuseIdentifier: "VideoSpeedOfSpeechCell")
         table.register(VideoTonalityCell.self, forCellReuseIdentifier: "VideoTonalityCell")
         table.register(VideoFillerWords.self, forCellReuseIdentifier: "VideoFillerWords")
+        //AI Coach
+        table.register(AIBodyLanguageCell.self, forCellReuseIdentifier: "AIBodyLanguageCell")
+        table.register(AIRecommendedVideoCell.self, forCellReuseIdentifier: "AIRecommendedVideoCell")
+        table.register(AISpeedOfSpeechCell.self, forCellReuseIdentifier: "AISpeedOfSpeechCell")
+        table.register(AITonalityCell.self, forCellReuseIdentifier: "AITonalityCell")
+        table.register(AIFillerWordsCell.self, forCellReuseIdentifier: "AIFillerWordsCell")
         
         table.separatorStyle = .none
         table.backgroundColor = self.view.backgroundColor
@@ -85,21 +96,48 @@ class EPICAIVideoDetailsVC: UIViewController {
         self.navigationItem.leftBarButtonItem = leftBaritem
     }
     
-    //    private func rightMenuItems() {
-    //        let rightOptionView = UIView(frame: CGRect(x: 100, y: 1, width: 50, height: 49))
-    //        rightOptionView.addSubview(self.settingsButton)
-    //        let rightBaritem = UIBarButtonItem(customView: rightOptionView)
-    //        self.navigationItem.rightBarButtonItem = rightBaritem
-    //    }
-    
-    
     override func viewDidLoad() {
         super.viewDidLoad()
         self.leftMenuItems()
-        //self.rightMenuItems()
+        self.view.addSubview(segmentView)
         setupUIElements()
+        //self.segmentView.frame = CGRect(x: 0, y: view.safeAreaInsets.top + 49, width: self.view.frame.width, height: 40)
+        //print("[DEBUG] viewDidLoad")
+        let customSegment = CustomSegmentControl(frame: CGRect(x: 0, y: view.safeAreaInsets.top + 49, width: self.view.frame.width, height: 40))
+        self.segmentView.addSubview(customSegment)
+        self.segmentControll = customSegment.segmentedControl
+        
+        
+        customSegment.segmentSelectIndex = { segmentControll  in
+            if let segmentCnt = segmentControll {
+                self.segmentControll = segmentCnt
+                if segmentCnt.selectedSegmentIndex == 0 {
+                    self.fetchDetails()
+                }
+                else {
+                    self.fetchDetails()
+                }
+                self.videoDetailTableView.reloadData()
+            }
+        }
+        
+        self.fetchDetails()
+        self.videoDetailTableView.reloadData()
+        //print("SEGMENTCONTROLL = " + customSegment.segmentSelectIndex)
     }
     
+    func fetchDetails() {
+        //print("[DEBUG] VIDEO UUID BEFORE")
+        guard let videoUUID = self.videoItem?.video.videoUUID else {return}
+        //print("[DEBUG] VIDEO UUID - fetchDetails()" + videoUUID)
+        self.aiCoachVM.getVideoResult(videoUUID: videoUUID) //"8C7EA916-31E7-4D62-B482-273636D2EDF1"
+        self.aiCoachVM.notifyResult = { aiCoachDetails in
+            if let details = aiCoachDetails {
+                self.aiCoachDetails = details
+                self.videoDetailTableView.reloadData()
+            }
+        }
+    }
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
@@ -112,28 +150,26 @@ class EPICAIVideoDetailsVC: UIViewController {
         }
     }
     
-    
     @objc func backButtonTapped(_ sender: UIButton) {
         _ = navigationController?.popViewController(animated: true)
     }
     
-    
     func setupUIElements() {
         view.backgroundColor = Palette.V2.V2_VCBackground
         view.addSubview(videoDetailTableView)
+        self.videoDetailTableView.contentInset = UIEdgeInsets(top: 0, left: 0, bottom: 50, right: 0)
         view.addSubview(ai)
         
         videoDetailTableView.snp.makeConstraints { (make) in
-            make.top.equalTo(0).offset(itemsMargin)
+            make.top.equalTo(self.segmentView.snp.bottom)
             make.bottom.equalTo(view)
             make.leading.equalTo(view)
             make.trailing.equalTo(view)
         }
-        
     }
     
     @objc func settingsButtonTapped(_ sender: UIButton) {
-        guard let toVC = UIStoryboard(name: "Main", bundle: nil).instantiateViewController(identifier: "ProfileSettingsViewController") as? EPICAISettingsVC else { return }
+        guard let toVC = UIStoryboard(name: "Main", bundle: nil).instantiateViewController(identifier: "EPICAISettingsVC") as? EPICAISettingsVC else { return }
         navigationController?.pushViewController(toVC, animated: true)
     }
     
@@ -146,10 +182,16 @@ class EPICAIVideoDetailsVC: UIViewController {
     
 }
 
-
 extension EPICAIVideoDetailsVC: UITableViewDelegate, UITableViewDataSource {
+    
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return 6
+        var cellCount = 0
+        cellCount = (self.aiCoachDetails.thisVideo?.bodyLaguageResult != nil) ? cellCount + 1 : cellCount
+        cellCount = (self.aiCoachDetails.thisVideo?.speedOfSpeech != nil) ? cellCount + 1 : cellCount
+        cellCount = (self.aiCoachDetails.thisVideo?.tonalityResult != nil) ? cellCount + 1 : cellCount
+        cellCount = (self.aiCoachDetails.thisVideo?.fillerWords != nil) ? cellCount + 1 : cellCount
+        //return self.segmentControll.selectedSegmentIndex == 0 ? 6 : cellCount*2 + 1
+        return cellCount*2 + 1
     }
     
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
@@ -157,13 +199,15 @@ extension EPICAIVideoDetailsVC: UITableViewDelegate, UITableViewDataSource {
         case 0:
             return 110.0
         case 2:
-            return 350.0
+            return self.segmentControll.selectedSegmentIndex == 0 ? 450.0 : 300.0
         case 3:
-            return 370.0
+            return self.segmentControll.selectedSegmentIndex == 0 ? 370.0 : 300.0
+        case 4:
+            return self.segmentControll.selectedSegmentIndex == 0 ? 260.0 : 300.0
         case 5:
-            return 240.0
+            return self.segmentControll.selectedSegmentIndex == 0 ? 240.0 : 300.0
         default:
-            return 260.0
+            return self.segmentControll.selectedSegmentIndex == 0 ? 260.0 : 300.0
         }
     }
     
@@ -171,74 +215,294 @@ extension EPICAIVideoDetailsVC: UITableViewDelegate, UITableViewDataSource {
         
         if indexPath.row == 0 {
             guard let cell = tableView.dequeueReusableCell(withIdentifier: "VideoNameCell", for: indexPath) as? VideoNameCell else { return UITableViewCell() }
-            
             cell.delegate = self
             cell.videoUUID = videoItem?.video.videoUUID
             cell.videoName = videoItem?.video.title
             cell.videoDate = formattedDateString(string: videoItem?.video.dataTime)
-            cell.videoScore = "Score: 60/100"
-            
+            cell.videoScore = "Score: \(videoItem?.video.score ?? 0)/100"
             return cell
         }
         
         if indexPath.row == 1 {
-            guard let cell = tableView.dequeueReusableCell(withIdentifier: "VideoBodyLanguageCell", for: indexPath) as? VideoBodyLanguageCell else { return UITableViewCell() }
-            
-            cell.categories = [(title: "Hand in pocket",
-                                color: Palette.V2.V2_pieChartRed,
-                                percentage: pieChartData[0]),
-                               (title: "Touch chin",
-                                color: Palette.V2.V2_pieChartYellow,
-                                percentage: pieChartData[1]),
-                               (title: "Cross arm",
-                                color: Palette.V2.V2_pieChartBlue,
-                                percentage: pieChartData[2]),
-                               (title: "Normal",
-                                color: Palette.V2.V2_pieChartGreen,
-                                percentage: pieChartData[3])]
-            
-            return cell
+            if self.segmentControll.selectedSegmentIndex == 1 {
+                guard let cell = tableView.dequeueReusableCell(withIdentifier: "VideoBodyLanguageCell", for: indexPath) as? VideoBodyLanguageCell else { return UITableViewCell() }
+                
+                cell.categories = [(title: "Hand in pocket",
+                                    color: Palette.V2.V2_pieChartRed,
+                                    percentage: 0.0),
+                                   (title: "Touch chin",
+                                    color: Palette.V2.V2_pieChartYellow,
+                                    percentage: 0.0),
+                                   (title: "Cross arm",
+                                    color: Palette.V2.V2_pieChartBlue,
+                                    percentage: 0.0),
+                                   (title: "Normal",
+                                    color: Palette.V2.V2_pieChartGreen,
+                                    percentage: 0.0)]
+                
+                return cell
+            }
+            else {
+                guard let cell = tableView.dequeueReusableCell(withIdentifier: "AIBodyLanguageCell", for: indexPath) as? AIBodyLanguageCell else { return UITableViewCell() }
+                
+                // CREATED BY CHIA KANG YEE : 6th APRIL 2022
+                // Dynamic generate pie chart
+                // This Video
+                var loopCount = 0;
+                var barCategoryList = [LegendCategory]()
+                for blResult in self.aiCoachDetails.thisVideo?.bodyLaguageResult ?? []{
+                    let blResultAssign:LegendCategory =
+                        (title: blResult.type,
+                        color: Palette.barColor[loopCount],
+                        percentage: blResult.score)
+                    barCategoryList.append(blResultAssign)
+                    loopCount+=1
+                }
+                cell.categories1 = barCategoryList
+                // This Video
+                loopCount = 0;
+                barCategoryList = [LegendCategory]()
+                for blResult in self.aiCoachDetails.lastVideo?.bodyLaguageResult ?? []{
+                    let blResultAssign:LegendCategory =
+                        (title: blResult.type,
+                         color: Palette.barColor[loopCount],
+                        percentage: blResult.score)
+                    barCategoryList.append(blResultAssign)
+                    loopCount+=1
+                }
+                cell.categories = barCategoryList
+                
+                
+                //Last Video
+                /*
+                cell.categories = [(title: (self.aiCoachDetails.lastVideo?.bodyLaguageResult?.count ?? 0 > 0) ? self.aiCoachDetails.lastVideo?.bodyLaguageResult?[0].type ?? "" : "",
+                                    color: Palette.V2.V2_pieChartRed,
+                                    percentage: (self.aiCoachDetails.lastVideo?.bodyLaguageResult?.count ?? 0 > 0) ? self.aiCoachDetails.lastVideo?.bodyLaguageResult?[0].score ?? 0.0 : 0.0),
+                                   
+                                   (title: (self.aiCoachDetails.lastVideo?.bodyLaguageResult?.count ?? 0 > 1) ? self.aiCoachDetails.lastVideo?.bodyLaguageResult?[1].type ?? "" : "",
+                                    color: Palette.V2.V2_pieChartYellow,
+                                    percentage: (self.aiCoachDetails.lastVideo?.bodyLaguageResult?.count ?? 0 > 1) ? self.aiCoachDetails.lastVideo?.bodyLaguageResult?[1].score ?? 0.0 : 0.0),
+                                   
+                                   (title: (self.aiCoachDetails.lastVideo?.bodyLaguageResult?.count ?? 0 > 2) ? self.aiCoachDetails.lastVideo?.bodyLaguageResult?[2].type ?? "" : "",
+                                    color: Palette.V2.V2_pieChartBlue,
+                                    percentage: (self.aiCoachDetails.lastVideo?.bodyLaguageResult?.count ?? 0 > 2) ? self.aiCoachDetails.lastVideo?.bodyLaguageResult?[2].score ?? 0.0 : 0.0),
+                                   
+                                   (title: (self.aiCoachDetails.lastVideo?.bodyLaguageResult?.count ?? 0 > 3) ? self.aiCoachDetails.lastVideo?.bodyLaguageResult?[3].type ?? "" : "",
+                                    color: Palette.V2.V2_pieChartGreen,
+                                    percentage: (self.aiCoachDetails.lastVideo?.bodyLaguageResult?.count ?? 0 > 3) ? self.aiCoachDetails.lastVideo?.bodyLaguageResult?[3].score ?? 0.0 : 0.0)]
+                */
+                 
+                 //This Video
+                /*
+                cell.categories1 = [(title: (self.aiCoachDetails.thisVideo?.bodyLaguageResult?.count ?? 0 > 0) ? self.aiCoachDetails.thisVideo?.bodyLaguageResult?[0].type ?? "" : "",
+                                     color: Palette.V2.V2_pieChartRed,
+                                     percentage: (self.aiCoachDetails.thisVideo?.bodyLaguageResult?.count ?? 0  > 0) ? self.aiCoachDetails.thisVideo?.bodyLaguageResult?[0].score ?? 0.0 : 0.0),
+                                    
+                                    (title: (self.aiCoachDetails.thisVideo?.bodyLaguageResult?.count ?? 0 > 1) ? self.aiCoachDetails.thisVideo?.bodyLaguageResult?[1].type ?? "": "",
+                                     color: Palette.V2.V2_pieChartYellow,
+                                     percentage: (self.aiCoachDetails.thisVideo?.bodyLaguageResult?.count ?? 0 > 1) ? self.aiCoachDetails.thisVideo?.bodyLaguageResult?[1].score ?? 0.0 : 0.0),
+                                    
+                                    (title: (self.aiCoachDetails.thisVideo?.bodyLaguageResult?.count ?? 0 > 2) ? self.aiCoachDetails.thisVideo?.bodyLaguageResult?[2].type ?? "" : "",
+                                     color: Palette.V2.V2_pieChartBlue,
+                                     percentage: (self.aiCoachDetails.thisVideo?.bodyLaguageResult?.count ?? 0 > 2) ? self.aiCoachDetails.thisVideo?.bodyLaguageResult?[2].score ?? 0.0 : 0.0),
+                                    
+                                    (title: (self.aiCoachDetails.thisVideo?.bodyLaguageResult?.count ?? 0 > 3) ? self.aiCoachDetails.thisVideo?.bodyLaguageResult?[3].type ?? "" : "",
+                                     color:  Palette.V2.V2_pieChartGreen,
+                                     percentage: (self.aiCoachDetails.thisVideo?.bodyLaguageResult?.count ?? 0 > 3) ? self.aiCoachDetails.thisVideo?.bodyLaguageResult?[3].score ?? 0.0 : 0.0)]
+                */
+                
+                return cell
+            }
         }
         
         if indexPath.row == 2 {
-            guard let cell = tableView.dequeueReusableCell(withIdentifier: "VideoHighlightsCell", for: indexPath) as? VideoHighlightsCell else { return UITableViewCell() }
-            
-            cell.videoURL = videoItem?.videoLocalURL
-            cell.explanation = "Dynamic text that describes all detected bad posture"
-            return cell
+            if self.segmentControll.selectedSegmentIndex == 1 {
+                guard let cell = tableView.dequeueReusableCell(withIdentifier: "VideoHighlightsCell", for: indexPath) as? VideoHighlightsCell else { return UITableViewCell() }
+                
+                cell.videoURL = videoItem?.videoLocalURL
+                cell.explanation = "Dynamic text that describes all detected bad posture"
+                return cell
+            } else {
+                guard let cell = tableView.dequeueReusableCell(withIdentifier: "AIRecommendedVideoCell", for: indexPath) as? AIRecommendedVideoCell else { return UITableViewCell() }
+                
+                if self.aiCoachDetails.thisVideo?.blVideoURLS.count ?? 0 > 0 {
+                    _ = Amplify.Storage.getURL(key: "recommendation_videos/bodylanguage_1.mp4", options: .none, resultListener: { result in
+                        switch result {
+                        case .failure(_):
+                            DispatchQueue.main.async {
+                                cell.videoURL = nil
+                            }
+                        case .success(let url):
+                            DispatchQueue.main.async {
+                                cell.videoURL = url
+                            }
+                        }
+                    })
+                }
+                return cell
+            }
         }
         
         if indexPath.row == 3 {
-            guard let cell = tableView.dequeueReusableCell(withIdentifier: "VideoSpeedOfSpeechCell", for: indexPath) as? VideoSpeedOfSpeechCell else { return UITableViewCell() }
-            
-            cell.value = gaugeData
-            
-            return cell
+            if self.segmentControll.selectedSegmentIndex == 1 {
+                guard let cell = tableView.dequeueReusableCell(withIdentifier: "VideoSpeedOfSpeechCell", for: indexPath) as? VideoSpeedOfSpeechCell else { return UITableViewCell() }
+                cell.value = 0
+                return cell
+            }else {
+                guard let cell = tableView.dequeueReusableCell(withIdentifier: "AISpeedOfSpeechCell", for: indexPath) as? AISpeedOfSpeechCell else { return UITableViewCell() }
+                cell.value = self.aiCoachDetails.lastVideo?.speedOfSpeech?.score ?? 0.0
+                cell.value1 = self.aiCoachDetails.thisVideo?.speedOfSpeech?.score ?? 0.0
+                return cell
+            }
         }
         
         if indexPath.row == 4 {
-            guard let cell = tableView.dequeueReusableCell(withIdentifier: "VideoTonalityCell", for: indexPath) as? VideoTonalityCell else { return UITableViewCell() }
-            
-            cell.data = tonalityData
-            
-            return cell
+            if self.segmentControll.selectedSegmentIndex == 1 {
+                guard let cell = tableView.dequeueReusableCell(withIdentifier: "VideoTonalityCell", for: indexPath) as? VideoTonalityCell else { return UITableViewCell() }
+                cell.data = [0.0,0.0,0.0]
+                return cell
+            }
+            else {
+                //Speed Video
+                guard let cell = tableView.dequeueReusableCell(withIdentifier: "AIRecommendedVideoCell", for: indexPath) as? AIRecommendedVideoCell else { return UITableViewCell() }
+                if self.aiCoachDetails.thisVideo?.speedOfSpeechVideoURLS.count ?? 0 > 0 {
+                    _ = Amplify.Storage.getURL(key: aiCoachDetails.thisVideo?.speedOfSpeechVideoURLS[0] ?? "", options: .none, resultListener: { result in
+                        switch result {
+                        case .failure(_):
+                            DispatchQueue.main.async {
+                                cell.videoURL = nil
+                            }
+                        case .success(let url):
+                            DispatchQueue.main.async {
+                                cell.videoURL = url
+                            }
+                        }
+                    })
+                }
+                return cell
+            }
         }
-        
         if indexPath.row == 5 {
-            guard let cell = tableView.dequeueReusableCell(withIdentifier: "VideoFillerWords", for: indexPath) as? VideoFillerWords else { return UITableViewCell() }
-            
-            cell.data = [(title: "Um", color: Palette.V2.V2_fillerWordsGrey, value: 10),
-                         (title: "You Know", color: Palette.V2.V2_fillerWordsLightBlue, value: 7),
-                         (title: "I Mean", color: Palette.V2.V2_fillerWordsBlue, value: 4)]
-            
-            return cell
+            if self.segmentControll.selectedSegmentIndex == 1 {
+                guard let cell = tableView.dequeueReusableCell(withIdentifier: "VideoFillerWords", for: indexPath) as? VideoFillerWords else { return UITableViewCell() }
+                cell.data = [(title: "Um", color: Palette.V2.V2_fillerWordsGrey, value: 0),
+                             (title: "You Know", color: Palette.V2.V2_fillerWordsLightBlue, value: 0),
+                             (title: "I Mean", color: Palette.V2.V2_fillerWordsBlue, value: 0)]
+                return cell
+            }
+            else {
+                guard let cell = tableView.dequeueReusableCell(withIdentifier: "AITonalityCell", for: indexPath) as? AITonalityCell else { return UITableViewCell() }
+                cell.lastVideoTonalityResult =  self.aiCoachDetails.lastVideo?.tonalityResult
+                cell.thisVideoTonalityResult =  self.aiCoachDetails.thisVideo?.tonalityResult
+                cell.data = self.aiCoachDetails.lastVideo?.tonalityResult?.results ?? []
+                cell.data1 = self.aiCoachDetails.thisVideo?.tonalityResult?.results ?? []
+                
+                return cell
+            }
         }
-        
+        if indexPath.row == 6 {
+            if self.segmentControll.selectedSegmentIndex == 1 {
+                guard let cell = tableView.dequeueReusableCell(withIdentifier: "VideoFillerWords", for: indexPath) as? VideoFillerWords else { return UITableViewCell() }
+                cell.data = [(title: "Um", color: Palette.V2.V2_fillerWordsGrey, value: 0),
+                             (title: "You Know", color: Palette.V2.V2_fillerWordsLightBlue, value: 0),
+                             (title: "I Mean", color: Palette.V2.V2_fillerWordsBlue, value: 0)]
+                return cell
+            }
+            else {
+                guard let cell = tableView.dequeueReusableCell(withIdentifier: "AIRecommendedVideoCell", for: indexPath) as? AIRecommendedVideoCell else { return UITableViewCell() }
+                if self.aiCoachDetails.thisVideo?.tonalityVideoURLS.count ?? 0 > 0 {
+                    _ = Amplify.Storage.getURL(key: aiCoachDetails.thisVideo?.tonalityVideoURLS[0] ?? "", options: .none, resultListener: { result in
+                        switch result {
+                        case .failure(_):
+                            DispatchQueue.main.async {
+                                cell.videoURL = nil
+                            }
+                        case .success(let url):
+                            DispatchQueue.main.async {
+                                cell.videoURL = url
+                            }
+                        }
+                    })
+                }
+                return cell
+            }
+        }
+        if indexPath.row == 7 {
+            
+            if self.segmentControll.selectedSegmentIndex == 0 {
+                guard let cell = tableView.dequeueReusableCell(withIdentifier: "AIFillerWordsCell", for: indexPath) as? AIFillerWordsCell else { return UITableViewCell() }
+                
+                // CREATED BY CHIA KANG YEE : 6th APRIL 2022
+                // Dynamic generate pie chart
+                // This Video
+                var loopCount = 0;
+                var fwTypeList = [FillerWordType]()
+                for fwResult in self.aiCoachDetails.thisVideo?.fillerWords ?? []{
+                    let fwResultAssign:FillerWordType =
+                        (title: fwResult.type,
+                        color: Palette.barColor[loopCount],
+                         value: Int(fwResult.score))
+                    fwTypeList.append(fwResultAssign)
+                    loopCount+=1
+                }
+                cell.data1 = fwTypeList
+                // Last Video
+                loopCount = 0;
+                fwTypeList = [FillerWordType]()
+                for fwResult in self.aiCoachDetails.lastVideo?.fillerWords ?? []{
+                    let fwResultAssign:FillerWordType =
+                        (title: fwResult.type,
+                        color: Palette.barColor[loopCount],
+                         value: Int(fwResult.score))
+                    fwTypeList.append(fwResultAssign)
+                    loopCount+=1
+                }
+                cell.data = fwTypeList
+                //print("[DEBUG] EPICAIVideoDetailsVC - \(self.aiCoachDetails.thisVideo?.fillerWords)")
+                
+                
+                /*
+                cell.data = [(title: self.aiCoachDetails.lastVideo?.fillerWords?.count ?? 0 > 0 ? self.aiCoachDetails.lastVideo?.fillerWords?[0].type ?? "" : "",
+                              color: Palette.V2.V2_fillerWordsGrey, value: self.aiCoachDetails.lastVideo?.fillerWords?.count ?? 0 > 0 ? Int(self.aiCoachDetails.lastVideo?.fillerWords?[0].score ?? 0) : 0),
+                             (title: self.aiCoachDetails.lastVideo?.fillerWords?.count ?? 0 > 1 ? self.aiCoachDetails.lastVideo?.fillerWords?[1].type ??  "" : "",
+                              color: Palette.V2.V2_fillerWordsLightBlue, value: self.aiCoachDetails.lastVideo?.fillerWords?.count ?? 0 > 1 ? Int(self.aiCoachDetails.lastVideo?.fillerWords?[1].score ?? 0) : 0),
+                             (title: self.aiCoachDetails.lastVideo?.fillerWords?.count ?? 0 > 2 ?  self.aiCoachDetails.lastVideo?.fillerWords?[2].type ??  "" : "",
+                              color: Palette.V2.V2_fillerWordsBlue, value: self.aiCoachDetails.lastVideo?.fillerWords?.count ?? 0 > 2 ? Int(self.aiCoachDetails.lastVideo?.fillerWords?[2].score ?? 0) : 0)]
+                
+                
+                cell.data1 = [(title: self.aiCoachDetails.thisVideo?.fillerWords?.count ?? 0 > 0 ? self.aiCoachDetails.thisVideo?.fillerWords?[0].type ?? "" : "",
+                               color: Palette.V2.V2_fillerWordsGrey, value: self.aiCoachDetails.thisVideo?.fillerWords?.count ?? 0 > 0 ? Int(self.aiCoachDetails.thisVideo?.fillerWords?[0].score ?? 0) : 0),
+                              (title: self.aiCoachDetails.thisVideo?.fillerWords?.count ?? 0 > 1 ? self.aiCoachDetails.thisVideo?.fillerWords?[1].type ??  "" : "",
+                               color: Palette.V2.V2_fillerWordsLightBlue, value: self.aiCoachDetails.thisVideo?.fillerWords?.count ?? 0 > 1 ? Int(self.aiCoachDetails.thisVideo?.fillerWords?[1].score ?? 0) : 0),
+                              (title: self.aiCoachDetails.thisVideo?.fillerWords?.count ?? 0 > 2 ?  self.aiCoachDetails.thisVideo?.fillerWords?[2].type ??  "" : "",
+                               color: Palette.V2.V2_fillerWordsBlue, value: self.aiCoachDetails.thisVideo?.fillerWords?.count ?? 0 > 2 ? Int(self.aiCoachDetails.thisVideo?.fillerWords?[2].score ?? 0) : 0)]
+                */
+                
+                return cell
+            }
+        }
+        if indexPath.row == 8 {
+            if self.segmentControll.selectedSegmentIndex == 0 {
+                guard let cell = tableView.dequeueReusableCell(withIdentifier: "AIRecommendedVideoCell", for: indexPath) as? AIRecommendedVideoCell else { return UITableViewCell() }
+                if self.aiCoachDetails.thisVideo?.fillerWordsVideoURLS.count ?? 0 > 0 {
+                    _ = Amplify.Storage.getURL(key: aiCoachDetails.thisVideo?.fillerWordsVideoURLS[0] ?? "", options: .none, resultListener: { result in
+                        switch result {
+                        case .failure(_):
+                            DispatchQueue.main.async {
+                                cell.videoURL = nil
+                            }
+                        case .success(let url):
+                            DispatchQueue.main.async {
+                                cell.videoURL = url
+                            }
+                        }
+                    })
+                }
+                return cell
+            }
+        }
         return UITableViewCell()
-        
     }
-    
-    
 }
 
 extension EPICAIVideoDetailsVC: VideoNameCellDelegate {
@@ -270,7 +534,6 @@ extension EPICAIVideoDetailsVC: VideoNameCellDelegate {
         controller.addAction(renameAction)
         
         if let video = self.videoItem?.video {
-            print("Videoshare:\(video.videoShare) share:\(video.share)")
             if video.share == 1 && video.videoShare == 0 {
                 controller.addAction(resultWithVideoAction)
             }
@@ -334,7 +597,6 @@ extension EPICAIVideoDetailsVC: VideoNameCellDelegate {
                     print("Error in deleting video : \(errors[0].localizedDescription)")
                 }
                 else {
-                    print("Result : \(String(describing: result))")
                     DispatchQueue.main.async {
                         EPICAIGenericAlertView().show(title: "Success", message: "Video deleted successfully.", onViewController: self) {
                             NotificationCenter.default.post(name: .didAddNewPublicVideo, object: nil, userInfo: nil)
@@ -396,6 +658,13 @@ extension EPICAIVideoDetailsVC: VideoNameCellDelegate {
                 }
                 else {
                     DispatchQueue.main.async {
+                        if videoWithResult {
+                            self.videoItem?.video.share = 1
+                            self.videoItem?.video.videoShare = 1
+                        }
+                        else {
+                            self.videoItem?.video.share = 1
+                        }
                         EPICAIGenericAlertView().show(title: "Success", message: "Video details updated successfully.", onViewController: self) {}
                     }
                 }
@@ -413,10 +682,9 @@ extension EPICAIVideoDetailsVC: VideoNameCellDelegate {
             }
             else {
                 DispatchQueue.main.async {
+                    self.videoItem?.video.title = title
+                    self.videoDetailTableView.reloadData()
                     EPICAIGenericAlertView().show(title: "Success", message: "Video details updated successfully.", onViewController: self) {}
-//                    self.progressDiscard(videoUUID: video.videoUUID) { state in
-//                        print("Delete video from s3 bucked : \(state)")
-//                    }
                 }
             }
             self.hideLoader()
@@ -428,11 +696,9 @@ extension EPICAIVideoDetailsVC: VideoNameCellDelegate {
         appSyncClient?.perform(mutation: UpdateVideoMutation(updateVideoInput: videoMutationInput), resultHandler: { result, error in
             if let error = error {
                 completion(error)
-                print("Title update error : \(error.localizedDescription)")
             }
             else if let errors = result?.errors {
                 completion(errors[0])
-                print("Title update error : \(errors[0].localizedDescription)")
             }
             else {
                 completion(nil)
@@ -453,21 +719,18 @@ extension EPICAIVideoDetailsVC: UITextFieldDelegate {
             if let error = error {
                 print("Video delete error:\(error.localizedDescription)")
             }
-            print("Video delete state \(state)")
         }
         
         self.removeBodyPointsCSVIfUserDiscard(videoUUID: videoUUID) { state, error  in
             if let error = error {
                 print("Body points csv delete error:\(error.localizedDescription)")
             }
-            print("Body point scv delete state \(state)")
         }
         
         self.removeAudioCSVIfUserDiscard(videoUUID: videoUUID) { state, error in
             if let error = error {
                 print("Audio points csv delete error:\(error.localizedDescription)")
             }
-            print("Audio csv delete state \(state)")
         }
     }
     

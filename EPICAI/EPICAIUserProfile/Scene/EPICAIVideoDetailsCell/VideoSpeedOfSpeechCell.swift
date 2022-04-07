@@ -109,10 +109,5 @@ class VideoSpeedOfSpeechCell: UITableViewCell {
             make.trailing.equalTo(contentView).offset(-itemsMargin)
             make.bottom.equalTo(dividerView.snp.top).offset(-itemsMargin)
         }
-        
-        
-        
     }
-    
-    
 }

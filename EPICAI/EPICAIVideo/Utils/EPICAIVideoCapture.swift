@@ -67,15 +67,11 @@ class EPICAIVideoCapture: NSObject {
     var videoCuptureSessionStarted:((Bool) -> Void)?
     var updateCountDown:((Int) -> Void)?
     var timer:Timer?
-    var countDown = 5
+    var countDown = EPICAISharedPreference.advanceSetting?.poseTimerTime ?? 5
     var timeLapse: String = ""
-    
+    var CAPTURE_FRAMES_PER_SECOND = 30
     override init() {
         super.init()
-    }
-    
-    deinit {
-        print("Deinit called")
     }
     
     func toggleTorch(on: Bool) {
@@ -122,6 +118,20 @@ class EPICAIVideoCapture: NSObject {
         }
         //}
     }
+    
+    func updateConfiguaration() {
+        do {
+            self.captureSession.beginConfiguration()
+            
+            try self.setCaptureSessionInput()
+            try self.setCaptureSessionOutput()
+            
+            // Commit configuration changes.
+            self.captureSession.commitConfiguration()
+            
+        } catch {
+        }
+    }
     /// Asynchronously sets up the capture session.
     ///
     /// - parameters:
@@ -159,6 +169,7 @@ class EPICAIVideoCapture: NSObject {
         guard let captureDevice = AVCaptureDevice.default(.builtInWideAngleCamera, for: AVMediaType.video,position: cameraPostion)
         else {  throw VideoCaptureError.invalidInput }
         
+        captureDevice.activeVideoMaxFrameDuration = CMTimeMake(value: 1, timescale: Int32(CAPTURE_FRAMES_PER_SECOND))
         // Remove any existing inputs.
         captureSession.inputs.forEach { input in
             captureSession.removeInput(input)
@@ -238,13 +249,17 @@ class EPICAIVideoCapture: NSObject {
     }
     
     func tourchOnOff(finalShot:Bool) {
-        self.toggleTorch(on: true)
+        if let state = EPICAISharedPreference.advanceSetting?.tourchState , state {
+            self.toggleTorch(on: true)
+        }
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
             self.toggleTorch(on: false)
         }
         if (finalShot) {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.55) {
-                self.toggleTorch(on: true)
+                if let state = EPICAISharedPreference.advanceSetting?.tourchState , state {
+                    self.toggleTorch(on: true)
+                }
             }
             DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
                 self.toggleTorch(on: false)
@@ -255,12 +270,13 @@ class EPICAIVideoCapture: NSObject {
     }
     
     public func stopTimer() {
-        self.countDown = 5
+        self.countDown = EPICAISharedPreference.advanceSetting?.poseTimerTime ?? 5
         self.toggleTorch(on: false)
         timer?.invalidate()
     }
     
     public func prepareCapturing() {
+        self.updateConfiguaration()
         timer = Timer.scheduledTimer(timeInterval: 1, target: self, selector:  #selector(manageTorchOnOff), userInfo: nil, repeats: true)
     }
     
@@ -468,7 +484,7 @@ extension EPICAIVideoCapture: AVCaptureVideoDataOutputSampleBufferDelegate, AVCa
             if decibels.isFinite && decibels > 0 {
                 //print("Decible power : \(String(decibels))")
                 if self.timeLapse != "" {
-                    EPICAIFileManager.shared().writeAudioPointsIntoCSV(volume: Int(decibels),closeFlasg: self.captureState == .end, timeLapse: self.timeLapse)
+                    EPICAIFileManager.shared().writeAudioPointsIntoCSV(volume: Int(decibels),closeFlasg: self.captureState == .end, timeLapse: self.timeLapse, timeCheck: true)
                 }
             }
         }

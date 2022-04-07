@@ -5,6 +5,12 @@
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>
+			<key>CFBundleIdentifier</key>
+			<string></string>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLName</key>
+			<string>com.xipe.bp.ai2ar</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
 				<string>fb598575217480053</string>
@@ -13,6 +19,8 @@
 		<dict>
 			<key>CFBundleTypeRole</key>
 			<string>None</string>
+			<key>CFBundleURLName</key>
+			<string>com.xipe.bp.ai2ar</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
 				<string>AI2AR</string>
@@ -25,6 +33,10 @@
 			<array/>
 		</dict>
 	</array>
+	<key>FacebookAppID</key>
+	<string>598575217480053</string>
+	<key>FacebookDisplayName</key>
+	<string>AI2AR</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>
@@ -44,21 +56,9 @@
 			</array>
 		</dict>
 	</dict>
-	<key>UIStatusBarStyle</key>
-	<string>UIStatusBarStyleDefault</string>
-	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>EPIC AI needs access to your location in order to function properly.</string>
-	<key>NSLocationAlwaysUsageDescription</key>
-	<string>EPIC AI needs access to your location in order to function properly.</string>
-	<key>NSLocationUsageDescription</key>
-	<string>EPIC AI needs access to your location in order to function properly.</string>
-	<key>NSPhotoLibraryUsageDescription</key>
-	<string>EPIC AI  saves captured photos and videos to your Photo Library.</string>
 	<key>UIFileSharingEnabled</key>
 	<true/>
-	<key>NSDocumentsFolderUsageDescription</key>
-	<string>EPIC AI  needs videos for body points processing purpus to your Photo Library.</string>
-	<key>NSFileProviderDomainUsageDescription</key>
-	<string>EPIC AI  needs videos for body points processing purpus to your Photo Library.</string>
+	<key>UIStatusBarStyle</key>
+	<string>UIStatusBarStyleDefault</string>
 </dict>
 </plist>

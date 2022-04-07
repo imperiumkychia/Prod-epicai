@@ -114,6 +114,4 @@ class VideoBodyLanguageCell: UITableViewCell {
         pieChartView.transparentCircleColor = Palette.V2.V2_pieChartInnerCircle
         pieChartView.transparentCircleRadiusPercent = 0.55
     }
-    
-    
 }

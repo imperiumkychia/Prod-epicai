@@ -13,7 +13,7 @@ import Vision
 import JGProgressHUD
 import SQLite
 
-var frameExtractionPerSecond = 5
+var frameExtractionPerSecond = 2
 
 class EPICAIVideoExaminationVC: UIViewController {
     
@@ -282,8 +282,6 @@ class EPICAIVideoExaminationVC: UIViewController {
             DispatchQueue.main.async {
                 if let image = image {
                     self.imageFramesCount += 1
-                    print(requestedTime.value, requestedTime.seconds, actualTime.value)
-                    
                     var audioDecibleValue:Float = 0.0
                     if ((videoURL.getDuration().rounded(toPlaces: 2)) - requestedTime.seconds) < 1 {
                         self.numberOfTasks = self.imageFramesCount
@@ -291,11 +289,13 @@ class EPICAIVideoExaminationVC: UIViewController {
                     if self.audioFrames.count > self.imageFramesCount-1 {
                         audioDecibleValue = self.audioFrames[self.imageFramesCount-1]
                     }
-                    let operation = ProcessImages(cgImage: image, timelapse:requestedTime.seconds.stringFromTimeInterval(), auidoPower: audioDecibleValue)
+                    
+                    let operation = ProcessImages(cgImage: image, timelapse:requestedTime.seconds.minuteSecondMS, auidoPower: audioDecibleValue)
                     
                     self.videoProcessingQueue.addOperation(operation)
                     
                     operation.completionBlock = {
+                        
                         if ((videoURL.getDuration().rounded(toPlaces: 2)) - requestedTime.seconds) < 1 {
                             if self.numberOfTasks > 0 {
                                 operation.closeFlag = true
@@ -428,7 +428,6 @@ class ExtractAudioOperation:AsyncOperation {
                 }
             }
             dispathGroup.notify(queue: .main) {
-                print("Audio sample in notify :\(self.audioFrames)")
                 self.audioFrames = audioSample
                 self.state = .finished
             }
@@ -440,7 +439,7 @@ class ProcessImages:AsyncOperation {
     
     private var currentFrame: CGImage?
     private var imageSize = CGSize.zero
-    private var timelapse:String = ""
+    var timelapse:String?
     var closeFlag:Bool = false
     var audioDeciblePower:Float = 0.0
     
@@ -467,13 +466,11 @@ class ProcessImages:AsyncOperation {
         let requestHandler = VNImageRequestHandler(cgImage: cgImage)
         // Create a new request to recognize a human body pose.
         let request = VNDetectHumanBodyPoseRequest(completionHandler: bodyPoseHandler)
-        
         do {
             // Perform the body pose-detection request.
             try requestHandler.perform([request])
         } catch {
             self.state = .finished
-            print("Unable to perform the request: \(error).")
         }
     }
     
@@ -485,6 +482,7 @@ class ProcessImages:AsyncOperation {
         if observations.count > 0 {
             _ = observations.map { (observation) -> [CGPoint] in
                 let ps = processObservation(observation)
+                self.state = .finished
                 return ps ?? []
             }
         }
@@ -499,16 +497,19 @@ class ProcessImages:AsyncOperation {
         
         let imagePoints: [CGPoint] = recognizedPoints.values.compactMap {
             guard $0.confidence > 0 else { self.state = .finished; return nil }
-            DispatchQueue.main.async {
-                EPICAIFileManager.shared().writeBodyPointsInToCSV(pointDict: recognizedPoints, height: Int(self.imageSize.height), width: Int(self.imageSize.width),closeFlasg: self.closeFlag, timeLapse: self.timelapse)
-                if self.audioDeciblePower > 0 {
-                    EPICAIFileManager.shared().writeAudioPointsIntoCSV(volume: Int(self.audioDeciblePower), closeFlasg: self.closeFlag, timeLapse: self.timelapse)
-                }
-                self.state = .finished
-            }
             return VNImagePointForNormalizedPoint($0.location,
                                                   Int(imageSize.width),
                                                   Int(imageSize.height))
+        }
+        if imagePoints.count > 0 {
+            guard let timelapse = self.timelapse else { self.state = .finished ; return [] }
+            if self.audioDeciblePower > 0 {
+                EPICAIFileManager.shared().writeAudioPointsIntoCSV(volume: Int(self.audioDeciblePower), closeFlasg: self.closeFlag, timeLapse: timelapse, timeCheck: false)
+            }
+            EPICAIFileManager.shared().writeBodyPointsInToCSV(pointDict: recognizedPoints, height: Int(self.imageSize.height), width: Int(self.imageSize.width),closeFlasg: self.closeFlag, timeLapse: timelapse, timeCheck: false)
+        }
+        else {
+            self.state = .finished
         }
         return imagePoints
     }
@@ -534,7 +535,6 @@ class WriteVideoInDocumentDirectory:AsyncOperation {
             self.localURL = fileURL
         }
         catch {
-            print("Error while save video in document directory :\(error.localizedDescription)")
             state = .finished
         }
     }

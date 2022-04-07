@@ -4,6 +4,7 @@ import UIKit
 extension UIView {
 
     @discardableResult
+    
     func anchor(top: NSLayoutYAxisAnchor?, leading: NSLayoutXAxisAnchor?, bottom: NSLayoutYAxisAnchor?, trailing: NSLayoutXAxisAnchor?, padding: UIEdgeInsets = .zero, size: CGSize = .zero) -> AnchoredConstraints {
 
         translatesAutoresizingMaskIntoConstraints = false

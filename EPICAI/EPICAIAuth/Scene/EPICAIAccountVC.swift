@@ -358,7 +358,6 @@ class EPICAIAccountVC: UIViewController {
                             self.view.isUserInteractionEnabled = true
                             self.ai.dismiss()
                         }
-                        print("Error updating user info: \(error)")
                         DispatchQueue.main.async {
                             EPICAIGenericAlertView().show(title: "Error",
                                                           message: "\(error.localizedDescription)",

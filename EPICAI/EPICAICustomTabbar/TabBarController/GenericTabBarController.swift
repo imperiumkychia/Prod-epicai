@@ -60,5 +60,6 @@ class GenericTabBarController: UITabBarController {
 extension GenericTabBarController: FloatingBarViewDelegate {
     func did(selectindex: Int) {
         selectedIndex = selectindex
+        NotificationCenter.default.post(name: .didChageTabCalled, object: nil)
     }
 }

@@ -11,6 +11,7 @@ import AVFoundation
 import AVKit
 import CDAlertView
 import Photos
+import JGProgressHUD
 
 protocol VideoTrimViewControllerDelegate: AnyObject {
     func videoTrim(_ viewController: EPICAIVideoTrimVC, didFinishTrimmimgWithVideoURL url: URL?)
@@ -47,6 +48,15 @@ class EPICAIVideoTrimVC: UIViewController {
         button.setImage(#imageLiteral(resourceName: "reset").resized(toWidth: 30), for: .normal)
         button.addTarget(self, action: #selector(resetButtonTapped(_:)), for: .touchUpInside)
         return button
+    }()
+    
+    
+    var ai: JGProgressHUD = {
+        let indicator = JGProgressHUD(style: .light)
+        indicator.textLabel.font = LatoFont.regular.withSize(15.0)
+        indicator.cornerRadius = 20.0
+        indicator.interactionType = .blockTouchesOnHUDView
+        return indicator
     }()
 
     var durationView: VideoDurationView!
@@ -100,8 +110,6 @@ class EPICAIVideoTrimVC: UIViewController {
             make.centerY.equalTo(titleLabel)
             make.trailing.equalTo(view).offset(-itemsMargin)
         }
-        
-        print("Self Video URL \(String(describing: self.videoURL))")
         guard let url = videoURL,
            let duration = getDurationForVideo(at: url) else {
             return
@@ -274,12 +282,7 @@ class EPICAIVideoTrimVC: UIViewController {
         DispatchQueue.main.async {
             PHPhotoLibrary.shared().performChanges({
                 PHAssetChangeRequest.creationRequestForAssetFromVideo(atFileURL: url)
-            }) { saved, error in
-                if saved {
-                    DispatchQueue.main.async {
-                        print("Video saved successfully.")
-                    }
-                }
+            }) { _ , error in
                 if error != nil {
                     //os_log("Video did not save for some reason", error.debugDescription);
                     debugPrint(error?.localizedDescription ?? "error is nil");
@@ -288,11 +291,34 @@ class EPICAIVideoTrimVC: UIViewController {
         }
     }
     
+    func showProgressView() {
+        DispatchQueue.main.async {
+            self.ai.textLabel.text = "Please wait..."
+            self.ai.show(in: self.view, animated: true)
+        }
+    }
+    
+    func hideProgressView() {
+        DispatchQueue.main.async {
+            self.ai.dismiss(afterDelay: 0.0, animated: true)
+        }
+    }
+    
     @objc func trimButtonTapped(_ sender: UIButton) {
-        return
         if let url = self.videoURL {
-            EPICAIFileManager.cropVideo(sourceURL: url, statTime: Float(self.rangeSeeker.selectedMinValue), endTime: Float(self.rangeSeeker.selectedMaxValue)) { outPuturl, trimStatus in
-            }
+            self.showProgressView()
+            EPICAIFileManager.shared().cropVideo(url, statTime: Float(self.rangeSeeker.selectedMinValue), endTime: Float(self.rangeSeeker.selectedMaxValue), fileName: url.lastPathComponent.replacingOccurrences(of: "."+url.pathExtension, with: ""), completion:  { crropedVideoURL in
+                self.hideProgressView()
+                if let videoURL = crropedVideoURL {
+                    if let navController = self.navigationController {
+                       let controller = EPICAIComposePost.instantiateFromAppStoryBoard(appStoryBoard: .VPStoryboard)
+                        controller.videoURL = videoURL
+                        controller.cropStartTime = Float(self.rangeSeeker.selectedMinValue)
+                        controller.cropEndTime = Float(self.rangeSeeker.selectedMaxValue)
+                        navController.pushViewController(controller, animated: true)
+                    }
+                }
+            })
         }
     }
     
@@ -334,7 +360,6 @@ class EPICAIVideoTrimVC: UIViewController {
     
     func getDurationForVideo(at url: URL) -> Double? {
         let asset = AVURLAsset(url: url)
-        print("Video assest \(asset)")
         guard let _ = asset.tracks(withMediaType: .video).first else { return nil }
         return Double(round(10 * (asset.duration.seconds) / 10))
     }

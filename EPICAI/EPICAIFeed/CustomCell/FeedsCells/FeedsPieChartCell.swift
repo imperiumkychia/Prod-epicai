@@ -10,12 +10,14 @@ import UIKit
 import FSPagerView
 import SnapKit
 import Charts
+import SwiftUI
 
 class FeedsPieChartCell: FSPagerViewCell {
         
     private var legendStackView: UIStackView!
     private var pieChartView: PieChartView!
     
+    /*
     var categories: [LegendCategory] = [(title: "Hand in pocket",
                                                  color: Palette.V2.V2_pieChartRed,
                                                  percentage: 0),
@@ -29,6 +31,12 @@ class FeedsPieChartCell: FSPagerViewCell {
                                                  color: Palette.V2.V2_pieChartGreen,
                                                  percentage: 0)] {
         didSet {
+            configureUI()
+        }
+    }
+     */
+    var categories: [LegendCategory] = [] {
+        didSet{
             configureUI()
         }
     }
@@ -47,16 +55,28 @@ class FeedsPieChartCell: FSPagerViewCell {
         contentView.backgroundColor = backgroundColor
         contentView.layer.shadowRadius = 0.0
         
+        //Last Video
+        // CREATED BY CHIA KANG YEE : 6th APRIL 2022
+        // Assign dynamic elements to the pie chart
+        var lvList = [LegendItemView]()
+        for cat in categories{
+            let lv = LegendItemView(item: cat)
+            lvList.append(lv)
+        }
+        legendStackView = UIStackView(arrangedSubviews: lvList)
+        
+        /*
         let v1 = LegendItemView(item: categories[0])
         let v2 = LegendItemView(item: categories[1])
         let v3 = LegendItemView(item: categories[2])
         let v4 = LegendItemView(item: categories[3])
-        
-        legendStackView = UIStackView(arrangedSubviews: [v1, v2, v3, v4])
+        */
+        //legendStackView = UIStackView(arrangedSubviews: [v1, v2, v3, v4])
+         
         legendStackView.axis = .vertical
         legendStackView.alignment = .leading
         legendStackView.distribution = .fillProportionally
-        legendStackView.spacing = 15.0
+        legendStackView.spacing = 5.0
         contentView.addSubview(legendStackView)
         legendStackView.snp.makeConstraints { (make) in
             make.top.equalTo(contentView).offset(5.0)
@@ -96,6 +116,81 @@ class FeedsPieChartCell: FSPagerViewCell {
 }
 
 typealias LegendCategory = (title: String, color: UIColor, percentage: Double)
+
+class LegendItemView1: UIView {
+    
+    var item: LegendCategory = LegendCategory(title: "ABC", color: UIColor.systemBlue, percentage: 0.0)
+    
+    private var stackView: UIStackView!
+    private var colorView: UIView!
+    private var numberLabel: UILabel!
+    private var descriptionLabel: UILabel!
+    
+    
+    required init(item: LegendCategory) {
+        super.init(frame: .zero)
+        self.item = item
+        configureUI()
+    }
+    
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+    
+    
+    private func configureUI() {
+        
+        colorView = UIView(frame: .zero)
+        colorView.translatesAutoresizingMaskIntoConstraints = false
+        colorView.layer.cornerRadius = 8.0
+        colorView.layer.cornerCurve = .continuous
+        colorView.backgroundColor = item.color
+        colorView.snp.makeConstraints { (make) in
+            make.height.equalTo(colorView.layer.cornerRadius * 4.0)
+            make.width.equalTo(70.0)
+        }
+        
+        numberLabel = UILabel(frame: .zero)
+        numberLabel.translatesAutoresizingMaskIntoConstraints = false
+        let attributedText = NSMutableAttributedString(string: "\(round(item.percentage))%", attributes: [NSAttributedString.Key.font : LatoFont.regular.withSize(8.0),NSAttributedString.Key.foregroundColor : Palette.V2.V2_pieChartLegendLabel])
+        attributedText.append(NSAttributedString(string: "\n\(item.title)", attributes: [NSAttributedString.Key.font : LatoFont.regular.withSize(5.0),NSAttributedString.Key.foregroundColor : Palette.V2.V2_pieChartLegendDescription]))
+        numberLabel.attributedText = attributedText
+        numberLabel.textAlignment = .center
+        numberLabel.numberOfLines = 0
+        numberLabel.textColor = Palette.V2.V2_pieChartLegendLabel
+        numberLabel.font = LatoFont.regular.withSize(10.0)
+        numberLabel.backgroundColor = .clear
+        colorView.addSubview(numberLabel)
+        numberLabel.snp.makeConstraints { (make) in
+            make.edges.equalTo(colorView)
+        }
+
+        descriptionLabel = UILabel(frame: .zero)
+        descriptionLabel.translatesAutoresizingMaskIntoConstraints = false
+        descriptionLabel.backgroundColor = .clear
+        descriptionLabel.text = item.title
+        descriptionLabel.textAlignment = .left
+        descriptionLabel.numberOfLines = 2
+        descriptionLabel.textColor = Palette.V2.V2_pieChartLegendDescription
+        descriptionLabel.font = LatoFont.regular.withSize(9.0)
+        descriptionLabel.snp.makeConstraints { (make) in
+            make.width.equalTo(55.0)
+        }
+        
+        stackView = UIStackView(arrangedSubviews: [colorView])
+        stackView.translatesAutoresizingMaskIntoConstraints = false
+        stackView.axis = .horizontal
+        stackView.alignment = .center
+        stackView.distribution = .fill
+        stackView.spacing = 13.0
+        addSubview(stackView)
+        
+    }
+}
 
 class LegendItemView: UIView {
     
@@ -169,3 +264,5 @@ class LegendItemView: UIView {
         
     }
 }
+
+

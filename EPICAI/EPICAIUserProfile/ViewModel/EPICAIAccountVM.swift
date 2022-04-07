@@ -8,6 +8,10 @@
 import Foundation
 import UIKit
 
+/// Application define View Model
+/// Responsible to retrive data from API's
+/// Convert data into application define model.
+/// Respond to controller.
 class EPICAIAccountVM: NSObject {
     
     private var _userItem: EPICAIUserAccountItem!
@@ -23,6 +27,8 @@ class EPICAIAccountVM: NSObject {
         super.init()
     }
     
+    /// Function to get user information
+    /// Store result into user item property,define as _userItem
     func getUserInfo() {
         AuthService.shared().getCurrentUserUUID { (uuid) in
             if let uuid = uuid {
@@ -51,6 +57,9 @@ class EPICAIAccountVM: NSObject {
        // guard let uid = AuthService.currentUserUUID else { return }
     }
     
+    /// Function to update user details
+    /// Return relevant response from server.
+    /// Transfer control to it's caller
     func updateUser(user: EPICAIUser, completion: @escaping (Error?) -> Void) {
         let userUpdateMutaionInput = UpdateUserInput(userUuid: user.uuid, email: user.email, firstName: user.firstName, lastName: user.lastName, username: user.userName, vendor: user.vendor, vendorUuid: user.vendorId, imageUrl: user.imageUrl, gender: user.gender)
         
@@ -59,20 +68,22 @@ class EPICAIAccountVM: NSObject {
         })
     }
     
+    /// Function to update user image
+    /// Return relevant response from server.
+    /// Acknowledge response to it's caller
     func uploadProfileImage(image: UIImage, key: String, completion: @escaping (Error?) -> Void) {
         AWSManager.shared().uploadProfileImage(image: image, key: key) { result in
             switch result {
             case .failure(let error):
-                print("Error uploading image to S3: \(error)")
                 completion(error)
-            case .success(let message):
-                print("Uploaded image to S3: \(message)")
+            case .success(_):
                 completion(nil)
             }
         }
     }
 }
 
+/// Application define model
 struct EPICAIUserAccountItem {
     
     var user: EPICAIUser
