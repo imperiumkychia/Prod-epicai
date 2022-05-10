@@ -517,7 +517,7 @@ extension EPICAICaptureVideoVC: UIImagePickerControllerDelegate, UINavigationCon
         
         guard let videoURL = info[UIImagePickerController.InfoKey.mediaURL] as? URL else { return }
         
-        if  videoURL.getDuration() > 1200 {
+        if  videoURL.getDuration() > 900 {
             self.showLargeVideoFromGallaryAlert(picker)
         }
         else {
@@ -526,10 +526,12 @@ extension EPICAICaptureVideoVC: UIImagePickerControllerDelegate, UINavigationCon
             self.navigationController?.pushViewController(videoExaminationVC, animated: true)
             picker.dismiss(animated: true, completion: nil)
         }
+        
+        
     }
     
     func showLargeVideoFromGallaryAlert(_ picker: UIImagePickerController) {
-        let alert = CDAlertView(title: "EPICAI Alert!", message: "Video is too long to process. Please select video which have duration lower then 20 minutes", type: .alarm)
+        let alert = CDAlertView(title: "EPICAI Alert!", message: "Video is too long to process. Please select video which have duration lower then 15 minutes", type: .alarm)
         let doneAction = CDAlertViewAction(title: "Ok", font: nil, textColor: nil, backgroundColor: nil) { (_) -> Bool in
             picker.dismiss(animated: true, completion: nil)
             return true

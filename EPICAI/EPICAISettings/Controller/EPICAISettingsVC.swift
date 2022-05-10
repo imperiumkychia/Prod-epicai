@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import WebKit
 
 class EPICAISettingsVC: UIViewController {
     
@@ -212,7 +213,7 @@ extension EPICAISettingsVC: UITableViewDelegate, UITableViewDataSource {
                 return cell
             } else if indexPath.row == 2 {
                 guard let cell = tableView.dequeueReusableCell(withIdentifier: "SettingsGenericLinkCell", for: indexPath) as? EPICGenericLinkCell else { return UITableViewCell() }
-                cell.title = "Common Question"
+                cell.title = "FAQ"
                 cell.detail = ""
                 cell.isArrowHidden = false
                 return cell
@@ -224,7 +225,7 @@ extension EPICAISettingsVC: UITableViewDelegate, UITableViewDataSource {
                 return cell
             } else if indexPath.row == 4 {
                 guard let cell = tableView.dequeueReusableCell(withIdentifier: "SettingsGenericLinkCell", for: indexPath) as? EPICGenericLinkCell else { return UITableViewCell() }
-                cell.title = "End User Agrement"
+                cell.title = "Terms and Conditions"
                 cell.detail = ""
                 cell.isArrowHidden = false
                 return cell
@@ -287,6 +288,7 @@ extension EPICAISettingsVC: UITableViewDelegate, UITableViewDataSource {
     }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        
         switch indexPath.section {
         case 0: break
         case 1:
@@ -308,22 +310,26 @@ extension EPICAISettingsVC: UITableViewDelegate, UITableViewDataSource {
                 break
             }
             if indexPath.row == 2 {
-                self.pushCommonQuestionViewController()
+                UIApplication.shared.open(URL(string: "https://airdigital.ai/epic-ai")!,options: [:],completionHandler: nil)
+                //self.pushCommonQuestionViewController()
                 break
             }
             
             if indexPath.row == 3 {
-                self.pushContactUsViewController()
+                //self.pushContactUsViewController()
+                UIApplication.shared.open(URL(string: "https://airdigital.ai/contact-us")!,options: [:],completionHandler: nil)
                 break
             }
             
             if indexPath.row == 4 {
-                self.pushEndUserAgreementViewController()
+                //self.pushEndUserAgreementViewController()
+                UIApplication.shared.open(URL(string: "https://airdigital.ai/terms-%26-conditions")!,options: [:],completionHandler: nil)
                 break
             }
             
             if indexPath.row == 5 {
-                self.pushPrivacyPolicyViewController()
+                UIApplication.shared.open(URL(string: "https://airdigital.ai/privacy-policy")!,options: [:],completionHandler: nil)
+                //self.pushPrivacyPolicyViewController()
                 break
             }
             

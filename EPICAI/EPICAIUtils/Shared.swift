@@ -11,7 +11,7 @@ import AVFoundation
 
 // ########################################################################
 // MARK: - Maximum video length in minutes
-let maximumVideoLength: Int = 20
+let maximumVideoLength: Int = 15
 
 // MARK: - Frame Per Second
 let fps: Int32 = 2
@@ -65,7 +65,7 @@ public struct Palette {
         static let V2_pieChartRed = UIColor(hex: "#ff6d5d")
         static let V2_pieChartMediumPurple = UIColor(hex: "#9370DB")
         static let V2_pieChartViolet = UIColor(hex: "#EE82EE")
-        static let V2_pieChartAqua = UIColor(hex: "#OOFFEE")
+        static let V2_pieChartSalmon = UIColor(hex: "#FF8D85")
         static let V2_pieChartInnerCircle = UIColor.modedColor(light: "#eff0ff", dark: "#151628")
         static let V2_cameraBottomCenterButtonBackground = UIColor.modedColor(light: "#474c8c", dark: "#b3b4bc")
         static let V2_cameraBottomSideBackground = UIColor.modedColor(light: "#b3c4d0", dark: "#334357")
@@ -91,7 +91,7 @@ public struct Palette {
         static let V2_VideoMoreButton = UIColor(hex: "#091065")
         static let V2_VideoTrimCancelButton = UIColor(hex: "#cecfe0")
     }
-    static let barColor = [Palette.V2.V2_pieChartRed, Palette.V2.V2_pieChartYellow, Palette.V2.V2_pieChartBlue, Palette.V2.V2_pieChartGreen,Palette.V2.V2_pieChartMediumPurple,Palette.V2.V2_pieChartViolet,Palette.V2.V2_pieChartAqua]
+    static let barColor = [Palette.V2.V2_pieChartRed, Palette.V2.V2_pieChartYellow, Palette.V2.V2_pieChartBlue, Palette.V2.V2_pieChartGreen, Palette.V2.V2_pieChartMediumPurple, Palette.V2.V2_pieChartViolet, Palette.V2.V2_pieChartSalmon]
 }
 
 // MARK: - Fonts

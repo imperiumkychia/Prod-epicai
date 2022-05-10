@@ -122,6 +122,8 @@ extension AVAsset {
         exporter?.videoComposition = videoComposition
         exporter?.outputURL = outputURL
         exporter?.outputFileType=AVFileType.mov
+        //exporter?.outputFileType=AVFileType.mp4
+        
         
         exporter?.exportAsynchronously(completionHandler: { [weak exporter] in
             DispatchQueue.main.async {

@@ -50,6 +50,27 @@ struct EPICAIUser : Codable {
         }
     }
     
+    init(awsListUser:GetUserByEmailQuery.Data.GetUserByEmail) {
+        self.uuid = awsListUser.userUuid ?? defaultText
+        self.userName = awsListUser.username ?? defaultText
+        self.firstName = awsListUser.firstName ?? defaultText
+        self.lastName = awsListUser.lastName ?? defaultText
+        self.email = awsListUser.email ?? defaultText
+        self.vendorId = awsListUser.vendorUuid ?? defaultText
+        self.vendor = awsListUser.vendor ?? defaultText
+        self.imageUrl = awsListUser.imageUrl ?? defaultText
+        self.gender = awsListUser.gender ?? defaultText
+        self.followerCount = awsListUser.followerCount ?? 0
+        self.followCount = awsListUser.followCount ?? 0
+        
+        if let followStatus = awsListUser.followStatus, followStatus == 1 {
+            self.followStatus = true
+        }
+        else {
+            self.followStatus = false
+        }
+    }
+    
     init(awsSearchUser:ListSearchUserQuery.Data.ListSearchUser)  {
         self.uuid = awsSearchUser.userUuid ?? defaultText
         self.userName = awsSearchUser.username ?? defaultText

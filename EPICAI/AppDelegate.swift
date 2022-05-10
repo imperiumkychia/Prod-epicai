@@ -45,7 +45,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
                                                                   cacheConfiguration: cacheConfiguration)
             // initialize app sync client
             appSyncClient = try AWSAppSyncClient(appSyncConfig: appSyncConfig)
-            
+            //try appSyncClient?.clearCaches()
             appSyncClient?.apolloClient?.cacheKeyForObject = { $0["id"] }
             
             //self.setRootViewController()

@@ -139,6 +139,7 @@ class EPICAIFileManager {
         
         exportSession.outputURL = outputURL
         exportSession.outputFileType = AVFileType.mov
+        //exportSession.outputFileType = AVFileType.mp4
         
         exportSession.exportAsynchronously(completionHandler: { () -> Void in
             DispatchQueue.main.async(execute: {
@@ -747,7 +748,9 @@ class EPICAIFileManager {
         //configure exporter
         exporter?.videoComposition = composition
         exporter?.outputURL = outputMovieURL
+        //exporter?.outputFileType = .mp4
         exporter?.outputFileType = .mov
+        
         exporter?.timeRange = timeRange
         
         //export!

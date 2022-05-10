@@ -9,6 +9,7 @@
 import UIKit
 import JGProgressHUD
 import Amplify
+import CDAlertView
 
 class EPICAIProfileVC: UIViewController {
     
@@ -311,7 +312,20 @@ extension EPICAIProfileVC: UITableViewDelegate, UITableViewDataSource {
             if self.otherUserDetails == nil {
                 let toVC = EPICAIVideoDetailsVC()
                 toVC.videoItem = items[indexPath.row]
-                navigationController?.pushViewController(toVC, animated: true)
+                if(items[indexPath.row].video.analyseStatus == "Analysed" || items[indexPath.row].video.analyseStatus == "analysed"){
+                    navigationController?.pushViewController(toVC, animated: true)
+                }else{
+                    let alert = CDAlertView(title: "Video Processing", message: "Please wait for the video to be analyzed.", type: .alarm)
+                    let doneAction = CDAlertViewAction(title: "Ok", font: nil, textColor: nil, backgroundColor: nil) { (_) -> Bool in
+                        //self.dismiss(animated: true, completion: nil)
+                        self.refreshProfileData()
+                        return true
+                    }
+                    alert.circleFillColor = Palette.darkPurple
+                    doneAction.buttonTextColor = Palette.darkPurple
+                    alert.add(action: doneAction)
+                    alert.show()
+                }
             }
         default:
             break

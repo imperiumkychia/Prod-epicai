@@ -27193,6 +27193,195 @@ public final class GetUserQuery: GraphQLQuery {
   }
 }
 
+public final class GetUserByEmailQuery: GraphQLQuery {
+  public static let operationString =
+    "query GetUserByEmail($email: String!) {\n  getUserByEmail(email: $email) {\n    __typename\n    user_uuid\n    email\n    first_name\n    last_name\n    username\n    vendor\n    vendor_uuid\n    image_url\n    gender\n    follow_count\n    follower_count\n    follow_status\n  }\n}"
+
+  public var email: String
+
+  public init(email: String) {
+    self.email = email
+  }
+
+  public var variables: GraphQLMap? {
+    return ["email": email]
+  }
+
+  public struct Data: GraphQLSelectionSet {
+    public static let possibleTypes = ["Query"]
+
+    public static let selections: [GraphQLSelection] = [
+      GraphQLField("getUserByEmail", arguments: ["email": GraphQLVariable("email")], type: .object(GetUserByEmail.selections)),
+    ]
+
+    public var snapshot: Snapshot
+
+    public init(snapshot: Snapshot) {
+      self.snapshot = snapshot
+    }
+
+    public init(getUserByEmail: GetUserByEmail? = nil) {
+      self.init(snapshot: ["__typename": "Query", "getUserByEmail": getUserByEmail.flatMap { $0.snapshot }])
+    }
+
+    public var getUserByEmail: GetUserByEmail? {
+      get {
+        return (snapshot["getUserByEmail"] as? Snapshot).flatMap { GetUserByEmail(snapshot: $0) }
+      }
+      set {
+        snapshot.updateValue(newValue?.snapshot, forKey: "getUserByEmail")
+      }
+    }
+
+    public struct GetUserByEmail: GraphQLSelectionSet {
+      public static let possibleTypes = ["user"]
+
+      public static let selections: [GraphQLSelection] = [
+        GraphQLField("__typename", type: .nonNull(.scalar(String.self))),
+        GraphQLField("user_uuid", type: .scalar(String.self)),
+        GraphQLField("email", type: .scalar(String.self)),
+        GraphQLField("first_name", type: .scalar(String.self)),
+        GraphQLField("last_name", type: .scalar(String.self)),
+        GraphQLField("username", type: .scalar(String.self)),
+        GraphQLField("vendor", type: .scalar(String.self)),
+        GraphQLField("vendor_uuid", type: .scalar(String.self)),
+        GraphQLField("image_url", type: .scalar(String.self)),
+        GraphQLField("gender", type: .scalar(String.self)),
+        GraphQLField("follow_count", type: .scalar(Int.self)),
+        GraphQLField("follower_count", type: .scalar(Int.self)),
+        GraphQLField("follow_status", type: .scalar(Int.self)),
+      ]
+
+      public var snapshot: Snapshot
+
+      public init(snapshot: Snapshot) {
+        self.snapshot = snapshot
+      }
+
+      public init(userUuid: String? = nil, email: String? = nil, firstName: String? = nil, lastName: String? = nil, username: String? = nil, vendor: String? = nil, vendorUuid: String? = nil, imageUrl: String? = nil, gender: String? = nil, followCount: Int? = nil, followerCount: Int? = nil, followStatus: Int? = nil) {
+        self.init(snapshot: ["__typename": "user", "user_uuid": userUuid, "email": email, "first_name": firstName, "last_name": lastName, "username": username, "vendor": vendor, "vendor_uuid": vendorUuid, "image_url": imageUrl, "gender": gender, "follow_count": followCount, "follower_count": followerCount, "follow_status": followStatus])
+      }
+
+      public var __typename: String {
+        get {
+          return snapshot["__typename"]! as! String
+        }
+        set {
+          snapshot.updateValue(newValue, forKey: "__typename")
+        }
+      }
+
+      public var userUuid: String? {
+        get {
+          return snapshot["user_uuid"] as? String
+        }
+        set {
+          snapshot.updateValue(newValue, forKey: "user_uuid")
+        }
+      }
+
+      public var email: String? {
+        get {
+          return snapshot["email"] as? String
+        }
+        set {
+          snapshot.updateValue(newValue, forKey: "email")
+        }
+      }
+
+      public var firstName: String? {
+        get {
+          return snapshot["first_name"] as? String
+        }
+        set {
+          snapshot.updateValue(newValue, forKey: "first_name")
+        }
+      }
+
+      public var lastName: String? {
+        get {
+          return snapshot["last_name"] as? String
+        }
+        set {
+          snapshot.updateValue(newValue, forKey: "last_name")
+        }
+      }
+
+      public var username: String? {
+        get {
+          return snapshot["username"] as? String
+        }
+        set {
+          snapshot.updateValue(newValue, forKey: "username")
+        }
+      }
+
+      public var vendor: String? {
+        get {
+          return snapshot["vendor"] as? String
+        }
+        set {
+          snapshot.updateValue(newValue, forKey: "vendor")
+        }
+      }
+
+      public var vendorUuid: String? {
+        get {
+          return snapshot["vendor_uuid"] as? String
+        }
+        set {
+          snapshot.updateValue(newValue, forKey: "vendor_uuid")
+        }
+      }
+
+      public var imageUrl: String? {
+        get {
+          return snapshot["image_url"] as? String
+        }
+        set {
+          snapshot.updateValue(newValue, forKey: "image_url")
+        }
+      }
+
+      public var gender: String? {
+        get {
+          return snapshot["gender"] as? String
+        }
+        set {
+          snapshot.updateValue(newValue, forKey: "gender")
+        }
+      }
+
+      public var followCount: Int? {
+        get {
+          return snapshot["follow_count"] as? Int
+        }
+        set {
+          snapshot.updateValue(newValue, forKey: "follow_count")
+        }
+      }
+
+      public var followerCount: Int? {
+        get {
+          return snapshot["follower_count"] as? Int
+        }
+        set {
+          snapshot.updateValue(newValue, forKey: "follower_count")
+        }
+      }
+
+      public var followStatus: Int? {
+        get {
+          return snapshot["follow_status"] as? Int
+        }
+        set {
+          snapshot.updateValue(newValue, forKey: "follow_status")
+        }
+      }
+    }
+  }
+}
+
 public final class ListUsersQuery: GraphQLQuery {
   public static let operationString =
     "query ListUsers {\n  listUsers {\n    __typename\n    user_uuid\n    email\n    first_name\n    last_name\n    username\n    vendor\n    vendor_uuid\n    image_url\n    gender\n    follow_count\n    follower_count\n    follow_status\n  }\n}"
@@ -37139,6 +37328,7 @@ public final class ListFollowedShareableVideoQuery: GraphQLQuery {
 public final class GetVideoRelationshipQuery: GraphQLQuery {
   public static let operationString =
     "query GetVideoRelationship($video_uuid: String!) {\n  getVideoRelationship(video_uuid: $video_uuid) {\n    __typename\n    video_uuid\n    datetime\n    video_name\n    video_size\n    video_info\n    path\n    share\n    video_duration\n    active\n    upload_status\n    analyse_status\n    title\n    longitude\n    latitude\n    share_video\n    status\n    user_uuid {\n      __typename\n      user_uuid\n      email\n      first_name\n      last_name\n      username\n      vendor\n      vendor_uuid\n      image_url\n      gender\n      follow_count {\n        __typename\n        follow_count\n      }\n      follower_count {\n        __typename\n        follower_count\n      }\n   }\n    bl_result {\n      __typename\n      bl_result_uuid\n      status\n      score\n      datetime\n      result_category_uuid {\n        __typename\n        result_category_uuid\n        category_name\n        type\n        subtype\n        description\n      }\n    }\n    tonality_result {\n      __typename\n      tonality_result_uuid\n      status\n      score\n      datetime\n      max_decibel\n      min_decibel\n      average_decibel\n    }\n    speed_result {\n      __typename\n      speed_result_uuid\n      status\n      score\n      datetime\n    }\n    fw_result {\n      __typename\n      fw_result_uuid\n      status\n      score\n      datetime\n      result_category_uuid {\n        __typename\n        result_category_uuid\n        category_name\n        type\n        subtype\n        description\n      }\n    }\n    tonality_result_detail {\n      __typename\n      tonality_result_detail_uuid\n      tonality_time\n      tonality_db\n      tonality_result_uuid {\n        __typename\n        tonality_result_uuid\n        status\n        score\n        datetime\n        max_decibel\n        min_decibel\n        average_decibel\n      }\n    }\n    ai_coach_body_language {\n      __typename\n      recommendation_uuid\n      library_uuid {\n        __typename\n        library_uuid\n        category\n        sub_category\n        name\n        score_type\n        weightage\n        score\n      }\n      s3_path\n      title\n      status\n    }\n    ai_coach_fillerwords {\n      __typename\n      recommendation_uuid\n      library_uuid {\n        __typename\n        library_uuid\n        category\n        sub_category\n        name\n        score_type\n        weightage\n        score\n      }\n      s3_path\n      title\n      status\n    }\n    ai_coach_speed {\n      __typename\n      recommendation_uuid\n      library_uuid {\n        __typename\n        library_uuid\n        category\n        sub_category\n        name\n        score_type\n        weightage\n        score\n      }\n      s3_path\n      title\n      status\n    }\n    ai_coach_tonality {\n      __typename\n      recommendation_uuid\n      library_uuid {\n        __typename\n        library_uuid\n        category\n        sub_category\n        name\n        score_type\n        weightage\n        score\n      }\n      s3_path\n      title\n      status\n    }\n    video_social_count {\n      __typename\n      likes_count\n      comments_count\n    }\n    previous_video {\n      __typename\n      video_uuid\n      datetime\n      video_name\n      video_size\n      video_info\n      path\n      share\n      video_duration\n      active\n      upload_status\n      analyse_status\n      title\n      longitude\n      latitude\n      share_video\n      status\n      bl_result {\n        __typename\n        bl_result_uuid\n        status\n        score\n        datetime\n        result_category_uuid {\n          __typename\n          result_category_uuid\n          category_name\n          type\n          subtype\n          description\n        }\n      }\n      tonality_result {\n        __typename\n        tonality_result_uuid\n        status\n        score\n        datetime\n        max_decibel\n        min_decibel\n        average_decibel\n      }\n      speed_result {\n        __typename\n        speed_result_uuid\n        status\n        score\n        datetime\n      }\n      fw_result {\n        __typename\n        fw_result_uuid\n        status\n        score\n        datetime\n        result_category_uuid {\n          __typename\n          result_category_uuid\n          category_name\n          type\n          subtype\n          description\n        }\n      }\n      tonality_result_detail {\n        __typename\n        tonality_result_detail_uuid\n        tonality_time\n        tonality_db\n        tonality_result_uuid {\n          __typename\n          tonality_result_uuid\n          status\n          score\n          datetime\n          max_decibel\n          min_decibel\n          average_decibel\n        }\n      }\n    }\n  }\n}"
+
 
   public var video_uuid: String
 

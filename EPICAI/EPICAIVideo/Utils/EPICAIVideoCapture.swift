@@ -480,6 +480,7 @@ extension EPICAIVideoCapture: AVCaptureVideoDataOutputSampleBufferDelegate, AVCa
             let power = sumOfSquaredSamples / Float(samples.count)
             decibels = 10*log10f(power);
         }
+        
         DispatchQueue.main.async {
             if decibels.isFinite && decibels > 0 {
                 //print("Decible power : \(String(decibels))")

@@ -320,7 +320,6 @@ class AuthService: NSObject {
     }
     
     func performSignInWithGoogle(in window: UIWindow) {
-        
         _ = Amplify.Auth.signInWithWebUI(for: .google, presentationAnchor: window, options: nil) { [weak self] result in
             switch result {
             case .success(_):
